@@ -298,7 +298,7 @@ export function ProductPage() {
               You might also like
             </h2>
             <Link
-              to={product.category === 'stickers' ? shopUrl({ category: 'stickers' }) : shopUrl({ category: 'posters' })}
+              to={product.category === 'stickers' ? shopUrl({ category: 'stickers', types: product.productType === 'single' ? ['single'] : undefined }) : shopUrl({ category: 'posters' })}
               className="hidden items-center gap-1 font-bold underline underline-offset-4 sm:flex"
             >
               {product.category === 'stickers' ? 'More Stickers' : 'More Posters'} <LuArrowRight aria-hidden />

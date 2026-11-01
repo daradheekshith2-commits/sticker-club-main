@@ -261,6 +261,7 @@ function getRandomDiverseProducts(
     (p) =>
       p.category === category &&
       isPurchasable(p) &&
+      (category === 'stickers' ? p.productType === 'single' : true) &&
       !EXCLUDED_SLUGS.has(p.slug) &&
       !EXCLUDED_SLUGS.has(p.id) &&
       !excludeIds.has(p.id)
@@ -314,7 +315,9 @@ function FeaturedRow({ category, eyebrow, title, linkLabel }: { category: Catego
   }, [products, category]);
 
   const itemLabel = category === 'stickers' ? 'stickers' : 'posters';
-  const availableCount = products.filter((p) => p.category === category && isPurchasable(p)).length;
+  const availableCount = products.filter(
+    (p) => p.category === category && isPurchasable(p) && (category === 'stickers' ? p.productType === 'single' : true)
+  ).length;
 
   const showRandomItems = () => {
     const currentIds = new Set(items.map((p) => p.id));
@@ -355,7 +358,7 @@ function FeaturedRow({ category, eyebrow, title, linkLabel }: { category: Catego
         </button>
       </div>
       <Link
-        to={shopUrl({ category })}
+        to={category === 'stickers' ? shopUrl({ category: 'stickers', types: ['single'] }) : shopUrl({ category })}
         className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[#5d9d8f] px-5 py-3 text-sm font-bold text-[#a8f0dc] transition hover:border-[#a8f0dc] hover:bg-[#a8f0dc] hover:text-[#03110f]"
       >
         {linkLabel} <LuArrowRight aria-hidden />

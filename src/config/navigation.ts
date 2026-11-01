@@ -30,7 +30,7 @@ export const megaMenus: MegaMenu[] = [
   {
     id: 'stickers',
     label: 'Stickers',
-    allLink: { label: 'All stickers', to: shopUrl({ category: 'stickers' }) },
+    allLink: { label: 'All stickers', to: shopUrl({ category: 'stickers', types: ['single'] }) },
     formats: [
       { label: 'Mini stickers', to: shopUrl({ types: ['single'] }), note: 'One design each' },
       { label: 'Sticker sheets', to: shopUrl({ types: ['sheet'] }), note: 'Many minis on one sheet' },

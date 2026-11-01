@@ -28,7 +28,7 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   const shopLinks = [
-    { label: 'All stickers', to: shopUrl({ category: 'stickers' }) },
+    { label: 'All stickers', to: shopUrl({ category: 'stickers', types: ['single'] }) },
     { label: 'Sticker sheets & packs', to: shopUrl({ types: ['sheet', 'pack'] }) },
     ...(brand.features.showPosters
       ? [
