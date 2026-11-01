@@ -19,7 +19,7 @@ function Wordmark() {
         <circle cx="32" cy="32" r="24" fill="#D4FF3A" />
         <path d="M40 16 L26 34 h9 l-5 14 l16 -19 h-9 z" fill="#121212" />
       </svg>
-      <span className="font-display text-lg leading-none font-extrabold tracking-tight whitespace-nowrap sm:text-xl">{brand.name}</span>
+      <span className="font-display text-lg leading-none font-extrabold tracking-tight whitespace-nowrap sm:text-xl">PIXWORA</span>
     </Link>
   );
 }

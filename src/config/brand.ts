@@ -14,9 +14,9 @@ export interface SocialLink {
 
 export const brand = {
   /** Shown in the header, footer and page titles. */
-  name: 'STICKER CLUB',
+  name: 'PIXWORA',
   /** Friendlier casing used inside sentences. */
-  displayName: 'Sticker Club',
+  displayName: 'Pixwora',
   tagline: 'Stick it. Hang it. Own it.',
   description:
     'Original stickers and posters for students: mini stickers, sticker sheets, themed packs, wall posters and ready-made wall packs.',
