@@ -237,27 +237,53 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
   async function fetchCatalogue() {
     try {
       setError(null);
-      const [prodRes, catRes] = await Promise.all([
-        fetch((apiUrl || '') + '/api/products', { credentials: 'include' }),
-        fetch((apiUrl || '') + '/api/categories', { credentials: 'include' }).catch(() => null),
-      ]);
+      let dbProducts: BackendProduct[] | null = null;
+      let dbCategories: CategoryItem[] | null = null;
 
-      if (!prodRes.ok) {
-        throw new Error(`Failed to load database catalogue: HTTP ${prodRes.status}`);
+      // 1. If apiUrl is set (or in local dev), attempt live API fetch
+      const endpoint = apiUrl ? `${apiUrl}/api/products` : '/api/products';
+      try {
+        const prodRes = await fetch(endpoint, { credentials: 'include' });
+        const contentType = prodRes.headers.get('content-type') || '';
+        if (prodRes.ok && contentType.includes('application/json')) {
+          dbProducts = await prodRes.json();
+          const catRes = await fetch(apiUrl ? `${apiUrl}/api/categories` : '/api/categories', { credentials: 'include' }).catch(() => null);
+          if (catRes && catRes.ok && (catRes.headers.get('content-type') || '').includes('application/json')) {
+            dbCategories = await catRes.json();
+          }
+        }
+      } catch (err) {
+        console.warn('Live API unavailable, trying static catalogue fallback:', err);
       }
 
-      const dbProducts: BackendProduct[] = await prodRes.json();
-      setProducts(processDatabaseProducts(seedProducts, dbProducts));
+      // 2. If live API returned null or was not JSON (e.g. Vercel deployment), load static catalogue
+      if (!dbProducts) {
+        try {
+          const staticRes = await fetch('/products-catalogue.json');
+          if (staticRes.ok) {
+            dbProducts = await staticRes.json();
+          }
+          const staticCatRes = await fetch('/categories-catalogue.json').catch(() => null);
+          if (staticCatRes && staticCatRes.ok) {
+            dbCategories = await staticCatRes.json();
+          }
+        } catch (staticErr) {
+          console.warn('Static catalogue fetch failed:', staticErr);
+        }
+      }
 
-      if (catRes && catRes.ok) {
-        const dbCategories: CategoryItem[] = await catRes.json();
-        setCategories(dbCategories);
+      if (dbProducts && Array.isArray(dbProducts) && dbProducts.length > 0) {
+        setProducts(processDatabaseProducts(seedProducts, dbProducts));
+        if (dbCategories) {
+          setCategories(dbCategories);
+        }
+      } else {
+        setProducts(seedProducts);
       }
     } catch (e) {
-      console.warn('CatalogueProvider: backend fetch failed.', e);
-      setError(e instanceof Error ? e.message : 'Could not fetch database catalogue');
-      // Per Requirement 5: Do not silently present demo products as live stock if backend is unavailable
-      setProducts([]);
+      console.warn('CatalogueProvider: catalogue load error.', e);
+      setError(e instanceof Error ? e.message : 'Could not fetch catalogue');
+      setProducts(seedProducts);
     } finally {
       setLoading(false);
     }

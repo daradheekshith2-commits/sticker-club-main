@@ -6,7 +6,8 @@
   "scripts": {
     "predev": "node scripts/generate-hero-sticker-manifest.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/generate-hero-sticker-manifest.mjs && node scripts/check-art-paths.mjs",
+    "prebuild": "node scripts/generate-hero-sticker-manifest.mjs && node scripts/check-art-paths.mjs && node scripts/export-catalogue.mjs",
+    "export:catalogue": "node scripts/export-catalogue.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
