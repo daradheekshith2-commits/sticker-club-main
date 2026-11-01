@@ -1,0 +1,83 @@
+name: Development branch checks
+
+on:
+  push:
+    branches:
+      - design/category-cards-reference-20261030
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend TypeScript, tests and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+  backend:
+    name: Backend compilation and Prisma validation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx prisma validate
+        env:
+          DATABASE_URL: postgresql://example:example@127.0.0.1:5432/stickerclub?schema=public
+      - run: npm run db:generate
+        env:
+          DATABASE_URL: postgresql://example:example@127.0.0.1:5432/stickerclub?schema=public
+      - run: npm run build
+
+  database:
+    name: Clean PostgreSQL migration and catalogue seed
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: stickerclub
+          POSTGRES_PASSWORD: integration_only_password
+          POSTGRES_DB: stickerclub
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U stickerclub -d stickerclub"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: postgresql://stickerclub:integration_only_password@localhost:5432/stickerclub?schema=public
+      JWT_SECRET: not-a-real-secret-used-only-for-disposable-ci-database
+      FRONTEND_ORIGIN: http://localhost:5173
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run db:generate
+      - run: npx prisma migrate deploy
+      - run: npm run db:seed
+      - run: npx prisma migrate status
+      - run: npm test
+        env:
+          TEST_DATABASE_IS_DISPOSABLE: "yes"
