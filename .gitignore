@@ -17,3 +17,5 @@ test-results/
 .agents/
 skills-lock.json
 supabase/.temp/
+
+.vercel
