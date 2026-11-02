@@ -136,7 +136,7 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
       ? [...dbP.images]
           .sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0) || a.position - b.position)
           .map((img) => {
-            const raw = img.url;
+            const raw = img.url || (img as any).src || '';
             const src = raw.startsWith('http') || !apiUrl ? raw : `${apiUrl}${raw.startsWith('/') ? '' : '/'}${raw}`;
             return {
               src,
@@ -265,12 +265,29 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
       // 2. Try direct Supabase catalogue if live API is unavailable
       if (!loaded && isSupabaseConfigured) {
         try {
-          const { data: supaProducts, error: supaErr } = await supabase
-            .from('Product')
-            .select('*, inventory:Inventory(quantity), images:ProductImage(*), categories:ProductCategory(*), variants:ProductVariant(*)');
+          let allProducts: any[] = [];
+          let from = 0;
+          const step = 1000;
+          let fetchErr: any = null;
 
-          if (!supaErr && supaProducts && supaProducts.length > 0) {
-            setProducts(processDatabaseProducts(seedProducts, supaProducts as any));
+          while (true) {
+            const { data: chunk, error: supaErr } = await supabase
+              .from('Product')
+              .select('*, inventory:Inventory(quantity), images:ProductImage(*), categories:ProductCategory(*), variants:ProductVariant(*)')
+              .range(from, from + step - 1);
+
+            if (supaErr) {
+              fetchErr = supaErr;
+              break;
+            }
+            if (!chunk || chunk.length === 0) break;
+            allProducts = allProducts.concat(chunk);
+            if (chunk.length < step) break;
+            from += step;
+          }
+
+          if (!fetchErr && allProducts.length > 0) {
+            setProducts(processDatabaseProducts(seedProducts, allProducts as any));
             const { data: supaCats } = await supabase.from('Category').select('*').order('displayOrder', { ascending: true });
             if (supaCats && supaCats.length > 0) {
               setCategories(supaCats);
