@@ -1,6 +1,6 @@
 import { products } from '../data/products';
 import { packEligibleRarities } from '../data/packBuilder';
-import { rarityTiers, series } from '../data/rarity';
+import { legacySeries, rarityTiers, series } from '../data/rarity';
 import type { RarityId } from '../types/collectible';
 import type { Product, StickerDesign } from '../types/product';
 import { isPurchasable } from './catalogue';
@@ -20,13 +20,26 @@ export function designOf(p: Product): StickerDesign | undefined {
  * the series' purchasable Common/Uncommon single stickers.
  */
 export function mysteryPool(seriesId: string, list: Product[] = products): Product[] {
+  const norm = seriesId.toLowerCase();
   return list.filter(
-    (p) => p.seriesId === seriesId && p.productType === 'single' && isPurchasable(p) && (p.rarity === 'common' || p.rarity === 'uncommon'),
+    (p) =>
+      p.productType === 'single' &&
+      isPurchasable(p) &&
+      (p.rarity === 'common' || p.rarity === 'uncommon') &&
+      (p.seriesId?.toLowerCase() === norm ||
+       p.collections?.some((c) => c.toLowerCase() === norm) ||
+       (norm === 'anime' && (p.seriesId === 'S05' || p.collections?.includes('anime'))) ||
+       (norm === 'movies' && (p.seriesId === 'S05' || p.collections?.includes('movies'))) ||
+       (norm === 'quotes' && (p.seriesId === 'S04' || p.collections?.includes('quotes'))) ||
+       (norm === 'marvel' && (p.seriesId === 'S05' || p.collections?.includes('marvel'))) ||
+       (norm === 'cute' && (p.seriesId === 'S03' || p.collections?.includes('cute'))) ||
+       (norm === 'gaming' && (p.seriesId === 'S04' || p.collections?.includes('gaming')))),
   );
 }
 
-/** The series id behind a mystery-pack theme variant, e.g. 's01' → 'S01'. */
-export const seriesIdForVariant = (variantId: string | undefined) => series.find((s) => s.id.toLowerCase() === variantId)?.id;
+/** The series id behind a mystery-pack theme variant, e.g. 'anime' → 'anime'. */
+export const seriesIdForVariant = (variantId: string | undefined) =>
+  series.find((s) => s.id.toLowerCase() === variantId)?.id || legacySeries.find((s) => s.id.toLowerCase() === variantId)?.id;
 
 /** Products a customer can put in a Build Your Own Pack. */
 export function packEligibleProducts(list: Product[] = products): Product[] {

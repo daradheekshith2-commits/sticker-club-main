@@ -2,6 +2,8 @@
  * COLLECTOR PASSPORT REWARDS — Live order-linked rewards API.
  */
 import { apiUrl } from '../context/AuthContext';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { handleSupabaseRequest } from '../lib/supabaseAdapter';
 
 export interface PassportRecord {
   rule: {
@@ -46,6 +48,14 @@ export interface RewardsApi {
 export const rewardsApi: RewardsApi = {
   connected: true,
   async getPassport(token?: string | null): Promise<PassportRecord | null> {
+    if (isSupabaseConfigured) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user ? { id: sessionData.session.user.id, name: '', email: sessionData.session.user.email || '', role: 'CUSTOMER' as const } : null;
+      if (user) {
+        const res = await handleSupabaseRequest<PassportRecord>('/api/me/passport', { method: 'GET' }, user);
+        if (res.handled && res.data) return res.data;
+      }
+    }
     try {
       const headers: Record<string, string> = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -62,6 +72,16 @@ export const rewardsApi: RewardsApi = {
     return null;
   },
   async redeemReward(token?: string | null): Promise<{ ok: boolean; message: string }> {
+    if (isSupabaseConfigured) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user ? { id: sessionData.session.user.id, name: '', email: sessionData.session.user.email || '', role: 'CUSTOMER' as const } : null;
+      if (!user) return { ok: false, message: 'Sign in required to redeem rewards' };
+      const res = await handleSupabaseRequest<{ ok: boolean; message: string }>('/api/me/passport/redeem', { method: 'POST' }, user);
+      if (res.handled) {
+        if (res.error) return { ok: false, message: res.error };
+        return { ok: true, message: res.data?.message || 'Reward redemption submitted successfully!' };
+      }
+    }
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;

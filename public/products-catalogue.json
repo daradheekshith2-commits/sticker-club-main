@@ -293,34 +293,52 @@
     ],
     "variants": [
       {
-        "productId": "mys-001",
-        "id": "s01",
-        "label": "Series S01 — Chai, Code & Canteen",
-        "price": "129"
+        "id": "anime",
+        "label": "Anime — Expressive & Collectible",
+        "price": "129.00",
+        "productId": "mys-001"
       },
       {
-        "productId": "mys-001",
-        "id": "s02",
-        "label": "Series S02 — Tech, Terminal & Bug",
-        "price": "129"
+        "id": "movies",
+        "label": "Movies — Cinema & Interval Vibes",
+        "price": "129.00",
+        "productId": "mys-001"
       },
       {
-        "productId": "mys-001",
-        "id": "s03",
-        "label": "Series S03 — Soft Days & Slow Hours",
-        "price": "129"
+        "id": "quotes",
+        "label": "Cars & Bikes — Track Day & Racing",
+        "price": "129.00",
+        "productId": "mys-001"
       },
       {
-        "productId": "mys-001",
-        "id": "s04",
-        "label": "Series S04 — Track Day & Redline",
-        "price": "129"
+        "id": "marvel",
+        "label": "Marvel — Superhero Universe",
+        "price": "129.00",
+        "productId": "mys-001"
       },
       {
-        "productId": "mys-001",
-        "id": "s05",
-        "label": "Series S05 — Cinema, Popcorn & Heroes",
-        "price": "129"
+        "id": "cute",
+        "label": "Cute & Aesthetic — Soft Clouds & Pastel",
+        "price": "129.00",
+        "productId": "mys-001"
+      },
+      {
+        "id": "gaming",
+        "label": "Gaming-Inspired — Pixel Art & Controllers",
+        "price": "129.00",
+        "productId": "mys-001"
+      },
+      {
+        "id": "devotion",
+        "label": "Devotion — Spiritual & Sacred Deities",
+        "price": "129.00",
+        "productId": "mys-001"
+      },
+      {
+        "id": "sports",
+        "label": "Sports — Championship & Athletic Energy",
+        "price": "129.00",
+        "productId": "mys-001"
       }
     ],
     "collections": [

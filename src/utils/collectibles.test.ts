@@ -16,11 +16,13 @@ test('mystery pack: 5 guaranteed + 1 mystery, one theme per series', () => {
   assert.equal(mystery.mystery!.mysteryCount, 1);
   assert.equal(getPackQuantity(mystery), 6, 'pack size matches 5 + 1');
   assert.equal(mystery.variantLabel, 'Theme');
-  assert.deepEqual(mystery.variants!.map((v) => seriesIdForVariant(v.id)), series.map((s) => s.id));
+  const mysteryThemes = series.filter((s) => !s.id.startsWith('S0'));
+  assert.deepEqual(mystery.variants!.map((v) => seriesIdForVariant(v.id)), mysteryThemes.map((s) => s.id));
 });
 
 test('mystery pack: every theme has enough designs for the guarantee', () => {
-  for (const s of series) {
+  const mysteryThemes = series.filter((s) => !s.id.startsWith('S0'));
+  for (const s of mysteryThemes) {
     const pool = mysteryPool(s.id);
     assert.ok(pool.length >= mystery.mystery!.guaranteedCount, `${s.id} has only ${pool.length}`);
     assert.ok(pool.every((p) => p.rarity === 'common' || p.rarity === 'uncommon'));

@@ -49,7 +49,8 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
   const { lines, removeItem } = useCart();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selected, setSelected] = useState('');
-  const [newAddress, setNewAddress] = useState({ recipient: '', line1: '', city: 'Hyderabad', state: 'Telangana', postalCode: '' });
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [newAddress, setNewAddress] = useState({ recipient: '', phone: '', line1: '', city: 'Hyderabad', state: 'Telangana', postalCode: '' });
   const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'COD'>('UPI');
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig | null>(null);
   const [saving, setSaving] = useState(false);
@@ -59,12 +60,19 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
   const [preview, setPreview] = useState<ServerCart | null>(null);
   const [copiedUpi, setCopiedUpi] = useState(false);
 
+  // Sync user phone if loaded after mount
+  useEffect(() => {
+    if (user?.phone && !phone) {
+      setPhone(user.phone);
+    }
+  }, [user?.phone]);
+
   // Stable idempotency key: stays constant across retries of the same purchase attempt
   const [purchaseAttemptKey, setPurchaseAttemptKey] = useState(() => crypto.randomUUID());
   useEffect(() => {
     // Generate fresh key only when purchase parameters change
     setPurchaseAttemptKey(crypto.randomUUID());
-  }, [selected, paymentMethod, lines.length]);
+  }, [selected, paymentMethod, lines.length, phone]);
 
   // UTR submission state on receipt
   const [utrInput, setUtrInput] = useState('');
@@ -103,7 +111,10 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
       });
       setAddresses((a) => [...a, saved]);
       setSelected(saved.id);
-      setNewAddress({ recipient: '', line1: '', city: 'Hyderabad', state: 'Telangana', postalCode: '' });
+      if (newAddress.phone && !phone) {
+        setPhone(newAddress.phone);
+      }
+      setNewAddress({ recipient: '', phone: '', line1: '', city: 'Hyderabad', state: 'Telangana', postalCode: '' });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save address');
     } finally {
@@ -122,6 +133,11 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
 
   async function prepare() {
     if (!user || (!standard.length && !customLinesInCart.length)) return;
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (!phoneDigits || phoneDigits.length < 10) {
+      setError('Please enter a valid 10-digit phone number for delivery updates before reviewing prices.');
+      return;
+    }
     setWorking(true);
     setError('');
     setPreview(null);
@@ -149,6 +165,11 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
 
   async function place() {
     if (!selected || !preview || working) return;
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (!phoneDigits || phoneDigits.length < 10) {
+      setError('Please enter a valid 10-digit phone number for delivery contact.');
+      return;
+    }
     setWorking(true);
     setError('');
     try {
@@ -210,6 +231,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
         headers: { 'Idempotency-Key': purchaseAttemptKey },
         body: JSON.stringify({
           addressId: selected,
+          phone: phone.trim(),
           paymentMethod,
           clearServerCart: standard.length === 0,
           customLines: preparedCustomLines.length > 0 ? preparedCustomLines : undefined,
@@ -307,6 +329,12 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
             <span className="text-ink-soft">Payment Method:</span>
             <strong>{isUpi ? 'UPI' : 'Cash on Delivery (COD)'}</strong>
           </div>
+          {phone && (
+            <div className="flex justify-between pt-1">
+              <span className="text-ink-soft">Contact Phone:</span>
+              <strong className="font-mono text-ink">📞 {phone}</strong>
+            </div>
+          )}
         </div>
 
         {isUpi && !isPaid && (
@@ -498,11 +526,52 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
             value={newAddress.postalCode}
             onChange={(e) => setNewAddress((a) => ({ ...a, postalCode: e.target.value }))}
           />
+          <input
+            className="field-input"
+            aria-label="Contact phone number"
+            placeholder="Contact phone number (10 digits)"
+            type="tel"
+            maxLength={15}
+            value={newAddress.phone}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^\d\s+-]/g, '');
+              setNewAddress((a) => ({ ...a, phone: val }));
+              if (!phone) setPhone(val);
+            }}
+          />
           <button className="btn-ghost" type="submit" disabled={saving}>
             {saving ? 'Saving…' : 'Save address'}
           </button>
         </form>
       </details>
+
+      {/* Contact Phone Number Input */}
+      <div className="mt-5 rounded-2xl border border-ink/15 bg-paper/30 p-4">
+        <label className="block text-sm font-bold text-ink">
+          <span>Contact Phone Number</span> <span className="text-danger">*</span>
+          <span className="block mt-0.5 text-xs font-normal text-ink-soft">
+            Required for order delivery, courier coordination, and status updates.
+          </span>
+          <div className="mt-2 flex rounded-xl border border-ink/20 bg-white focus-within:border-lime focus-within:ring-2 focus-within:ring-lime/20 overflow-hidden shadow-sm">
+            <span className="flex items-center bg-paper px-3.5 text-sm font-semibold text-ink-soft border-r border-ink/15 select-none">
+              🇮🇳 +91
+            </span>
+            <input
+              type="tel"
+              required
+              placeholder="e.g. 9876543210"
+              maxLength={15}
+              className="w-full px-3 py-2.5 text-sm font-medium text-ink focus:outline-none placeholder:text-ink-soft/60"
+              value={phone}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^\d\s+-]/g, '');
+                setPhone(val);
+                setError('');
+              }}
+            />
+          </div>
+        </label>
+      </div>
 
       {/* Payment Method Selection */}
       <div className="mt-5">
@@ -553,7 +622,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
           type="button"
           className="btn-primary mt-6 w-full"
           onClick={() => void prepare()}
-          disabled={working || !selected || (standard.length === 0 && customLinesInCart.length === 0)}
+          disabled={working || !selected || (standard.length === 0 && customLinesInCart.length === 0) || !phone.trim()}
         >
           {working ? 'Checking database…' : 'Review Server Prices & Availability'}
         </button>
@@ -612,7 +681,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
             type="button"
             className="btn-primary mt-5 w-full"
             onClick={() => void place()}
-            disabled={working || !selected || paymentConfig?.deliveryFee === null}
+            disabled={working || !selected || paymentConfig?.deliveryFee === null || !phone.trim()}
           >
             {working ? 'Placing order…' : `Place Order with ${paymentMethod} (₹${totalEstimate.toFixed(2)})`}
           </button>

@@ -158,13 +158,16 @@ export function filterAndSort(f: CatalogueFilters, list: Product[] = allProducts
  * 4. Other active products of the same category fallback (weight: 10)
  */
 export function getRelatedProducts(product: Product, limit = 4, list: Product[] = allProducts): Product[] {
+  const prodColls = product.collections || [];
+  const prodTags = product.tags || [];
   return list
-    .filter((p) => p.id !== product.id && p.category === product.category && isPurchasable(p))
+    .filter((p) => p && p.id !== product.id && p.category === product.category && isPurchasable(p))
     .map((p) => {
       let score = 0;
       const sameType = p.productType === product.productType;
       const sameSeries = product.seriesId && p.seriesId === product.seriesId;
-      const sharedColls = p.collections.filter((c) => product.collections.includes(c)).length;
+      const pColls = p.collections || [];
+      const sharedColls = pColls.filter((c) => prodColls.includes(c)).length;
 
       // Tier 1: Same product type and same collection or series
       if (sameType && (sameSeries || sharedColls > 0)) {
@@ -174,7 +177,8 @@ export function getRelatedProducts(product: Product, limit = 4, list: Product[] 
       }
 
       // Tier 2: Same product type and matching tags
-      const sharedTags = p.tags.filter((t) => product.tags.includes(t)).length;
+      const pTags = p.tags || [];
+      const sharedTags = pTags.filter((t) => prodTags.includes(t)).length;
       if (sameType && sharedTags > 0) {
         score += 50 + (sharedTags * 5);
       } else if (sharedTags > 0) {
@@ -243,15 +247,15 @@ export function filtersFromParams(params: URLSearchParams): CatalogueFilters {
   };
 }
 
-export function paramsFromFilters(f: CatalogueFilters): URLSearchParams {
+export function paramsFromFilters(f: Partial<CatalogueFilters>): URLSearchParams {
   const p = new URLSearchParams();
-  if (f.query.trim()) p.set('q', f.query.trim());
+  if (f.query && f.query.trim()) p.set('q', f.query.trim());
   if (f.category) p.set('category', f.category);
-  if (f.types.length) p.set('type', f.types.join(','));
-  if (f.collections.length) p.set('vibe', f.collections.join(','));
+  if (f.types && f.types.length) p.set('type', f.types.join(','));
+  if (f.collections && f.collections.length) p.set('vibe', f.collections.join(','));
   if (f.price) p.set('price', f.price);
-  if (f.sizes.length) p.set('size', f.sizes.join(','));
-  if (f.sort !== 'featured') p.set('sort', f.sort);
+  if (f.sizes && f.sizes.length) p.set('size', f.sizes.join(','));
+  if (f.sort && f.sort !== 'featured') p.set('sort', f.sort);
   return p;
 }
 

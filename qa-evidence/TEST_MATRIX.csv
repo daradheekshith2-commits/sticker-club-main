@@ -1,0 +1,54 @@
+Domain,TestID,Description,Route_or_Component,Role,Backend_Target,Viewport,Test_Method,Result,Notes
+Auth,AUTH-01,Customer Registration with valid email & password,/auth?mode=register,ANONYMOUS,Supabase,Desktop,Playwright Automated,PASS,Created synthetic Persona 01; record persisted in auth.users
+Auth,AUTH-02,Registration duplicate email rejection,/auth?mode=register,ANONYMOUS,Supabase,Desktop,API & Browser,PASS,Duplicate email correctly raises 422/duplicate error
+Auth,AUTH-03,Weak password rejected (min length & complexity),/auth?mode=register,ANONYMOUS,Supabase,Desktop,Playwright Automated,PASS,Client & server validation enforce minimum security
+Auth,AUTH-04,Correct Customer login & session establishment,/auth?mode=login,CUSTOMER,Supabase,Desktop,Playwright Automated,PASS,JWT tokens issued and stored in localStorage
+Auth,AUTH-05,Invalid login credentials rejection,/auth?mode=login,ANONYMOUS,Supabase,Desktop,Playwright Automated,PASS,Displays 'Invalid login credentials' banner
+Auth,AUTH-06,Customer attempting Admin UI access redirected,/admin,CUSTOMER,Supabase,Desktop,Playwright Automated,PASS,Non-admin redirected to /account
+Auth,AUTH-07,Session persistence across browser reload,/account,CUSTOMER,Supabase,Desktop,Playwright Automated,PASS,AuthContext successfully restores user session from storage
+Auth,AUTH-08,Logout terminates session & clears storage,/account,CUSTOMER,Supabase,Desktop,Playwright Automated,PASS,Tokens cleared; protected routes become inaccessible
+Auth,AUTH-09,Browser back button after logout,/account,ANONYMOUS,Supabase,Desktop,Playwright Automated,PASS,Protected account views redirect to login
+Auth,AUTH-10,Multi-session isolation between tabs,/account,CUSTOMER,Supabase,Desktop,Playwright Automated,PASS,Session state synced via storage events
+Security,SEC-01,Privilege Escalation via user_metadata.role,/auth?mode=register,ANONYMOUS,Supabase,Headless API,PASS,FIXED: handle_new_user trigger strictly ignores user_metadata.role
+Security,SEC-02,Direct PostgREST Payment update by customer,/api/payments,CUSTOMER,Supabase,Headless API,PASS,FIXED: RLS WITH CHECK and protect_payment_updates trigger block customer VERIFIED updates
+Security,SEC-03,Cross-user Order & Address read isolation,/account,CUSTOMER,Supabase,Headless API,PASS,Persona 01 cannot read Persona 02 addresses or orders
+Security,SEC-04,Client-Authoritative custom item pricing,/checkout,CUSTOMER,Supabase,Headless API,PASS,FIXED: supabaseAdapter calculates authoritative pricing using pure sizing functions
+Storefront,STORE-01,Homepage hero mosaic & collection links,/,ANONYMOUS,Supabase,Desktop (1440x900),Playwright Automated,PASS,All 116 hero sticker images and banners load
+Storefront,STORE-02,Homepage responsive layout on Tablet,/,ANONYMOUS,Supabase,Tablet (768x1024),Playwright Automated,PASS,Screenshot: 01-homepage-tablet.png
+Storefront,STORE-03,Homepage responsive layout on Mobile,/,ANONYMOUS,Supabase,Mobile (390x844),Playwright Automated,PASS,Screenshot: 01-homepage-mobile.png
+Storefront,STORE-04,Shop catalogue search & filtering,/shop,ANONYMOUS,Supabase,Desktop,Playwright Automated,PASS,Search by keyword, type filter, price band filter
+Storefront,STORE-05,Product Detail Page rendering & variants,/product/:slug,ANONYMOUS,Supabase,Desktop,Playwright Automated,PASS,Fixed BUG-03: handles undefined filter arrays safely
+Storefront,STORE-06,Product purchasability check,/product/:slug,ANONYMOUS,Supabase,Desktop,Playwright Automated,PASS,Fixed BUG-02: PUBLISHED products now show 'Add to cart'
+Storefront,STORE-07,Collectibles & Rare Series browsing,/collectibles,ANONYMOUS,Supabase,Desktop,Playwright Automated,PASS,Guaranteed items & mystery packs render properly
+Storefront,STORE-08,Secret Messages & matching duos,/duos,ANONYMOUS,Supabase,Desktop,Playwright Automated,PASS,Two-part items display correctly
+Cart,CART-01,Add standard product to cart,/shop,ANONYMOUS,Supabase,Desktop,Playwright Automated,PASS,Cart quantity increments; badge updates in header
+Cart,CART-02,Poster variant sizes remain distinct,/product/:slug,CUSTOMER,Supabase,Desktop,Unit & E2E,PASS,A4 and A3 sizes of same artwork kept as distinct lines
+Cart,CART-03,Quantity increment, decrement, and limit clamping,/cart,CUSTOMER,Supabase,Desktop,Unit & E2E,PASS,Clamps within stock limits; 0 quantity removes line
+Cart,CART-04,Guest cart merges on customer login,/auth?mode=login,CUSTOMER,Supabase,Desktop,Playwright Automated,PASS,Guest cart merged with stored user cart
+Cart,CART-05,Cart persistence across page refresh,/cart,CUSTOMER,Supabase,Desktop,Playwright Automated,PASS,Stored cart restores accurately from localStorage
+Cart,CART-06,No cart leakage between separate personas,/cart,CUSTOMER,Supabase,Desktop,Playwright Automated,PASS,Personas 02 and 03 maintain completely isolated carts
+Checkout,CHK-01,Checkout with UPI & Payment Reference (UTR),/checkout,CUSTOMER (Persona 04),Supabase,Desktop,Playwright Automated,PASS,Order cccadc9d placed; Payment record created
+Checkout,CHK-02,Checkout with Cash on Delivery (COD),/checkout,CUSTOMER (Persona 05),Supabase,Desktop,Playwright Automated,PASS,Order 79e83f6c placed; Payment COD record created
+Checkout,CHK-03,Delivery address validation (Phone & PIN),/checkout,CUSTOMER,Supabase,Desktop,Playwright Automated,PASS,Rejects non-6-digit PIN and invalid phone numbers
+Checkout,CHK-04,Server price recalculation on checkout,/checkout,CUSTOMER,Supabase,Desktop,E2E & API,PASS,Authoritative catalog price and ₹10 delivery fee applied
+Checkout,CHK-05,Double-click / double submission prevention,/checkout,CUSTOMER,Supabase,Desktop,Playwright Automated,PASS,Button disables during submission (busy state)
+Checkout,CHK-06,Database persistence of Order, Item, Payment,Database,CUSTOMER,Supabase,Database Inspection,PASS,Verified rows in Order, OrderItem, and Payment tables
+Custom,CUST-01,Custom sticker shape/finish/preview,/custom/sticker,CUSTOMER (Persona 06),Supabase,Desktop,Playwright Automated,PASS,Preview, die-cut shape, and finish selection verified
+Custom,CUST-02,Custom wall builder layout presets,/custom/wall,CUSTOMER (Persona 07),Supabase,Desktop,Playwright Automated,PASS,Screenshot: 10-persona07-build-wall.png
+Custom,CUST-03,Build-your-own sticker pack selector,/packs/builder,CUSTOMER (Persona 07),Supabase,Desktop,Playwright Automated,PASS,Screenshot: 11-persona07-build-pack.png
+Custom,CUST-04,Image upload file validation (MIME/size),/custom/sticker,CUSTOMER,Supabase,Desktop,Unit & E2E,PASS,Rejects unsupported formats and empty/oversized files
+Community,COMM-01,Community proposal voting,/vote,CUSTOMER (Persona 08),Supabase,Desktop,Playwright Automated,PASS,Screenshot: 12-persona08-voting.png
+Community,COMM-02,Passport rewards & stamp inspection,/passport,CUSTOMER (Persona 08),Supabase,Desktop,Playwright Automated,PASS,Screenshot: 13-persona08-passport.png
+Admin,ADM-01,Admin authentication with Store Admin account,/admin/login,ADMIN (Persona 09),Supabase,Desktop,Playwright Automated,PASS,Access granted to /admin dashboard
+Admin,ADM-02,Admin Orders panel order list rendering,/admin,ADMIN,Supabase,Desktop,Playwright Automated,PASS,Screenshot: 15-admin-orders-tab.png
+Admin,ADM-03,Admin order status transition ('Mark confirmed'),/admin,ADMIN,Supabase,Desktop,Playwright Automated,PASS,Fixed BUG-01: Order 79e83f6c updated to CONFIRMED
+Admin,ADM-04,Admin order cancellation ('Mark cancelled'),/admin,ADMIN,Supabase,Desktop,Playwright Automated,PASS,Fixed BUG-01: Order 79e83f6c updated to CANCELLED; stock restored
+Admin,ADM-05,Admin COD collection ('Mark COD Collected'),/admin,ADMIN,Supabase,Desktop,Playwright Automated,PASS,Fixed BUG-01: Order 21b057b6 marked PAID & COMPLETED
+Admin,ADM-06,Admin UPI payment verification ('Verify UPI Payment'),/admin,ADMIN,Supabase,Desktop,Playwright Automated,PASS,Payment verified; CustomerStamp awarded
+Admin,ADM-07,Admin Customers tab rendering,/admin,ADMIN,Supabase,Desktop,Playwright Automated,PASS,Screenshot: 16-admin-customers-tab.png
+Admin,ADM-08,Admin Products catalogue tab rendering,/admin,ADMIN,Supabase,Desktop,Playwright Automated,PASS,Screenshot: 17-admin-products-tab.png
+Admin,ADM-09,Admin Inventory management tab rendering,/admin,ADMIN,Supabase,Desktop,Playwright Automated,PASS,Screenshot: 18-admin-inventory-tab.png
+Admin,ADM-10,Admin Passport & Rewards tab rendering,/admin,ADMIN,Supabase,Desktop,Playwright Automated,PASS,Screenshot: 19-admin-passport-tab.png
+Admin,ADM-11,Dual Admin concurrency & state consistency,/admin,ADMIN (Personas 09 & 10),Supabase,Desktop,Playwright Automated,PASS,Both admins observe consistent order & customer state
+Concurrency,CONC-01,Concurrent checkouts on limited stock,/checkout,CUSTOMER,Supabase,API Concurrency,PASS,FIXED: Inventory_quantity_check and deduct_inventory_on_order_item trigger block overselling with row locks
+Backend,BEND-01,Express Backend build & unit test suite,backend/,SERVER,Express / Prisma,CLI,npm test,PASS,7 test suites passed (Phases 1, 2, 3, 4, 6, 7 and E2E)

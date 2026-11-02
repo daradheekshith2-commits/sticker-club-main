@@ -1,0 +1,69 @@
+[2026-11-02T18:06:37.472Z] Starting Master QA Execution for Run ID: qa_20261102_run01 
+[2026-11-02T18:06:37.594Z] --- PHASE 1: Architecture & Storefront Navigation (Persona 00) --- 
+[2026-11-02T18:06:43.264Z] TEST [PASS]: Storefront -> Homepage Load & Title Check 
+[2026-11-02T18:06:43.595Z] TEST [PASS]: Responsive -> Homepage Tablet & Mobile Viewports 
+[2026-11-02T18:06:44.254Z] TEST [PASS]: Storefront Navigation -> Shop Catalogue 
+[2026-11-02T18:06:44.873Z] TEST [PASS]: Storefront Navigation -> Vibes Page 
+[2026-11-02T18:06:45.504Z] TEST [PASS]: Storefront Navigation -> Collectibles Page 
+[2026-11-02T18:06:46.176Z] TEST [PASS]: Storefront Navigation -> Matching Duos 
+[2026-11-02T18:06:46.827Z] TEST [PASS]: Storefront Navigation -> Secret Messages 
+[2026-11-02T18:06:47.575Z] TEST [PASS]: Storefront Navigation -> Rare Collections 
+[2026-11-02T18:06:48.241Z] TEST [PASS]: Storefront Navigation -> Passport & Rewards 
+[2026-11-02T18:06:48.941Z] TEST [PASS]: Storefront Navigation -> Drop Voting 
+[2026-11-02T18:06:49.617Z] TEST [PASS]: Storefront Navigation -> About Page 
+[2026-11-02T18:06:50.304Z] TEST [PASS]: Storefront Navigation -> FAQ Page 
+[2026-11-02T18:06:50.990Z] TEST [PASS]: Storefront Navigation -> Contact Page 
+[2026-11-02T18:06:51.750Z] TEST [PASS]: Storefront Navigation -> Terms Page 
+[2026-11-02T18:06:52.457Z] TEST [PASS]: Storefront Navigation -> Privacy Page 
+[2026-11-02T18:06:53.112Z] TEST [PASS]: Storefront Navigation -> Shipping Policy 
+[2026-11-02T18:06:53.758Z] TEST [PASS]: Storefront Navigation -> Returns Policy 
+[2026-11-02T18:06:54.392Z] TEST [PASS]: Storefront Navigation -> 404 Handling 
+[2026-11-02T18:06:58.020Z] TEST [PASS]: Storefront Search -> Filter by keyword "Campus" 
+[2026-11-02T18:07:02.801Z] TEST [FAIL]: Cart -> Guest Add to Cart 
+[2026-11-02T18:07:02.828Z] --- PHASE 2: Persona 01 (Registration & Validation) --- 
+[2026-11-02T18:07:05.023Z] TEST [PASS]: Auth Validation -> HTML5 Email format rejection 
+[2026-11-02T18:07:10.886Z] TEST [PASS]: Auth Registration -> Persona 01 Successful Registration & Redirect 
+[2026-11-02T18:07:11.299Z] TEST [FAIL]: Database Persistence -> Persona 01 Supabase public.User row 
+[2026-11-02T18:07:11.309Z] --- Registering Accounts 02 - 10 --- 
+[2026-11-02T18:07:11.629Z] Registered Account 02: qa.20261102.02@example.test (acbf3d34-0ea9-4c6a-b7be-d2bee00eba3a) 
+[2026-11-02T18:07:11.929Z] Registered Account 03: qa.20261102.03@example.test (e75b0728-344c-4fa3-87c6-db5cb90c4d5e) 
+[2026-11-02T18:07:12.240Z] Registered Account 04: qa.20261102.04@example.test (34e26dae-9375-4660-aa5b-ee9e44a0bb70) 
+[2026-11-02T18:07:12.528Z] Registered Account 05: qa.20261102.05@example.test (051e1e55-c55f-4ab9-bd51-9791bacd7dc2) 
+[2026-11-02T18:07:12.823Z] Registered Account 06: qa.20261102.06@example.test (6afae28c-13c3-485d-92c6-f11e46ee0cd8) 
+[2026-11-02T18:07:13.107Z] Registered Account 07: qa.20261102.07@example.test (41cb431f-c76a-4851-80b2-9a06d3013bce) 
+[2026-11-02T18:07:13.441Z] Registered Account 08: qa.20261102.08@example.test (fb64b96a-c6ab-4d22-bc8f-5261b5153d5f) 
+[2026-11-02T18:07:13.720Z] Registered Account 09: qa.20261102.09@example.test (d5a92017-8603-4575-9eeb-8f10cc5fc179) 
+[2026-11-02T18:07:14.017Z] Registered Account 10: qa.20261102.10@example.test (5dfd018d-ec8f-41cb-a30b-b7c8443f8b12) 
+[2026-11-02T18:07:14.017Z] --- Elevating Accounts 09 & 10 to ADMIN via server update --- 
+[2026-11-02T18:07:14.364Z] Successfully elevated Account 09 to ADMIN in public.User 
+[2026-11-02T18:07:14.670Z] Successfully elevated Account 10 to ADMIN in public.User 
+[2026-11-02T18:07:14.670Z] --- PHASE 3: Persona 02 (Cart Merge & Return Login) --- 
+[2026-11-02T18:07:47.167Z] TEST [FAIL]: Cart -> Guest Cart Preserved Across Login "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add to cart\"), button:has-text(\"Add To Cart\")').first()\u001b[22m\n"
+[2026-11-02T18:07:47.171Z] --- PHASE 4: Persona 03 (Addresses & Account Settings) --- 
+[2026-11-02T18:07:53.841Z] TEST [BLOCKED]: Addresses -> Persona 03 Address Form 
+[2026-11-02T18:07:54.121Z] TEST [FAIL]: Database Persistence -> Persona 03 Address rows in public.Address 
+[2026-11-02T18:07:54.126Z] --- PHASE 5: Persona 04 (UPI Order & UTR Submission) --- 
+[2026-11-02T18:08:32.853Z] TEST [FAIL]: Checkout & Orders -> Persona 04 UPI Flow "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add to cart\"), button:has-text(\"Add To Cart\")').first()\u001b[22m\n"
+[2026-11-02T18:08:32.863Z] --- PHASE 6: Persona 05 (COD Order & Fulfilment) --- 
+[2026-11-02T18:09:11.648Z] TEST [FAIL]: Checkout & Orders -> Persona 05 COD Flow "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add to cart\"), button:has-text(\"Add To Cart\")').first()\u001b[22m\n"
+[2026-11-02T18:09:11.652Z] --- PHASE 7: Persona 06 (Custom Stickers & Uploads) --- 
+[2026-11-02T18:09:13.796Z] TEST [FAIL]: Custom Products -> Custom Stickers Configuration Controls Rendered 
+[2026-11-02T18:09:13.799Z] --- PHASE 8: Persona 07 (Custom Wall & Build Your Pack) --- 
+[2026-11-02T18:09:16.147Z] TEST [PASS]: Custom Walls -> Build Your Wall Layout & Slot Configuration 
+[2026-11-02T18:09:18.087Z] TEST [PASS]: Custom Packs -> Build Your Pack Interface Rendered 
+[2026-11-02T18:09:18.090Z] --- PHASE 9: Persona 08 (Voting & Passport Rewards) --- 
+[2026-11-02T18:09:25.633Z] TEST [PASS]: Community -> Persona 08 Vote Submission 
+[2026-11-02T18:09:27.902Z] TEST [PASS]: Passport -> Collector Passport Dashboard View 
+[2026-11-02T18:09:27.910Z] --- PHASE 10: Persona 09 (Admin Operations) --- 
+[2026-11-02T18:09:33.409Z] TEST [PASS]: Administration -> Persona 09 Admin Login & Dashboard Access 
+[2026-11-02T18:10:03.462Z] TEST [FAIL]: Administration -> Persona 09 Admin Operations "page.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Orders & Payments\")')\u001b[22m\n"
+[2026-11-02T18:10:03.468Z] --- PHASE 11: Persona 10 (Independent Admin Review) --- 
+[2026-11-02T18:10:08.770Z] TEST [PASS]: Administration -> Persona 10 Admin Concurrent Access 
+[2026-11-02T18:10:08.774Z] --- PHASE 12: Code-Specific Security Probes --- 
+[2026-11-02T18:10:09.423Z] TEST [VULNERABLE]: Security Vulnerability -> SEC-01 Privilege Escalation via user_metadata.role 
+[2026-11-02T18:10:09.723Z] TEST [BLOCKED]: Security Vulnerability -> SEC-02 Payment Probe 
+[2026-11-02T18:10:10.533Z] TEST [PASS]: Security Isolation -> SEC-03 Cross-User Address and Order Read Isolation 
+[2026-11-02T18:10:10.533Z] TEST [VULNERABLE]: Security Vulnerability -> SEC-04 Client-Authoritative Price on Custom Lines in supabaseAdapter.ts 
+[2026-11-02T18:10:10.533Z] --- PHASE 13: Concurrency Test (8 Customers competing for stock=3) --- 
+[2026-11-02T18:10:12.139Z] TEST [DEFECT (Overselling)]: Concurrency & Inventory -> 8 Concurrent Orders vs Limited Inventory 
+[2026-11-02T18:10:12.460Z] QA Execution finished. Fixtures manifest written to D:\stickerssssss\sticker-club-main\qa-evidence\FIXTURES_MANIFEST.json 

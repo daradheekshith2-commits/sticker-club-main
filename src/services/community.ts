@@ -2,6 +2,8 @@
  * COMMUNITY API — live database-backed drop voting and community ideas.
  */
 import { apiUrl } from '../context/AuthContext';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { handleSupabaseRequest } from '../lib/supabaseAdapter';
 
 export interface VoteInput {
   proposalId: string;
@@ -46,6 +48,12 @@ export interface CommunityApi {
 export const communityApi: CommunityApi = {
   mode: 'live',
   async getProposals() {
+    if (isSupabaseConfigured) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user ? { id: sessionData.session.user.id, name: '', email: sessionData.session.user.email || '', role: 'CUSTOMER' as const } : null;
+      const res = await handleSupabaseRequest<LiveProposal[]>('/api/proposals', { method: 'GET' }, user);
+      if (res.handled && res.data) return res.data;
+    }
     try {
       const res = await fetch(`${apiUrl}/api/proposals`, { credentials: 'include' });
       if (res.ok) {
@@ -57,6 +65,20 @@ export const communityApi: CommunityApi = {
     return [];
   },
   async castVote(vote: VoteInput, token?: string | null) {
+    if (isSupabaseConfigured) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user ? { id: sessionData.session.user.id, name: '', email: sessionData.session.user.email || '', role: 'CUSTOMER' as const } : null;
+      if (!user) return { ok: false, message: 'Sign in required to vote' };
+      const res = await handleSupabaseRequest<{ ok: boolean; message: string }>(
+        `/api/proposals/${encodeURIComponent(vote.proposalId)}/vote`,
+        { method: 'POST', body: JSON.stringify({ directionId: vote.directionId }) },
+        user
+      );
+      if (res.handled) {
+        if (res.error) return { ok: false, message: res.error };
+        return { ok: true, mode: 'live', message: res.data?.message || 'Your vote has been saved! You can update it anytime while voting is open.' };
+      }
+    }
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -76,6 +98,20 @@ export const communityApi: CommunityApi = {
     }
   },
   async submitIdea(input: IdeaInput, token?: string | null) {
+    if (isSupabaseConfigured) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user ? { id: sessionData.session.user.id, name: '', email: sessionData.session.user.email || '', role: 'CUSTOMER' as const } : null;
+      if (!user) return { ok: false, message: 'Sign in required to submit ideas' };
+      const res = await handleSupabaseRequest<{ ok: boolean; message: string }>(
+        '/api/ideas',
+        { method: 'POST', body: JSON.stringify({ idea: input.idea, name: input.name, proposalId: input.proposalId, originalConfirmed: input.originalConfirmed }) },
+        user
+      );
+      if (res.handled) {
+        if (res.error) return { ok: false, message: res.error };
+        return { ok: true, mode: 'live', message: res.data?.message || 'Your idea has been received and submitted for review!' };
+      }
+    }
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;

@@ -97,6 +97,18 @@ const d = {
   capeMode: { name: 'Cape Mode', motif: 'hero', shape: 'rounded', bg: grape, fg: ink, accent: tomato },
   kaPow: { name: 'Ka-Pow!', label: 'KA-\nPOW!', shape: 'badge', bg: sun, fg: tomato, accent: ink },
   heroEmblem: { name: 'Hero Emblem', motif: 'emblem', shape: 'circle', bg: tomato, fg: ink, accent: sun },
+  // devotion (spiritual & sacred art)
+  omLotus: { name: 'Sacred Om', motif: 'sparkle', shape: 'circle', bg: sun, fg: ink, accent: tomato },
+  shivaTrishul: { name: 'Mahadev Trishul', motif: 'sparkle', shape: 'badge', bg: sky, fg: ink, accent: white },
+  bansuriFlute: { name: 'Divine Bansuri', motif: 'sparkle', shape: 'pill', bg: mint, fg: ink, accent: sun },
+  ganeshaBless: { name: 'Vighnaharta Ganesha', motif: 'sparkle', shape: 'circle', bg: tomato, fg: white, accent: sun },
+  hanumanSanjeevani: { name: 'Sankatmochan', motif: 'bolt', shape: 'rounded', bg: sun, fg: tomato, accent: ink },
+  // sports (athletic icons & stadium moments)
+  cricketFever: { name: 'Cricket Stadium', motif: 'bolt', shape: 'circle', bg: mint, fg: ink, accent: white },
+  jerseySeven: { name: 'Legend Jersey 7', motif: 'bolt', shape: 'badge', bg: sky, fg: ink, accent: sun },
+  slamDunk: { name: 'Slam Dunk', motif: 'speedStar', shape: 'pill', bg: tomato, fg: white, accent: sun },
+  goldenBoot: { name: 'Golden Goal', motif: 'flag', shape: 'rounded', bg: sun, fg: ink, accent: tomato },
+  runnerStride: { name: 'Never Stop Running', motif: 'bolt', shape: 'circle', bg: lime, fg: ink, accent: ink },
 } satisfies Record<string, StickerDesign>;
 
 /**
@@ -315,6 +327,30 @@ export const products: Product[] = [
     design: { title: 'HERO\nMODE', bg: tomato, fg: ink, accent: sun, motif: 'hero', pattern: 'sun' }, backdrop: '#FFD9CC',
   }),
 
+  // ===== Devotion =====
+  single({ id: 'stk-048', slug: 'sacred-om', design: d.omLotus, price: 20, collections: ['devotion'], tags: ['devotion', 'om', 'spiritual'], backdrop: '#FFF0B8', seriesId: 'devotion', rarity: 'common', displayOrder: 46, isNew: true, featured: true,
+    shortDescription: 'Sacred Om on a golden lotus disc.', description: 'A spiritual emblem sticker for calmness and positivity.' }),
+  single({ id: 'stk-049', slug: 'mahadev-trishul', design: d.shivaTrishul, price: 20, collections: ['devotion'], tags: ['devotion', 'shiva', 'trishul'], backdrop: '#D6F0FF', seriesId: 'devotion', rarity: 'common', displayOrder: 47, isNew: true,
+    shortDescription: 'The divine trishul of Lord Shiva.', description: 'Sacred trishul and damru motif on deep sky badge.' }),
+  single({ id: 'stk-050', slug: 'divine-bansuri', design: d.bansuriFlute, price: 20, collections: ['devotion'], tags: ['devotion', 'krishna', 'bansuri'], backdrop: '#D3F6E6', seriesId: 'devotion', rarity: 'common', displayOrder: 48, isNew: true,
+    shortDescription: 'The enchanting flute of Krishna.', description: 'A soothing pastel pill sticker with peacock feather accent.' }),
+  single({ id: 'stk-051', slug: 'vighnaharta-ganesha', design: d.ganeshaBless, price: 20, collections: ['devotion'], tags: ['devotion', 'ganesha', 'blessing'], backdrop: '#FFD9CC', seriesId: 'devotion', rarity: 'common', displayOrder: 49, isNew: true,
+    shortDescription: 'Lord Ganesha for new beginnings.', description: 'Warm auspicious red-and-gold Ganesha emblem sticker.' }),
+  single({ id: 'stk-052', slug: 'sankatmochan', design: d.hanumanSanjeevani, price: 20, collections: ['devotion'], tags: ['devotion', 'hanuman', 'strength'], backdrop: '#FFF0B8', seriesId: 'devotion', rarity: 'uncommon', displayOrder: 50, isNew: true,
+    shortDescription: 'Courage and unwavering devotion.', description: 'Golden sun emblem representing strength, courage, and faith.' }),
+
+  // ===== Sports =====
+  single({ id: 'stk-053', slug: 'cricket-stadium', design: d.cricketFever, price: 20, collections: ['sports'], tags: ['sports', 'cricket', 'game'], backdrop: '#D3F6E6', seriesId: 'sports', rarity: 'common', displayOrder: 51, isNew: true, featured: true,
+    shortDescription: 'Cricket floodlights and stadium energy.', description: 'For every weekend cricketer and tournament watcher.' }),
+  single({ id: 'stk-054', slug: 'legend-jersey-7', design: d.jerseySeven, price: 20, collections: ['sports'], tags: ['sports', 'jersey', 'champion'], backdrop: '#D6F0FF', seriesId: 'sports', rarity: 'common', displayOrder: 52, isNew: true,
+    shortDescription: 'The iconic number seven jersey.', description: 'A championship badge for fans who believe till the last ball.' }),
+  single({ id: 'stk-055', slug: 'slam-dunk', design: d.slamDunk, price: 20, collections: ['sports'], tags: ['sports', 'basketball', 'dunk'], backdrop: '#FFD9CC', seriesId: 'sports', rarity: 'common', displayOrder: 53, isNew: true,
+    shortDescription: 'High-flying court action.', description: 'Bold pill sticker celebrating court speed and rim-rattling dunks.' }),
+  single({ id: 'stk-056', slug: 'golden-goal', design: d.goldenBoot, price: 20, collections: ['sports'], tags: ['sports', 'football', 'goal'], backdrop: '#FFF0B8', seriesId: 'sports', rarity: 'common', displayOrder: 54, isNew: true,
+    shortDescription: 'Top-corner net-ripping finish.', description: 'Golden rounded-square sticker for the love of the beautiful game.' }),
+  single({ id: 'stk-057', slug: 'never-stop-running', design: d.runnerStride, price: 20, collections: ['sports'], tags: ['sports', 'running', 'fitness'], backdrop: '#EEFFC2', seriesId: 'sports', rarity: 'uncommon', displayOrder: 55, isNew: true,
+    shortDescription: 'Mile after mile, every morning.', description: 'A high-contrast lime circle for runners, sprinters and 5K finishers.' }),
+
   // ===== Rare designs (demo classification: planned for occasional small batches) =====
   single({ id: 'rar-001', slug: 'midnight-chai', design: d.midnightChai, price: 30, collections: [], tags: ['chai', 'rare', 'badge'], backdrop: '#E9E3D6', seriesId: 'S01', rarity: 'rare', displayOrder: 40,
     shortDescription: 'The after-dark version of Chai First.', description: 'A lime-on-black badge of our chai cup. Planned as a rare design: printed in occasional small batches instead of staying in the range.' }),
@@ -517,8 +553,10 @@ export const products: Product[] = [
     price: 129, category: 'stickers', productType: 'mystery', collections: ['cute'],
     tags: ['mystery', 'surprise', 'bundle', 'gift', 'collectible'], featured: true, isNew: true, displayOrder: 18, status: 'demo',
     variantLabel: 'Theme',
-    // One option per series. Same provisional price for every theme.
-    variants: series.map((s) => ({ id: s.id.toLowerCase(), label: s.name, detail: `Series ${s.id}`, price: 129 })),
+    // One option per primary store theme.
+    variants: series
+      .filter((s) => !s.id.startsWith('S0'))
+      .map((s) => ({ id: s.id.toLowerCase(), label: s.name, detail: s.blurb, price: 129 })),
     packQuantity: 6,
     mystery: {
       guaranteedCount: 5,

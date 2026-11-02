@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { products as seedProducts } from '../data/products';
 import type { Category, CollectionId, Product, ProductArt, ProductType, Variant } from '../types/product';
 import { apiUrl } from './AuthContext';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 export type BackendProduct = {
   id: string;
@@ -237,26 +238,74 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
   async function fetchCatalogue() {
     try {
       setError(null);
-      const [prodRes, catRes] = await Promise.all([
-        fetch((apiUrl || '') + '/api/products', { credentials: 'include' }),
-        fetch((apiUrl || '') + '/api/categories', { credentials: 'include' }).catch(() => null),
-      ]);
+      let loaded = false;
 
-      if (!prodRes.ok) {
-        throw new Error(`Failed to load database catalogue: HTTP ${prodRes.status}`);
+      // 1. Try API if configured
+      if (apiUrl) {
+        try {
+          const [prodRes, catRes] = await Promise.all([
+            fetch((apiUrl || '') + '/api/products', { credentials: 'include' }).catch(() => null),
+            fetch((apiUrl || '') + '/api/categories', { credentials: 'include' }).catch(() => null),
+          ]);
+
+          if (prodRes && prodRes.ok) {
+            const dbProducts: BackendProduct[] = await prodRes.json();
+            setProducts(processDatabaseProducts(seedProducts, dbProducts));
+            if (catRes && catRes.ok) {
+              const dbCategories: CategoryItem[] = await catRes.json();
+              setCategories(dbCategories);
+            }
+            loaded = true;
+          }
+        } catch {
+          // Fall through to Supabase or static catalogue
+        }
       }
 
-      const dbProducts: BackendProduct[] = await prodRes.json();
-      setProducts(processDatabaseProducts(seedProducts, dbProducts));
+      // 2. Try direct Supabase catalogue if live API is unavailable
+      if (!loaded && isSupabaseConfigured) {
+        try {
+          const { data: supaProducts, error: supaErr } = await supabase
+            .from('Product')
+            .select('*, inventory:Inventory(quantity), images:ProductImage(*), categories:ProductCategory(*), variants:ProductVariant(*)');
 
-      if (catRes && catRes.ok) {
-        const dbCategories: CategoryItem[] = await catRes.json();
-        setCategories(dbCategories);
+          if (!supaErr && supaProducts && supaProducts.length > 0) {
+            setProducts(processDatabaseProducts(seedProducts, supaProducts as any));
+            const { data: supaCats } = await supabase.from('Category').select('*').order('displayOrder', { ascending: true });
+            if (supaCats && supaCats.length > 0) {
+              setCategories(supaCats);
+            }
+            loaded = true;
+          }
+        } catch {
+          // Fall through to static catalogue fallback
+        }
+      }
+
+      // 3. Fallback to static catalogue (e.g. initial loads or static hosting)
+      if (!loaded) {
+        try {
+          const staticRes = await fetch('/products-catalogue.json');
+          if (staticRes.ok) {
+            const staticProducts: BackendProduct[] = await staticRes.json();
+            setProducts(processDatabaseProducts(seedProducts, staticProducts));
+            const staticCatsRes = await fetch('/categories-catalogue.json').catch(() => null);
+            if (staticCatsRes && staticCatsRes.ok) {
+              setCategories(await staticCatsRes.json());
+            }
+            loaded = true;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      if (!loaded) {
+        throw new Error('Failed to load database catalogue');
       }
     } catch (e) {
-      console.warn('CatalogueProvider: backend fetch failed.', e);
+      console.warn('CatalogueProvider: catalogue fetch failed.', e);
       setError(e instanceof Error ? e.message : 'Could not fetch database catalogue');
-      // Per Requirement 5: Do not silently present demo products as live stock if backend is unavailable
       setProducts([]);
     } finally {
       setLoading(false);
@@ -277,7 +326,7 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
 
   function isPurchasable(product: Product): boolean {
     if (product.active === false) return false;
-    if (product.status !== 'demo') return false;
+    if (product.status !== 'demo' && (product.status as string) !== 'PUBLISHED') return false;
     if (product.inventory && product.inventory.quantity <= 0) return false;
     return true;
   }

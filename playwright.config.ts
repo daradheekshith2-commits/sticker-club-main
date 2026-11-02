@@ -19,12 +19,12 @@ export default defineConfig({
     {
       command: 'cmd /c "set PORT=5000&& set DATABASE_URL=postgresql://stickerclub:chintu641@localhost:5433/stickerclub?schema=stickerclub_test&& set TEST_DATABASE_IS_DISPOSABLE=yes&& set NODE_ENV=test&& set DELIVERY_FEE=50.00&& set UPI_ID=store@upi&& set FRONTEND_ORIGIN=http://localhost:5173,http://127.0.0.1:5173&& set JWT_SECRET=e2e_jwt_secret_must_be_at_least_32_chars_long_for_security&& set JWT_REFRESH_SECRET=e2e_jwt_refresh_secret_must_be_at_least_32_chars_long&& node --import tsx backend/src/index.ts"',
       url: 'http://localhost:5000/api/health',
-      reuseExistingServer: false,
+      reuseExistingServer: true,
     },
     {
       command: 'npm run dev -- --port 5173',
       url: 'http://localhost:5173',
-      reuseExistingServer: false,
+      reuseExistingServer: true,
     },
   ],
 });

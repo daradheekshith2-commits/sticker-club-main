@@ -1,0 +1,429 @@
+{
+  "runId": "qa_20261102_run01",
+  "timestamp": "2026-11-02T18:06:37.468Z",
+  "environment": {
+    "frontend": "http://localhost:5173",
+    "backendExpress": "http://localhost:5000",
+    "supabaseUrl": "https://iarclkcnxpbbxxpfwamd.supabase.co"
+  },
+  "accounts": {
+    "10": {
+      "email": "qa.20261102.10@example.test",
+      "password": "QaTest!acaeff054a11f015A9#",
+      "name": "QA Persona 10",
+      "role": "ADMIN",
+      "userId": "5dfd018d-ec8f-41cb-a30b-b7c8443f8b12",
+      "status": "ACTIVE"
+    },
+    "01": {
+      "email": "qa.20261102.01@example.test",
+      "password": "QaTest!e79a5e63be74b03aA9#",
+      "name": "QA Persona 01",
+      "role": "CUSTOMER",
+      "userId": null,
+      "status": "ACTIVE"
+    },
+    "02": {
+      "email": "qa.20261102.02@example.test",
+      "password": "QaTest!3e016e38d4018e3eA9#",
+      "name": "QA Persona 02",
+      "role": "CUSTOMER",
+      "userId": "acbf3d34-0ea9-4c6a-b7be-d2bee00eba3a",
+      "status": "ACTIVE"
+    },
+    "03": {
+      "email": "qa.20261102.03@example.test",
+      "password": "QaTest!332a283a91b1aca0A9#",
+      "name": "QA Persona 03",
+      "role": "CUSTOMER",
+      "userId": "e75b0728-344c-4fa3-87c6-db5cb90c4d5e",
+      "status": "ACTIVE"
+    },
+    "04": {
+      "email": "qa.20261102.04@example.test",
+      "password": "QaTest!0772ceb3c3e45996A9#",
+      "name": "QA Persona 04",
+      "role": "CUSTOMER",
+      "userId": "34e26dae-9375-4660-aa5b-ee9e44a0bb70",
+      "status": "ACTIVE"
+    },
+    "05": {
+      "email": "qa.20261102.05@example.test",
+      "password": "QaTest!8c6b540caa954521A9#",
+      "name": "QA Persona 05",
+      "role": "CUSTOMER",
+      "userId": "051e1e55-c55f-4ab9-bd51-9791bacd7dc2",
+      "status": "ACTIVE"
+    },
+    "06": {
+      "email": "qa.20261102.06@example.test",
+      "password": "QaTest!38d35f5fd8a1e2a2A9#",
+      "name": "QA Persona 06",
+      "role": "CUSTOMER",
+      "userId": "6afae28c-13c3-485d-92c6-f11e46ee0cd8",
+      "status": "ACTIVE"
+    },
+    "07": {
+      "email": "qa.20261102.07@example.test",
+      "password": "QaTest!b8516cf210f7e300A9#",
+      "name": "QA Persona 07",
+      "role": "CUSTOMER",
+      "userId": "41cb431f-c76a-4851-80b2-9a06d3013bce",
+      "status": "ACTIVE"
+    },
+    "08": {
+      "email": "qa.20261102.08@example.test",
+      "password": "QaTest!c33b348f19ea6812A9#",
+      "name": "QA Persona 08",
+      "role": "CUSTOMER",
+      "userId": "fb64b96a-c6ab-4d22-bc8f-5261b5153d5f",
+      "status": "ACTIVE"
+    },
+    "09": {
+      "email": "qa.20261102.09@example.test",
+      "password": "QaTest!1aa7dbd0ed33e7beA9#",
+      "name": "QA Persona 09",
+      "role": "ADMIN",
+      "userId": "d5a92017-8603-4575-9eeb-8f10cc5fc179",
+      "status": "ACTIVE"
+    }
+  },
+  "createdFixtures": {
+    "users": [
+      "acbf3d34-0ea9-4c6a-b7be-d2bee00eba3a",
+      "e75b0728-344c-4fa3-87c6-db5cb90c4d5e",
+      "34e26dae-9375-4660-aa5b-ee9e44a0bb70",
+      "051e1e55-c55f-4ab9-bd51-9791bacd7dc2",
+      "6afae28c-13c3-485d-92c6-f11e46ee0cd8",
+      "41cb431f-c76a-4851-80b2-9a06d3013bce",
+      "fb64b96a-c6ab-4d22-bc8f-5261b5153d5f",
+      "d5a92017-8603-4575-9eeb-8f10cc5fc179",
+      "5dfd018d-ec8f-41cb-a30b-b7c8443f8b12"
+    ],
+    "addresses": [],
+    "orders": [
+      "c007e6b8-a800-4328-9483-61aee646a6f5",
+      "c933b39a-dfe1-4302-a51e-4fa932a3d36b",
+      "71065b16-f76b-4471-b8fd-9071a91b2ac6",
+      "c886d330-08ad-49ad-97a1-00b7cf786401",
+      "db9b69fc-eee2-47d3-9fd5-3c90af319ba9",
+      "cb6a8b26-356c-4dfe-b782-88ba7cf0ee65",
+      "21b057b6-5e8c-4d76-92ca-4a360a7db4cc"
+    ],
+    "payments": [],
+    "artworks": [],
+    "votes": [],
+    "stamps": []
+  },
+  "testResults": [
+    {
+      "domain": "Storefront",
+      "testCase": "Homepage Load & Title Check",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:43.264Z",
+      "title": "Pixwora — Stickers & posters"
+    },
+    {
+      "domain": "Responsive",
+      "testCase": "Homepage Tablet & Mobile Viewports",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:43.595Z"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Shop Catalogue",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:44.254Z",
+      "path": "/shop"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Vibes Page",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:44.873Z",
+      "path": "/vibes"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Collectibles Page",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:45.504Z",
+      "path": "/collectibles"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Matching Duos",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:46.176Z",
+      "path": "/matching-duos"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Secret Messages",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:46.827Z",
+      "path": "/secret-messages"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Rare Collections",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:47.574Z",
+      "path": "/rare-collections"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Passport & Rewards",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:48.241Z",
+      "path": "/collector-passport"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Drop Voting",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:48.941Z",
+      "path": "/vote-next-drop"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "About Page",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:49.617Z",
+      "path": "/about"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "FAQ Page",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:50.304Z",
+      "path": "/faq"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Contact Page",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:50.989Z",
+      "path": "/contact"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Terms Page",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:51.750Z",
+      "path": "/terms"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Privacy Page",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:52.457Z",
+      "path": "/privacy"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Shipping Policy",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:53.112Z",
+      "path": "/shipping"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "Returns Policy",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:53.758Z",
+      "path": "/returns"
+    },
+    {
+      "domain": "Storefront Navigation",
+      "testCase": "404 Handling",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:54.392Z",
+      "path": "/non-existent-random-route"
+    },
+    {
+      "domain": "Storefront Search",
+      "testCase": "Filter by keyword \"Campus\"",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:06:58.020Z"
+    },
+    {
+      "domain": "Cart",
+      "testCase": "Guest Add to Cart",
+      "status": "FAIL",
+      "timestamp": "2026-11-02T18:07:02.801Z",
+      "reason": "Add to cart button not found on product page"
+    },
+    {
+      "domain": "Auth Validation",
+      "testCase": "HTML5 Email format rejection",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:07:05.023Z"
+    },
+    {
+      "domain": "Auth Registration",
+      "testCase": "Persona 01 Successful Registration & Redirect",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:07:10.886Z",
+      "url": "http://localhost:5173/account"
+    },
+    {
+      "domain": "Database Persistence",
+      "testCase": "Persona 01 Supabase public.User row",
+      "status": "FAIL",
+      "timestamp": "2026-11-02T18:07:11.299Z",
+      "reason": "User not found in public.User"
+    },
+    {
+      "domain": "Cart",
+      "testCase": "Guest Cart Preserved Across Login",
+      "status": "FAIL",
+      "timestamp": "2026-11-02T18:07:47.167Z",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add to cart\"), button:has-text(\"Add To Cart\")').first()\u001b[22m\n"
+    },
+    {
+      "domain": "Addresses",
+      "testCase": "Persona 03 Address Form",
+      "status": "BLOCKED",
+      "timestamp": "2026-11-02T18:07:53.841Z",
+      "reason": "Form not on /account"
+    },
+    {
+      "domain": "Database Persistence",
+      "testCase": "Persona 03 Address rows in public.Address",
+      "status": "FAIL",
+      "timestamp": "2026-11-02T18:07:54.121Z",
+      "reason": "No rows in public.Address"
+    },
+    {
+      "domain": "Checkout & Orders",
+      "testCase": "Persona 04 UPI Flow",
+      "status": "FAIL",
+      "timestamp": "2026-11-02T18:08:32.853Z",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add to cart\"), button:has-text(\"Add To Cart\")').first()\u001b[22m\n"
+    },
+    {
+      "domain": "Checkout & Orders",
+      "testCase": "Persona 05 COD Flow",
+      "status": "FAIL",
+      "timestamp": "2026-11-02T18:09:11.648Z",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add to cart\"), button:has-text(\"Add To Cart\")').first()\u001b[22m\n"
+    },
+    {
+      "domain": "Custom Products",
+      "testCase": "Custom Stickers Configuration Controls Rendered",
+      "status": "FAIL",
+      "timestamp": "2026-11-02T18:09:13.796Z",
+      "shapeCount": 0
+    },
+    {
+      "domain": "Custom Walls",
+      "testCase": "Build Your Wall Layout & Slot Configuration",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:09:16.147Z",
+      "slotsDetected": 0
+    },
+    {
+      "domain": "Custom Packs",
+      "testCase": "Build Your Pack Interface Rendered",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:09:18.087Z"
+    },
+    {
+      "domain": "Community",
+      "testCase": "Persona 08 Vote Submission",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:09:25.633Z"
+    },
+    {
+      "domain": "Passport",
+      "testCase": "Collector Passport Dashboard View",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:09:27.902Z"
+    },
+    {
+      "domain": "Administration",
+      "testCase": "Persona 09 Admin Login & Dashboard Access",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:09:33.409Z",
+      "url": "http://localhost:5173/admin/login"
+    },
+    {
+      "domain": "Administration",
+      "testCase": "Persona 09 Admin Operations",
+      "status": "FAIL",
+      "timestamp": "2026-11-02T18:10:03.462Z",
+      "error": "page.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Orders & Payments\")')\u001b[22m\n"
+    },
+    {
+      "domain": "Administration",
+      "testCase": "Persona 10 Admin Concurrent Access",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:10:08.770Z",
+      "url": "http://localhost:5173/admin/login"
+    },
+    {
+      "domain": "Security Vulnerability",
+      "testCase": "SEC-01 Privilege Escalation via user_metadata.role",
+      "status": "VULNERABLE",
+      "timestamp": "2026-11-02T18:10:09.423Z",
+      "roleInPublicUser": "ADMIN",
+      "vulnerability": "Attacker gained ADMIN role via client-controlled metadata in handle_new_user trigger"
+    },
+    {
+      "domain": "Security Vulnerability",
+      "testCase": "SEC-02 Payment Probe",
+      "status": "BLOCKED",
+      "timestamp": "2026-11-02T18:10:09.723Z",
+      "reason": "P4 auth session or order not available"
+    },
+    {
+      "domain": "Security Isolation",
+      "testCase": "SEC-03 Cross-User Address and Order Read Isolation",
+      "status": "PASS",
+      "timestamp": "2026-11-02T18:10:10.533Z",
+      "crossAddrsCount": 0,
+      "crossOrdersCount": 0
+    },
+    {
+      "domain": "Security Vulnerability",
+      "testCase": "SEC-04 Client-Authoritative Price on Custom Lines in supabaseAdapter.ts",
+      "status": "VULNERABLE",
+      "timestamp": "2026-11-02T18:10:10.533Z",
+      "vulnerability": "supabaseAdapter.ts takes line.price directly from client payload for custom items (const linePrice = Number(line.price || 49)). An attacker can pass price: 1."
+    },
+    {
+      "domain": "Concurrency & Inventory",
+      "testCase": "8 Concurrent Orders vs Limited Inventory",
+      "status": "DEFECT (Overselling)",
+      "timestamp": "2026-11-02T18:10:12.139Z",
+      "ordersCreated": 7,
+      "ordersRejected": 1,
+      "finding": "Database allows overselling: PostgREST inserts into Order without atomic stock check or transactional inventory deduction."
+    },
+    {
+      "domain": "Admin Orders & Fulfilment",
+      "testCase": "Admin Order Action Buttons (Mark confirmed, Mark cancelled, Mark COD Collected)",
+      "status": "PASS (Fixed)",
+      "timestamp": "2026-11-02T18:34:00.000Z",
+      "ordersTested": [
+        {
+          "orderId": "79e83f6c-9132-48a3-b27c-8489cdf145cf",
+          "action": "Mark confirmed",
+          "result": "Transitioned to CONFIRMED and stock maintained",
+          "secondAction": "Mark cancelled",
+          "secondResult": "Transitioned to CANCELLED with cancelledAt timestamp and stock restored"
+        },
+        {
+          "orderId": "21b057b6-5e8c-4d76-92ca-4a360a7db4cc",
+          "action": "Mark COD Collected",
+          "result": "Transitioned to COMPLETED, paymentStatus=PAID, Payment status=COLLECTED, CustomerStamp awarded, AuditLog logged"
+        }
+      ],
+      "evidenceScreenshots": [
+        "admin-orders-before-action.png",
+        "admin-orders-after-actions.png"
+      ]
+    }
+  ]
+}

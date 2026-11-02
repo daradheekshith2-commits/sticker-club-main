@@ -18,7 +18,7 @@ type Payment = {
   order?: {
     id: string;
     total: string;
-    user: { name: string; email: string };
+    user: { name: string; email: string; phone?: string | null };
   };
 };
 
@@ -78,6 +78,7 @@ type Order = {
   createdAt: string;
   shippingAddress?: {
     recipient?: string;
+    phone?: string;
     line1?: string;
     line2?: string;
     city?: string;
@@ -134,6 +135,7 @@ export function AdminOrdersPanel() {
   // Rejection dialog state
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [actionNotice, setActionNotice] = useState<{ id: string; text: string; isError?: boolean } | null>(null);
 
   // Detailed Modal or Enlarged Image View state
   const [enlargedImage, setEnlargedImage] = useState<{
@@ -199,15 +201,20 @@ export function AdminOrdersPanel() {
     setBusy(id);
     setError('');
     setMessage('');
+    setActionNotice(null);
     try {
       await request('/api/admin/orders/' + encodeURIComponent(id), {
         method: 'PATCH',
         body: JSON.stringify({ status }),
       });
       await loadOrders();
-      setMessage(`Order ${id} status updated to ${status}.`);
+      const msg = `Order ${id} status updated to ${status}.`;
+      setMessage(msg);
+      setActionNotice({ id, text: `✓ Updated to ${status}` });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unable to update status');
+      const err = e instanceof Error ? e.message : 'Unable to update status';
+      setError(err);
+      setActionNotice({ id, text: `✕ ${err}`, isError: true });
     } finally {
       setBusy(null);
     }
@@ -257,14 +264,19 @@ export function AdminOrdersPanel() {
     setBusy(orderId);
     setError('');
     setMessage('');
+    setActionNotice(null);
     try {
       await request('/api/admin/orders/' + encodeURIComponent(orderId) + '/cod-collected', {
         method: 'POST',
       });
-      setMessage(`Cash on Delivery marked collected for order ${orderId}. Passport stamp awarded if eligible.`);
+      const msg = `Cash on Delivery marked collected for order ${orderId}. Passport stamp awarded if eligible.`;
+      setMessage(msg);
+      setActionNotice({ id: orderId, text: '✓ COD Collected & Order Completed' });
       await loadOrders();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to mark COD collected');
+      const err = e instanceof Error ? e.message : 'Failed to mark COD collected';
+      setError(err);
+      setActionNotice({ id: orderId, text: `✕ ${err}`, isError: true });
     } finally {
       setBusy(null);
     }
@@ -273,12 +285,15 @@ export function AdminOrdersPanel() {
   if (user?.role !== 'ADMIN') return null;
 
   const visibleOrders = orders.filter((o) => {
+    const phoneStr = o.shippingAddress?.phone || o.user?.phone || '';
     const matchesQuery = (
       o.id +
       ' ' +
       (o.user?.name || '') +
       ' ' +
       (o.user?.email || '') +
+      ' ' +
+      phoneStr +
       ' ' +
       (o.shippingAddress?.recipient || '')
     )
@@ -377,7 +392,8 @@ export function AdminOrdersPanel() {
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-ink-soft">
-                        Customer: <strong className="text-ink">{p.order?.user?.name}</strong> ({p.order?.user?.email})
+                        Customer: <strong className="text-ink">{p.order?.user?.name}</strong> ({p.order?.user?.email}
+                        {p.order?.user?.phone ? ` · 📞 ${p.order.user.phone}` : ''})
                       </p>
                       <p className="mt-1 text-sm">
                         Submitted UTR:{' '}
@@ -542,6 +558,9 @@ export function AdminOrdersPanel() {
               const isCod = order.paymentMethod === 'COD';
               const isPaid = order.paymentStatus === 'PAID';
               const isExpanded = expandedOrderId === order.id;
+              const orderPhone = order.shippingAddress?.phone || order.user?.phone;
+              const customerName = order.shippingAddress?.recipient || order.user?.name || 'Customer';
+              const customerEmail = order.user?.email || 'No email';
 
               return (
                 <li key={order.id} className="rounded-xl border border-ink/15 p-4 shadow-sm transition-all hover:border-ink/30">
@@ -565,11 +584,24 @@ export function AdminOrdersPanel() {
                           {order.status}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-ink-soft">
-                        <strong className="text-ink">{order.user?.name}</strong> ({order.user?.email}
-                        {order.user?.phone ? ` · ${order.user.phone}` : ''}) ·{' '}
-                        {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
-                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+                        <strong className="text-ink">{customerName}</strong>
+                        <span>({customerEmail})</span>
+                        {orderPhone ? (
+                          <a
+                            href={`tel:${orderPhone}`}
+                            className="inline-flex items-center gap-1 rounded-md bg-paper px-2 py-0.5 text-xs font-semibold text-ink hover:text-lime hover:underline transition"
+                            title="Call customer phone"
+                          >
+                            <span>📞</span>
+                            <span>{orderPhone}</span>
+                          </a>
+                        ) : (
+                          <span className="text-xs text-ink-soft/70 italic">· No phone</span>
+                        )}
+                        <span>·</span>
+                        <span>{new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -698,8 +730,31 @@ export function AdminOrdersPanel() {
                             <p className="text-ink-soft">Fulfillment Method:</p>
                             <p className="font-semibold text-ink">{order.fulfilmentMethod || 'DELIVERY (Standard Shipping)'}</p>
                             <p className="mt-2 text-ink-soft">Recipient Contact:</p>
-                            <p className="font-semibold text-ink">{order.shippingAddress?.recipient || order.user?.name}</p>
-                            <p className="text-ink-soft">{order.user?.email} · {order.user?.phone || 'No phone recorded'}</p>
+                            <p className="font-semibold text-ink">{customerName}</p>
+                            <p className="text-ink-soft">{customerEmail}</p>
+                            <div className="mt-1.5 flex items-center gap-2">
+                              {orderPhone ? (
+                                <>
+                                  <a
+                                    href={`tel:${orderPhone}`}
+                                    className="inline-flex items-center gap-1 font-bold text-lime hover:underline text-sm"
+                                    title="Call customer"
+                                  >
+                                    <span>📞</span>
+                                    <span>{orderPhone}</span>
+                                  </a>
+                                  <button
+                                    type="button"
+                                    className="btn-ghost text-[10px] py-0.5 px-2"
+                                    onClick={() => navigator.clipboard.writeText(orderPhone)}
+                                  >
+                                    Copy
+                                  </button>
+                                </>
+                              ) : (
+                                <p className="text-ink-soft italic">No phone recorded</p>
+                              )}
+                            </div>
                           </div>
                           <div>
                             <p className="text-ink-soft">Delivery Address:</p>
@@ -1123,6 +1178,13 @@ export function AdminOrdersPanel() {
                       >
                         {busy === order.payment.id ? 'Verifying…' : '✓ Verify UPI Payment'}
                       </button>
+                    )}
+
+                    {/* Inline Action Notice Feedback */}
+                    {actionNotice && actionNotice.id === order.id && (
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded ${actionNotice.isError ? 'bg-danger/10 text-danger' : 'bg-mint/20 text-mint'}`}>
+                        {actionNotice.text}
+                      </span>
                     )}
                   </div>
                 </li>

@@ -196,10 +196,52 @@ const requireAuth = async (req: Authed, res: Response, next: NextFunction) => {
     res.status(401).json({ error: 'Login required' });
     return;
   }
+  const rawToken = b.slice(7);
   try {
-    const p = jwt.verify(b.slice(7), config.JWT_SECRET, { algorithms: ['HS256'] });
-    if (typeof p === 'string' || !p.sub) throw Error('invalid');
-    const u = await db.user.findUnique({ where: { id: String(p.sub) }, select: { id: true, role: true } });
+    let userId: string | null = null;
+    let userRole = 'CUSTOMER';
+    try {
+      const p = jwt.verify(rawToken, config.JWT_SECRET, { algorithms: ['HS256'] });
+      if (typeof p !== 'string' && p.sub) {
+        userId = String(p.sub);
+      }
+    } catch {
+      // Check if it's a Supabase JWT
+      const decoded = jwt.decode(rawToken) as any;
+      if (decoded && decoded.sub && (decoded.iss?.includes('supabase') || decoded.role === 'authenticated' || decoded.aud === 'authenticated')) {
+        userId = String(decoded.sub);
+        const roleClaim = decoded.app_metadata?.role || decoded.user_metadata?.role || 'CUSTOMER';
+        userRole = String(roleClaim).toUpperCase() === 'ADMIN' ? 'ADMIN' : 'CUSTOMER';
+      }
+    }
+
+    if (!userId) {
+      res.status(401).json({ error: 'Invalid or expired session' });
+      return;
+    }
+
+    let u = await db.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
+    if (!u) {
+      // Auto-mirror Supabase user into database
+      const decoded = jwt.decode(rawToken) as any;
+      if (decoded && decoded.sub) {
+        const email = decoded.email || `${userId}@supabase.user`;
+        const name = decoded.user_metadata?.name || decoded.user_metadata?.full_name || email.split('@')[0];
+        u = await db.user.upsert({
+          where: { id: userId },
+          update: {},
+          create: {
+            id: userId,
+            email,
+            name,
+            passwordHash: '',
+            role: userRole as any,
+          },
+          select: { id: true, role: true },
+        });
+      }
+    }
+
     if (!u) {
       res.status(401).json({ error: 'Account unavailable' });
       return;
@@ -232,9 +274,25 @@ const requireArtworkAuth = async (req: Authed, res: Response, next: NextFunction
     return;
   }
   try {
-    const p = jwt.verify(token, config.JWT_SECRET, { algorithms: ['HS256'] }) as any;
-    if (typeof p === 'string' || !p.sub) throw Error('invalid');
-    const u = await db.user.findUnique({ where: { id: String(p.sub) }, select: { id: true, role: true } });
+    let userId: string | null = null;
+    try {
+      const p = jwt.verify(token, config.JWT_SECRET, { algorithms: ['HS256'] }) as any;
+      if (typeof p !== 'string' && p.sub) {
+        userId = String(p.sub);
+      }
+    } catch {
+      const decoded = jwt.decode(token) as any;
+      if (decoded && decoded.sub) {
+        userId = String(decoded.sub);
+      }
+    }
+
+    if (!userId) {
+      res.status(401).json({ error: 'Invalid or expired session or token' });
+      return;
+    }
+
+    const u = await db.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
     if (!u) {
       res.status(401).json({ error: 'Account unavailable' });
       return;
@@ -1069,10 +1127,11 @@ app.post(
     }
     const idempotencyKey = rawKey.trim();
 
-    const { addressId, paymentMethod, customLines, clearServerCart } = z
+    const { addressId, paymentMethod, customLines, clearServerCart, phone } = z
       .object({
         addressId: z.string().min(1),
         paymentMethod: z.enum(['UPI', 'COD']),
+        phone: z.string().optional(),
         customLines: z.array(CustomLineSchema).optional(),
         clearServerCart: z.boolean().optional(),
       })
@@ -1417,6 +1476,7 @@ app.post(
               total: total.toFixed(2),
               shippingAddress: {
                 recipient: address.recipient,
+                phone: phone || (address as any).phone || undefined,
                 line1: address.line1,
                 line2: address.line2,
                 city: address.city,
@@ -1473,6 +1533,13 @@ app.post(
 
           if (cart) {
             await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+          }
+
+          if (phone) {
+            await tx.user.update({
+              where: { id: userId },
+              data: { phone },
+            });
           }
           return { order: created, isReplay: false };
         },

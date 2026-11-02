@@ -41,8 +41,20 @@ export function getRarity(id: RarityId | undefined): RarityTier | undefined {
   return rarityTiers.find((r) => r.id === id);
 }
 
-/** Series codes double as the code printed on packs and the passport. */
-export const series: Series[] = [
+export const mysteryThemes: Series[] = [
+  // Primary Store Themes (Offered in Mystery Shop)
+  { id: 'anime', name: 'Anime', blurb: 'Anime-inspired art, expressive characters and collectible designs.', color: '#FFD447', source: 'production' },
+  { id: 'movies', name: 'Movies', blurb: 'Cinematic vibes, iconic genres and movie-inspired art.', color: '#8FD3FF', source: 'production' },
+  { id: 'quotes', name: 'Cars & Bikes', blurb: 'Original cars, motorcycles, track-day graphics and racing-inspired designs.', color: '#FF5B2E', source: 'production' },
+  { id: 'marvel', name: 'Marvel', blurb: 'Superhero-inspired designs for fans of epic universes.', color: '#D4FF3A', source: 'production' },
+  { id: 'cute', name: 'Cute & Aesthetic', blurb: 'Soft colours, sleepy clouds, small joys.', color: '#FFB3D1', source: 'production' },
+  { id: 'gaming', name: 'Gaming-Inspired', blurb: 'Original pixel art and controller doodles.', color: '#8A6CFF', source: 'production' },
+  { id: 'devotion', name: 'Devotion', blurb: 'Spiritual art, divine serenity and sacred deities.', color: '#FFB347', source: 'production' },
+  { id: 'sports', name: 'Sports', blurb: 'Athletic icons, championship spirit and legendary sports moments.', color: '#47A8FF', source: 'production' },
+];
+
+export const legacySeries: Series[] = [
+  // Preserved legacy series identifiers
   { id: 'S01', name: 'Campus Classics', blurb: 'Attendance maths, chai breaks and last-bench pride.', color: '#FFD447', source: 'demo' },
   { id: 'S02', name: 'Dev Mode', blurb: 'Bugs, brackets and late-night builds.', color: '#8FD3FF', source: 'demo' },
   { id: 'S03', name: 'Soft Days', blurb: 'Clouds, cats, music and small joys.', color: '#FFB3D1', source: 'demo' },
@@ -50,6 +62,9 @@ export const series: Series[] = [
   { id: 'S05', name: 'Screen Time', blurb: 'Anime-inspired art, movie nights and original heroes.', color: '#8A6CFF', source: 'demo' },
 ];
 
+export const series: Series[] = [...mysteryThemes, ...legacySeries];
+
 export function getSeries(id: string | undefined): Series | undefined {
+  if (!id) return undefined;
   return series.find((s) => s.id === id);
 }

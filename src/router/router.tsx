@@ -39,7 +39,7 @@ interface RouterContextValue {
 }
 
 // GitHub Pages project sites live below /sticker-club/; Vercel remains at /.
-const hostingBase = import.meta.env.BASE_URL.replace(/\/$/, '');
+const hostingBase = (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL ? import.meta.env.BASE_URL : '').replace(/\/$/, '');
 const hostedPath = (to: string) => {
   if (!hostingBase || !to.startsWith('/') || to.startsWith('//') || to === hostingBase || to.startsWith(hostingBase + '/')) return to;
   return hostingBase + to;

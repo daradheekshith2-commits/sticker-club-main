@@ -6,6 +6,7 @@ import {AddressManager} from '../components/account/AddressManager';
 import {AdminInventoryPanel} from '../components/account/AdminInventoryPanel';
 import {AdminCustomersPanel} from '../components/account/AdminCustomersPanel';
 import {AdminPassportPanel} from '../components/account/AdminPassportPanel';
+import {ProtectedRoute, sanitizeRedirectUrl} from '../components/auth/ProtectedRoute';
 import {useEffect,useState,type FormEvent,type ReactNode} from 'react';
 import {useAuth,apiUrl,type Account} from '../context/AuthContext';
 import {Link,useNavigate,useSearchParams} from '../router/router';
@@ -14,18 +15,36 @@ type Mode='login'|'register'|'forgot'|'reset'|'admin';
 const styles='w-full rounded-xl border border-ink/25 bg-white px-4 py-3 text-ink';
 function Shell({title,children}:{title:string;children:ReactNode}){return <main className="mx-auto max-w-lg px-4 py-16 sm:px-6"><div className="rounded-3xl border border-ink/20 bg-white p-6 shadow-xl sm:p-9"><h1 className="font-display text-4xl font-extrabold">{title}</h1><div className="mt-7">{children}</div></div></main>;}
 export function AuthPage({mode}:{mode:Mode}){
- const {login,register}=useAuth(),navigate=useNavigate();
+ const {login,register,requestPasswordReset,updatePassword,isSupabase}=useAuth(),navigate=useNavigate();
  const [params]=useSearchParams();const [name,setName]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
  usePageMeta(mode==='register'?'Create account':mode==='admin'?'Admin sign in':'Account access');
  async function submit(e:FormEvent){
   e.preventDefault();setBusy(true);setError('');setMessage('');
   try{
-   if(mode==='register'){if(password!==confirm)throw Error('Passwords do not match');const u=await register(name,email,password);navigate(u.role==='ADMIN'?'/admin':'/account');}
-   else if(mode==='login'||mode==='admin'){const u=await login(email,password);if(mode==='admin'&&u.role!=='ADMIN')throw Error('Administrator access required');navigate(u.role==='ADMIN'?'/admin':'/account');}
-   else{
-    if(!apiUrl)throw Error('Authentication backend is not configured.');
-    const r=await fetch(apiUrl+(mode==='forgot'?'/api/auth/forgot-password':'/api/auth/reset-password'),{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(mode==='forgot'?{email}:{token:params.get('token')??'',password})});
-    const d=await r.json();if(!r.ok)throw Error(d.error||'Request failed');setMessage(mode==='forgot'?d.message:'Password reset. You can now sign in.');
+   if(mode==='register'){
+    if(password!==confirm)throw Error('Passwords do not match');
+    const u=await register(name,email,password);
+    const dest=sanitizeRedirectUrl(params.get('from'),u.role==='ADMIN'?'/admin':'/account');
+    navigate(dest);
+   }else if(mode==='login'||mode==='admin'){
+    const u=await login(email,password);
+    if(mode==='admin'&&u.role!=='ADMIN')throw Error('Administrator access required');
+    const dest=sanitizeRedirectUrl(params.get('from'),u.role==='ADMIN'?'/admin':'/account');
+    navigate(dest);
+   }else if(mode==='forgot'){
+    const res=await requestPasswordReset(email);
+    setMessage(res.message||'Check your email for a password reset link.');
+   }else{
+    if(isSupabase){
+     await updatePassword(password);
+     setMessage('Password reset successful. You can now sign in with your new password.');
+     setTimeout(()=>navigate('/login'),2000);
+    }else{
+     if(!apiUrl)throw Error('Authentication backend is not configured.');
+     const r=await fetch(apiUrl+'/api/auth/reset-password',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:params.get('token')??'',password})});
+     const d=await r.json();if(!r.ok)throw Error(d.error||'Request failed');
+     setMessage('Password reset. You can now sign in.');
+    }
    }
   }catch(e){setError(e instanceof Error?e.message:'Something went wrong');}finally{setBusy(false);}
  }
@@ -44,7 +63,9 @@ export function AuthPage({mode}:{mode:Mode}){
  {mode!=='forgot'&&<Link className="underline" to="/forgot-password">Forgot password?</Link>}
  </div></Shell>;
 }
-function Guard({role,children}:{role:'ADMIN'|'CUSTOMER';children:(u:Account)=>ReactNode}){const {user,ready}=useAuth();if(!ready)return <Shell title="Loading account…"><p>Checking your session.</p></Shell>;if(!user)return <Shell title="Sign in required"><Link className="btn-accent" to={role==='ADMIN'?'/admin/login':'/login'}>Sign in</Link></Shell>;if(role==='ADMIN'&&user.role!=='ADMIN')return <Shell title="Access denied"><p>Administrator permissions are required.</p></Shell>;return <>{children(user)}</>;}
+export function Guard({role,children}:{role:'ADMIN'|'CUSTOMER';children:(u:Account)=>ReactNode}){
+ return <ProtectedRoute role={role}>{children}</ProtectedRoute>;
+}
 export function CustomerDashboard() {
   usePageMeta('My account');
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'settings'>('orders');

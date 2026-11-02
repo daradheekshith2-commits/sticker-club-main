@@ -1,6 +1,7 @@
 import { AuthProvider } from './context/AuthContext';
 import { CatalogueProvider } from './context/CatalogueContext';
 import { AuthPage, CustomerDashboard, AdminDashboard } from './pages/AccountPages';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CartProvider } from './context/CartContext';
 import { Layout } from './components/layout/Layout';
 import { RouterProvider, Routes, type RouteDef } from './router/router';
@@ -39,9 +40,23 @@ const routes: RouteDef[] = [
   { path: '/register', element: <AuthPage mode="register" /> },
   { path: '/forgot-password', element: <AuthPage mode="forgot" /> },
   { path: '/reset-password', element: <AuthPage mode="reset" /> },
-  { path: '/account', element: <CustomerDashboard /> },
+  {
+    path: '/account',
+    element: (
+      <ProtectedRoute role="CUSTOMER">
+        <CustomerDashboard />
+      </ProtectedRoute>
+    ),
+  },
   { path: '/admin/login', element: <AuthPage mode="admin" /> },
-  { path: '/admin', element: <AdminDashboard /> },
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute role="ADMIN">
+        <AdminDashboard />
+      </ProtectedRoute>
+    ),
+  },
   { path: '/about', element: <AboutPage /> },
   { path: '/faq', element: <FaqPage /> },
   { path: '/contact', element: <ContactPage /> },
