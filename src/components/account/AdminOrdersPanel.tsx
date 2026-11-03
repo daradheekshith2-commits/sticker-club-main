@@ -336,7 +336,7 @@ ITEMS TO PRINT & PACK (${order.items.length}):
 -----------------------------------------------------
 ${order.items.map((it, idx) => {
   const p = it.productId ? getProductById(it.productId) : undefined;
-  const size = it.variantLabel || 'Standard 3" × 3" (approx 7.6 × 7.6 cm)';
+  const size = it.variantLabel || 'Standard 5cm × 5cm (approx 2" × 2")';
   const note = it.metadata?.secretNote || (it as any).secretNote;
   return `[Item #${idx + 1}] ${it.nameSnapshot || p?.name || 'Print Item'} (Qty: ${it.quantity})
   Type: ${p?.productType || 'Sticker'}

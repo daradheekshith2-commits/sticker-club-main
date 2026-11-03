@@ -4,13 +4,10 @@
  * - /secret-messages   — message stickers with sealed message cards
  * Products come from the catalogue (productType 'duo' / 'secret').
  */
-import { LuArrowRight } from 'react-icons/lu';
 import { useCatalogue } from '../context/CatalogueContext';
-import { messageCardSeries } from '../data/messageCards';
 import { usePageMeta } from '../hooks/usePageMeta';
-import { Link } from '../router/router';
 import type { DuoPairing } from '../types/collectible';
-import { shopUrl, sortProducts } from '../utils/catalogue';
+import { sortProducts } from '../utils/catalogue';
 import { pairingTitles } from '../components/collectible/ProductExtras';
 import { SecretMessageRevealSection } from '../components/collectible/SecretMessageRevealSection';
 import { ProductGrid } from '../components/product/ProductCard';
@@ -57,42 +54,10 @@ export function DuosPage() {
 
 export function SecretMessagesPage() {
   usePageMeta('Secret message stickers', 'Original message stickers, each with a sealed message card.');
-  const { products } = useCatalogue();
-  const items = sortProducts(
-    products.filter((p) => p.productType === 'secret' || p.collections.includes('secret')),
-    'featured',
-  );
-  const series = messageCardSeries.filter((s) => s.id !== 'mc-mixed');
   return (
     <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
       <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Collectibles', to: '/collectibles' }, { label: 'Secret messages' }]} />
       <SecretMessageRevealSection />
-
-      <section aria-labelledby="card-series" className="mt-12">
-        <h2 id="card-series" className="text-2xl font-extrabold">
-          Message card series
-        </h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {series.map((s) => (
-            <li key={s.id} className="on-light rounded-2xl border-2 border-ink p-4" style={{ backgroundColor: s.color }}>
-              <h3 className="font-display text-lg font-extrabold">{s.name}</h3>
-              <p className="mt-1 text-sm">{s.tone}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section aria-labelledby="secret-grid" className="mt-12">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <h2 id="secret-grid" className="text-3xl font-extrabold">
-            Message stickers
-          </h2>
-          <Link to={shopUrl({ types: ['secret'] })} className="btn-ghost">
-            Filter in the shop <LuArrowRight aria-hidden />
-          </Link>
-        </div>
-        <ProductGrid products={items} />
-      </section>
     </div>
   );
 }

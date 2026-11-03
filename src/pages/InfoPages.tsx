@@ -86,7 +86,7 @@ const faqs: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'What size and material are the stickers?',
-    a: 'Our stickers are printed on premium 100% waterproof, scratch-resistant vinyl with a protective matte laminate. Individual stickers fit within a standard 3" × 3" (approx 7.6 × 7.6 cm) area with die-cut precision, while sticker sheets are standard A6 format (10.5 × 14.8 cm).',
+    a: 'Our stickers are printed on premium 100% waterproof, scratch-resistant vinyl with a protective matte laminate. Individual stickers fit within a standard 5cm × 5cm (approx 2" × 2") area with die-cut precision, while sticker sheets are standard A6 format (10.5 × 14.8 cm).',
   },
   {
     q: 'How does "Create Your Own" custom stickers work?',

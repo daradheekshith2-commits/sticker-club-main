@@ -31,22 +31,22 @@ export type CustomStickerShape = 'rounded' | 'circle' | 'contour';
 
 export const customStickerSizes: CustomStickerSize[] = [
   { id: '5cm', label: '5cm × 5cm', dimensions: '5 × 5 cm', unitPrice: 20, previewScale: 0.72 },
-  { id: '6cm', label: '6cm × 6cm', dimensions: '6 × 6 cm', unitPrice: 25, previewScale: 0.86 },
+  { id: '6cm', label: '6cm × 6cm', dimensions: '6 × 6 cm', unitPrice: 29, previewScale: 0.86 },
   { id: 'custom', label: 'Custom', dimensions: 'Custom size in cm', unitPrice: 20, previewScale: 1 },
 ];
 
 /**
- * Automated pricing for custom sticker dimensions:
- * 5cm × 5cm (25 cm²) = ₹20
- * 6cm × 6cm (36 cm²) = ₹25
- * Formula: price = Math.round(8.6364 + area * (5 / 11))
+ * Automated pricing formula: 1 cm × 1 cm = 0.8 rs (1 cm² = 0.8 rs)
+ * - 5cm × 5cm (25 cm²) = 25 × 0.8 = ₹20
+ * - 6cm × 6cm (36 cm²) = 36 × 0.8 = ₹28.8 → ₹29
+ * - Custom: Math.round(width * height * 0.8)
  */
 export function calculateCustomStickerPrice(widthCm: number, heightCm: number): number {
   const w = Math.max(1, Number(widthCm) || 5);
   const h = Math.max(1, Number(heightCm) || 5);
   const area = w * h;
-  const price = Math.round(8.6364 + area * (5 / 11));
-  return Math.max(15, price);
+  const price = Math.round(area * 0.8);
+  return Math.max(1, price);
 }
 
 export const customStickerFinishes: CustomStickerFinish[] = [

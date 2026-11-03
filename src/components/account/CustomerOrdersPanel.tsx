@@ -1,6 +1,8 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent, type ChangeEvent } from 'react';
+import { LuCamera, LuCheck, LuStar, LuTrash2, LuX } from 'react-icons/lu';
 import { useAuth, apiUrl } from '../../context/AuthContext';
 import { useCatalogue } from '../../context/CatalogueContext';
+import { addReview } from '../../services/reviews';
 import { ProductImage } from '../art/ProductArt';
 
 type OrderItem = {
@@ -119,6 +121,60 @@ export function CustomerOrdersPanel() {
   } | null>(null);
   const [modalImgFailed, setModalImgFailed] = useState(false);
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
+
+  // Customer order review state
+  const [openReviewOrderId, setOpenReviewOrderId] = useState<string | null>(null);
+  const [reviewedOrders, setReviewedOrders] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('pixwora_reviewed_orders');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewNote, setReviewNote] = useState<string>('');
+  const [reviewName, setReviewName] = useState<string>('');
+  const [reviewCity, setReviewCity] = useState<string>('');
+  const [reviewPhoto, setReviewPhoto] = useState<string>('');
+  const [submittingReview, setSubmittingReview] = useState<boolean>(false);
+
+  function handlePhotoUpload(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setReviewPhoto(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleSubmitReview(orderId: string) {
+    if (!reviewNote.trim()) return;
+    setSubmittingReview(true);
+    try {
+      await addReview({
+        name: reviewName.trim() || 'Verified Customer',
+        city: reviewCity.trim() || undefined,
+        rating: reviewRating,
+        note: reviewNote.trim(),
+        photoUrl: reviewPhoto.trim() || undefined,
+        tag: 'Verified Order',
+      });
+      const updated = { ...reviewedOrders, [orderId]: true };
+      setReviewedOrders(updated);
+      try {
+        localStorage.setItem('pixwora_reviewed_orders', JSON.stringify(updated));
+      } catch {}
+      setOpenReviewOrderId(null);
+    } catch (err) {
+      console.error('Failed to submit review:', err);
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
 
   function resolveArtworkUrl(rawUrlOrId?: string | null, isDownload = false, fileName?: string | null): string {
     if (!rawUrlOrId && !fileName) return '';
@@ -568,6 +624,190 @@ export function CustomerOrdersPanel() {
                   >
                     {submittingId === o.id ? 'Cancelling…' : 'Cancel Order'}
                   </button>
+                </div>
+              )}
+
+              {/* Customer Review Section when Order is Finished / Completed */}
+              {(o.status === 'COMPLETED' || o.status === 'SHIPPED') && (
+                <div className="mt-4 border-t border-ink/10 pt-3">
+                  {reviewedOrders[o.id] ? (
+                    <div className="flex items-center justify-between rounded-xl bg-mint/10 border border-mint/30 p-3 text-xs text-ink">
+                      <div className="flex items-center gap-2">
+                        <div className="grid size-6 place-items-center rounded-full bg-mint text-ink font-bold">
+                          <LuCheck className="size-3.5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-mint">Thank you for reviewing this order!</p>
+                          <p className="text-[11px] text-ink-soft">Your review has been added to our Community Reviews wall.</p>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-mono font-bold text-mint bg-ink px-2 py-0.5 rounded">Reviewed ★★★★★</span>
+                    </div>
+                  ) : openReviewOrderId === o.id ? (
+                    <div className="rounded-xl border border-mint/40 bg-paper p-4 shadow-md">
+                      <div className="flex items-center justify-between border-b border-ink/10 pb-2">
+                        <span className="text-xs font-bold text-ink flex items-center gap-1.5 uppercase tracking-wider">
+                          <LuStar className="size-4 fill-amber-400 text-amber-400" /> Rate &amp; Review Your Order
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setOpenReviewOrderId(null)}
+                          className="text-ink-soft hover:text-ink text-sm p-1"
+                        >
+                          <LuX className="size-4" />
+                        </button>
+                      </div>
+
+                      <div className="mt-3 space-y-3">
+                        {/* Rating stars */}
+                        <div>
+                          <label className="block text-[11px] font-bold text-ink-soft mb-1">
+                            Your Rating:
+                          </label>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => setReviewRating(star)}
+                                className="p-0.5 transition-transform hover:scale-125 focus:outline-none"
+                                title={`${star} Star${star > 1 ? 's' : ''}`}
+                              >
+                                <LuStar
+                                  className={`size-6 ${
+                                    star <= reviewRating
+                                      ? 'fill-amber-400 text-amber-400 drop-shadow'
+                                      : 'text-ink-soft/30 hover:text-amber-300'
+                                  }`}
+                                />
+                              </button>
+                            ))}
+                            <span className="ml-2 text-xs font-bold text-ink">
+                              {reviewRating} of 5 Stars
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Review text */}
+                        <div>
+                          <label className="block text-[11px] font-bold text-ink-soft mb-1">
+                            Review / Feedback:
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={reviewNote}
+                            onChange={(e) => setReviewNote(e.target.value)}
+                            placeholder="How did you like the sticker quality, prints and packaging? Tell us your thoughts..."
+                            className="w-full rounded-xl border border-ink/20 bg-white p-2.5 text-xs text-ink placeholder:text-ink-soft/60 focus:border-mint focus:outline-none focus:ring-1 focus:ring-mint"
+                          />
+                        </div>
+
+                        {/* Name and City */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[11px] font-bold text-ink-soft mb-1">
+                              Your Name:
+                            </label>
+                            <input
+                              type="text"
+                              value={reviewName}
+                              onChange={(e) => setReviewName(e.target.value)}
+                              placeholder="e.g. Srujan Reddy"
+                              className="w-full rounded-lg border border-ink/20 bg-white px-2.5 py-1.5 text-xs text-ink focus:border-mint focus:outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-ink-soft mb-1">
+                              City / Campus (Optional):
+                            </label>
+                            <input
+                              type="text"
+                              value={reviewCity}
+                              onChange={(e) => setReviewCity(e.target.value)}
+                              placeholder="e.g. Hyderabad"
+                              className="w-full rounded-lg border border-ink/20 bg-white px-2.5 py-1.5 text-xs text-ink focus:border-mint focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Optional photo */}
+                        <div>
+                          <label className="block text-[11px] font-bold text-ink-soft mb-1">
+                            Add a photo of your stickers in use (Optional):
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <label className="btn-secondary cursor-pointer text-xs py-1.5 px-3 flex items-center gap-1.5 font-bold">
+                              <LuCamera className="size-3.5" />
+                              <span>{reviewPhoto ? 'Change Photo' : 'Upload Setup Photo'}</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handlePhotoUpload}
+                                className="sr-only"
+                              />
+                            </label>
+                            {reviewPhoto && (
+                              <div className="relative size-10 overflow-hidden rounded-md border border-ink/20">
+                                <img src={reviewPhoto} alt="Review attachment preview" className="size-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewPhoto('')}
+                                  className="absolute top-0 right-0 bg-black/70 text-white p-0.5 rounded-bl hover:bg-black"
+                                >
+                                  <LuTrash2 className="size-2.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-ink/10">
+                          <button
+                            type="button"
+                            onClick={() => setOpenReviewOrderId(null)}
+                            className="btn-ghost text-xs py-1.5 px-3"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!reviewNote.trim() || submittingReview}
+                            onClick={() => void handleSubmitReview(o.id)}
+                            className="btn-primary text-xs py-1.5 px-4 font-bold disabled:opacity-50"
+                          >
+                            {submittingReview ? 'Submitting…' : 'Submit Review'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-mint/30 bg-mint/5 p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="grid size-6 place-items-center rounded-full bg-mint/20 text-mint">
+                          <LuStar className="size-3.5 fill-mint text-mint" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-ink">Order Finished · How was your experience?</p>
+                          <p className="text-[11px] text-ink-soft">Leave a review and photo to be featured in our community.</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpenReviewOrderId(o.id);
+                          setReviewRating(5);
+                          setReviewNote('');
+                          setReviewName(o.shippingAddress?.recipient || user?.name || '');
+                          setReviewCity(o.shippingAddress?.city || '');
+                          setReviewPhoto('');
+                        }}
+                        className="btn-primary text-xs py-1.5 px-3.5 font-bold flex items-center gap-1.5 shadow-sm"
+                      >
+                        <LuStar className="size-3.5 fill-current" /> Write a Review
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </li>

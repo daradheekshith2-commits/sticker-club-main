@@ -173,11 +173,18 @@ export function cartReducer(state: CartItem[], action: CartAction): CartItem[] {
 
 /** Finds the chosen variant, or undefined for products without variants. */
 export function findVariant(product: Product, variantId?: string): Variant | undefined {
+  if (variantId?.startsWith('custom:')) {
+    const parts = variantId.split(':');
+    const dims = parts[1] || 'Custom Size';
+    const price = Number(parts[2]) || 0;
+    return { id: variantId, label: 'Custom Dimension', detail: dims, price };
+  }
   return product.variants?.find((v) => v.id === variantId);
 }
 
 /** True when this product/variant combination can exist in a cart. */
 export function isValidSelection(product: Product, variantId?: string): boolean {
+  if (variantId?.startsWith('custom:')) return true;
   if (product.variants?.length) return Boolean(findVariant(product, variantId));
   if (product.productType === 'secret') return true;
   return variantId === undefined;

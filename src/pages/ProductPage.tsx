@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LuArrowRight, LuShoppingBag, LuX } from 'react-icons/lu';
 import { whatsappLink } from '../config/brand';
 import { useCart } from '../context/CartContext';
@@ -6,7 +6,7 @@ import { useCatalogue } from '../context/CatalogueContext';
 import { getCollection, productTypeLabels } from '../data/collections';
 import { d } from '../data/products';
 import { usePageMeta } from '../hooks/usePageMeta';
-import { Link, useParams } from '../router/router';
+import { Link, useParams, useSearchParams } from '../router/router';
 import { getContents, getPackQuantity, getRelatedProducts, shopUrl } from '../utils/catalogue';
 import { formatPrice } from '../utils/format';
 import { unitPrice } from '../utils/cart';
@@ -30,6 +30,7 @@ export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [viewIndex, setViewIndex] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
+  const [searchParams] = useSearchParams();
   const [customSecretMsg, setCustomSecretMsg] = useState(() => {
     try {
       const sp = new URLSearchParams(window.location.search);
@@ -38,10 +39,29 @@ export function ProductPage() {
       return '';
     }
   });
+
+  useEffect(() => {
+    const urlNote = searchParams.get('note');
+    if (urlNote !== null && urlNote !== undefined) {
+      setCustomSecretMsg(urlNote);
+    }
+  }, [searchParams]);
+
   // Default size: A4 if offered, otherwise the first size. Undefined for products without sizes.
   const [variantId, setVariantId] = useState<string | undefined>(
     product?.variants?.find((v) => v.id === 'a4')?.id ?? product?.variants?.[0]?.id,
   );
+
+  useEffect(() => {
+    if (product?.variants && product.variants.length > 0) {
+      if (!variantId || !product.variants.some((v) => v.id === variantId)) {
+        setVariantId(product.variants.find((v) => v.id === 'a4')?.id ?? product.variants[0].id);
+      }
+    }
+  }, [product, variantId]);
+
+  const [customPosterWidth, setCustomPosterWidth] = useState(30);
+  const [customPosterHeight, setCustomPosterHeight] = useState(40);
   usePageMeta(product ? product.name : 'Product not found', product?.shortDescription);
 
   if (loading && !product) {
@@ -152,9 +172,16 @@ export function ProductPage() {
   const views = effectiveProduct.images?.length ? effectiveProduct.images.map((_, i) => i) : viewsFor(effectiveProduct);
   const related = getRelatedProducts(product, 4, products);
   const selectedVariant = product.variants?.find((v) => v.id === variantId);
+  const customPosterPrice = Math.max(1, Math.round(customPosterWidth * customPosterHeight * 0.8));
+  const price = (product.category === 'posters' && variantId === 'custom')
+    ? customPosterPrice
+    : unitPrice(product, variantId);
+
   const sizeValue = product.category === 'posters'
-    ? (selectedVariant ? `${selectedVariant.label} (${selectedVariant.detail})` : (product.dimensions || 'A4 (21 × 29.7 cm)'))
-    : (product.dimensions || 'Fits within 3 × 3 inches area');
+    ? (variantId === 'custom'
+        ? `Custom (${customPosterWidth} × ${customPosterHeight} cm)`
+        : (selectedVariant ? `${selectedVariant.label} (${selectedVariant.detail})` : (product.dimensions || 'A4 (21 × 29.7 cm)')))
+    : (product.dimensions || '5cm × 5cm');
 
   const specs = [
     { label: 'Size', value: sizeValue },
@@ -162,7 +189,6 @@ export function ProductPage() {
     { label: 'Finish', value: product.finish || (product.category === 'posters' ? 'Matte Finish' : 'Protective Water-Resistant Laminate') },
   ];
   const hasSpecs = specs.some((s) => s.value);
-  const price = unitPrice(product, variantId);
   const interest = whatsappLink(`Hi! I’d be interested in "${product.name}" when it’s available.`);
 
   return (
@@ -258,15 +284,15 @@ export function ProductPage() {
               </div>
               <div className="mt-3 space-y-2 text-sm leading-relaxed text-ink/90">
                 <p className="font-bold text-ink">
-                  Fits within 3 × 3 inches area{product.productType === 'sheet' ? ' (A6 sheet: 10.5 × 14.8 cm)' : ' (approx. 7.6 × 7.6 cm)'}.
+                  5cm × 5cm{product.productType === 'sheet' ? ' (A6 sheet: 10.5 × 14.8 cm)' : ' (approx. 2" × 2")'}.
                 </p>
                 <p className="text-ink-soft">
-                  Height &amp; width depends on the aspect ratio of the design.
+                  Fits within 5cm × 5cm area. Height &amp; width depends on the aspect ratio of the design.
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2.5">
-                  <span className="text-xs font-semibold text-ink-soft">Design aspect ratio:</span>
+                  <span className="text-xs font-semibold text-ink-soft">Standard size:</span>
                   <span className="inline-flex items-center rounded-lg border-2 border-ink bg-sun px-3 py-1 font-mono text-xs font-extrabold text-ink shadow-[2px_2px_0px_#121212] tracking-wide">
-                    {product.productType === 'sheet' ? 'A6 Sticker Sheet (10.5 × 14.8 cm)' : 'Max 3.0" × 3.0" (7.6 × 7.6 cm)'}
+                    {product.productType === 'sheet' ? 'A6 Sticker Sheet (10.5 × 14.8 cm)' : '5cm × 5cm'}
                   </span>
                 </div>
                 <p className="mt-3 text-xs text-ink-soft/90 italic border-t border-ink/10 pt-2.5">
@@ -276,7 +302,7 @@ export function ProductPage() {
             </div>
           )}
 
-          {/* Poster Dimensions Guide (A5, A4, A3) */}
+          {/* Poster Dimensions Guide (A5, A4, A3, Custom) */}
           {product.category === 'posters' && (
             <div className="mt-6 rounded-2xl border-2 border-ink/15 bg-white p-4 sm:p-5 shadow-sm">
               <div className="flex items-center justify-between">
@@ -284,10 +310,10 @@ export function ProductPage() {
                   Poster Dimensions Guide
                 </h3>
                 <span className="text-xs font-mono font-bold text-mint bg-ink px-2.5 py-0.5 rounded-full">
-                  Selected: {variantId?.toUpperCase() ?? 'A4'}
+                  Selected: {variantId === 'custom' ? `${customPosterWidth} × ${customPosterHeight} cm` : (variantId?.toUpperCase() ?? 'A4')}
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
                 <button
                   type="button"
                   onClick={() => setVariantId('a5')}
@@ -299,8 +325,8 @@ export function ProductPage() {
                 >
                   <p className="font-bold text-sm text-ink">A5</p>
                   <p className="text-xs font-extrabold text-ink mt-0.5">14.8 × 21 cm</p>
-                  <p className="text-[11px] text-ink-soft">5.8 × 8.3 in</p>
-                  <span className="mt-1 block text-[10px] text-ink-soft font-semibold">Desk frames</span>
+                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹249</p>
+                  <span className="mt-0.5 block text-[10px] text-ink-soft font-semibold">Desk frames</span>
                 </button>
                 <button
                   type="button"
@@ -313,8 +339,8 @@ export function ProductPage() {
                 >
                   <p className="font-bold text-sm text-ink">A4</p>
                   <p className="text-xs font-extrabold text-ink mt-0.5">21 × 29.7 cm</p>
-                  <p className="text-[11px] text-ink-soft">8.3 × 11.7 in</p>
-                  <span className="mt-1 block text-[10px] text-ink-soft font-semibold">Standard poster</span>
+                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹499</p>
+                  <span className="mt-0.5 block text-[10px] text-ink-soft font-semibold">Standard poster</span>
                 </button>
                 <button
                   type="button"
@@ -327,10 +353,67 @@ export function ProductPage() {
                 >
                   <p className="font-bold text-sm text-ink">A3</p>
                   <p className="text-xs font-extrabold text-ink mt-0.5">29.7 × 42 cm</p>
-                  <p className="text-[11px] text-ink-soft">11.7 × 16.5 in</p>
-                  <span className="mt-1 block text-[10px] text-ink-soft font-semibold">Twice A4 · Wall size</span>
+                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹998</p>
+                  <span className="mt-0.5 block text-[10px] text-ink-soft font-semibold">Wall size</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVariantId('custom')}
+                  className={`rounded-xl border p-2.5 transition-all text-left sm:text-center ${
+                    variantId === 'custom'
+                      ? 'border-ink bg-lime/25 shadow-sm ring-2 ring-ink/20'
+                      : 'border-ink/10 bg-paper/40 hover:border-ink/30'
+                  }`}
+                >
+                  <p className="font-bold text-sm text-ink">Custom</p>
+                  <p className="text-xs font-extrabold text-ink mt-0.5">Any size (cm)</p>
+                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹0.8/cm²</p>
+                  <span className="mt-0.5 block text-[10px] text-ink-soft font-semibold">Enter dimensions</span>
                 </button>
               </div>
+
+              {/* Custom Poster Dimensions Inputs */}
+              {variantId === 'custom' && (
+                <div className="mt-4 rounded-xl border border-mint/40 bg-mint/5 p-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-ink uppercase tracking-wider">
+                      Enter Poster Dimensions (in cm):
+                    </span>
+                    <span className="text-[11px] font-mono font-bold text-mint bg-ink px-2 py-0.5 rounded">
+                      1 cm² = 0.8 rs
+                    </span>
+                  </div>
+                  <div className="mt-2.5 grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-ink-soft mb-1">Width (cm)</label>
+                      <input
+                        type="number"
+                        min={10}
+                        max={200}
+                        value={customPosterWidth}
+                        onChange={(e) => setCustomPosterWidth(Math.max(5, Math.min(200, Number(e.target.value) || 10)))}
+                        className="w-full rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm font-bold text-ink focus:border-mint focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-ink-soft mb-1">Height (cm)</label>
+                      <input
+                        type="number"
+                        min={10}
+                        max={200}
+                        value={customPosterHeight}
+                        onChange={(e) => setCustomPosterHeight(Math.max(5, Math.min(200, Number(e.target.value) || 10)))}
+                        className="w-full rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm font-bold text-ink focus:border-mint focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-2.5 flex items-center justify-between text-xs border-t border-ink/10 pt-2 text-ink">
+                    <span>Area: <strong>{customPosterWidth * customPosterHeight} cm²</strong></span>
+                    <span className="font-bold text-mint font-mono text-sm">Calculated Price: ₹{customPosterPrice}</span>
+                  </div>
+                </div>
+              )}
+
               <p className="mt-3 text-[11px] text-ink-soft italic border-t border-ink/10 pt-2">
                 Printed on premium 300 GSM archival matte cardstock with crisp edge-to-edge detailing.
               </p>
@@ -423,7 +506,12 @@ export function ProductPage() {
                     type="button"
                     className="btn-primary flex-1 py-4 text-base"
                     onClick={() => {
-                      addItem(product.id, quantity, variantId, customSecretMsg.trim() || undefined);
+                      const effectiveVariant = (product.variants && product.variants.length > 0)
+                        ? ((product.category === 'posters' && variantId === 'custom')
+                            ? `custom:${customPosterWidth}×${customPosterHeight}cm:${customPosterPrice}`
+                            : (variantId || product.variants[0].id))
+                        : undefined;
+                      addItem(product.id, quantity, effectiveVariant, customSecretMsg.trim() || undefined);
                       setQuantity(1);
                       openCart();
                     }}

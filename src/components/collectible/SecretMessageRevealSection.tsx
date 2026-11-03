@@ -1,6 +1,7 @@
 import { useState, useId } from 'react';
-import { LuArrowRight, LuMail, LuPenLine, LuRotateCw, LuSparkles } from 'react-icons/lu';
+import { LuArrowRight, LuCheck, LuEye, LuEyeOff, LuMail, LuPenLine, LuRotateCw, LuShoppingBag, LuSparkles } from 'react-icons/lu';
 import { Link } from '../../router/router';
+import { useCart } from '../../context/CartContext';
 import { formatPrice } from '../../utils/format';
 
 const SAMPLE_MESSAGES = [
@@ -49,12 +50,17 @@ const STICKER_CARDS = [
 ];
 
 export function SecretMessageRevealSection() {
+  const { addItem, openCart } = useCart();
+  const [selectedStickerId, setSelectedStickerId] = useState('sec-001');
   const [revealed, setRevealed] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
   const [animating, setAnimating] = useState(false);
   const [mode, setMode] = useState<'sample' | 'custom'>('sample');
   const [customText, setCustomText] = useState('');
+  const [addedMsg, setAddedMsg] = useState<string | null>(null);
   const sectionId = useId();
+
+  const selectedSticker = STICKER_CARDS.find((c) => c.id === selectedStickerId) || STICKER_CARDS[0];
 
   function handleReveal() {
     setRevealed(true);
@@ -71,6 +77,17 @@ export function SecretMessageRevealSection() {
   const activeMessage = mode === 'custom'
     ? (customText.trim() || 'Type your message above to preview it sealed inside...')
     : SAMPLE_MESSAGES[messageIndex];
+
+  function handleAddToCart(stickerId: string) {
+    const sticker = STICKER_CARDS.find((c) => c.id === stickerId) || selectedSticker;
+    const finalNote = mode === 'custom'
+      ? (customText.trim() || 'Main character energy. Even on a Monday.')
+      : activeMessage;
+    addItem(sticker.id, 1, undefined, finalNote);
+    openCart();
+    setAddedMsg(sticker.name);
+    setTimeout(() => setAddedMsg(null), 3000);
+  }
 
   return (
     <section
@@ -107,22 +124,42 @@ export function SecretMessageRevealSection() {
         <div>
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold tracking-widest text-[#A8F0DC] uppercase font-mono">
-              Sticker Examples
+              1. Choose Your Sticker Design
             </h3>
-            <span className="text-[11px] text-[#F4F0E8]/60">Includes sealed card</span>
+            <span className="text-[11px] text-[#F4F0E8]/60">Wax-sealed card included</span>
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {STICKER_CARDS.map((item) => {
+              const isSelected = selectedStickerId === item.id;
               const productUrl = mode === 'custom' && customText.trim()
                 ? `/product/${item.slug}?note=${encodeURIComponent(customText.trim())}`
                 : `/product/${item.slug}`;
               return (
-                <Link
+                <div
                   key={item.id}
-                  to={productUrl}
-                  className="group relative flex flex-col items-center rounded-2xl border border-mint/20 bg-[#0B2420]/80 p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:border-mint/60 hover:bg-[#0F2F2A] hover:shadow-xl"
+                  onClick={() => setSelectedStickerId(item.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedStickerId(item.id);
+                    }
+                  }}
+                  className={`group relative flex cursor-pointer flex-col items-center rounded-2xl border p-4 text-center transition-all duration-300 ${
+                    isSelected
+                      ? 'border-mint bg-[#0F2F2A] shadow-xl ring-2 ring-mint/50 -translate-y-1'
+                      : 'border-mint/20 bg-[#0B2420]/80 hover:-translate-y-1 hover:border-mint/60 hover:bg-[#0F2F2A]'
+                  }`}
                 >
+                  {/* Selected Indicator Badge */}
+                  {isSelected && (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-mint px-2.5 py-0.5 text-[9px] font-black uppercase text-ink shadow-md">
+                      ✓ Selected
+                    </div>
+                  )}
+
                   {/* Artwork display with mini envelope seal badge */}
                   <div className="relative aspect-square w-28 overflow-hidden rounded-xl bg-[#03110F] p-2 flex items-center justify-center sm:w-32 border border-white/10 group-hover:border-mint/30 transition-colors">
                     <picture className="contents">
@@ -152,10 +189,28 @@ export function SecretMessageRevealSection() {
                   <span className="mt-0.5 block text-xs font-bold text-mint font-mono">
                     {formatPrice(item.price)}
                   </span>
-                  <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-cinema-red group-hover:text-white transition-colors">
-                    Customize &amp; Order →
-                  </span>
-                </Link>
+
+                  {/* Direct Add to Cart Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(item.id);
+                    }}
+                    className="btn-primary mt-3 w-full py-1.5 text-xs font-bold shadow flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <LuShoppingBag className="size-3.5" />
+                    Add to Cart · {formatPrice(item.price)}
+                  </button>
+
+                  <Link
+                    to={productUrl}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-cinema-red hover:text-white transition-colors"
+                  >
+                    Details &amp; Specs →
+                  </Link>
+                </div>
               );
             })}
           </div>
@@ -166,7 +221,7 @@ export function SecretMessageRevealSection() {
           <div className="w-full max-w-md rounded-2xl border border-mint/25 bg-[#0B2420]/90 p-6 text-center backdrop-blur-md sm:p-7 shadow-2xl">
             <div className="flex items-center justify-between border-b border-mint/15 pb-3">
               <span className="text-xs font-bold text-mint uppercase tracking-wider flex items-center gap-1.5">
-                <LuMail className="size-3.5" /> Sealed Envelope Preview
+                <LuMail className="size-3.5" /> 2. Personalize Secret Note
               </span>
               <div className="flex rounded-lg bg-black/40 p-0.5 text-[11px] font-semibold border border-white/10">
                 <button
@@ -208,9 +263,16 @@ export function SecretMessageRevealSection() {
                   />
                   <LuPenLine className="absolute right-3 top-3 size-3.5 text-mint/60 pointer-events-none" />
                 </div>
-                <p className="mt-1 text-[11px] text-[#A8F0DC]/70">
-                  This exact note will be printed and wax-sealed inside the envelope card with your sticker!
-                </p>
+                <div className="mt-1 flex items-center justify-between text-[11px]">
+                  <span className="text-[#A8F0DC]/70">This note will be printed &amp; wax-sealed inside!</span>
+                  <button
+                    type="button"
+                    onClick={() => setRevealed(!revealed)}
+                    className="text-mint font-semibold underline hover:text-white flex items-center gap-1"
+                  >
+                    {revealed ? <><LuEyeOff className="size-3" /> Hide card</> : <><LuEye className="size-3" /> View card</>}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -238,7 +300,7 @@ export function SecretMessageRevealSection() {
                     Sealed Message Card
                   </span>
                   <span className="mt-1 text-[11px] text-mint font-semibold">
-                    Tap to unseal &amp; read
+                    Tap to unseal &amp; preview text
                   </span>
                 </div>
               ) : (
@@ -259,7 +321,7 @@ export function SecretMessageRevealSection() {
                     </span>
                   </div>
 
-                  <p className="my-3 font-display text-base font-extrabold leading-snug sm:text-lg text-[#121212]">
+                  <p className="my-3 font-display text-base font-extrabold leading-snug sm:text-lg text-[#121212] select-all">
                     “{activeMessage}”
                   </p>
 
@@ -276,45 +338,61 @@ export function SecretMessageRevealSection() {
               <button
                 type="button"
                 onClick={handleReveal}
-                className="btn-primary w-full py-3 text-sm font-bold tracking-wide shadow-md hover:shadow-mint/20"
+                className="btn-primary w-full py-2.5 text-xs font-bold tracking-wide shadow-md hover:shadow-mint/20 mb-3"
               >
-                Reveal a sample message
+                👀 View message inside card
               </button>
             ) : mode === 'sample' ? (
-              <div className="flex gap-2">
+              <div className="mb-3 flex gap-2">
                 <button
                   type="button"
                   onClick={handleNextMessage}
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-mint/30 bg-[#071B18] px-4 py-2.5 text-xs font-bold text-mint transition-colors hover:bg-mint hover:text-[#03110F]"
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-mint/30 bg-[#071B18] px-3 py-2 text-xs font-bold text-mint transition-colors hover:bg-mint hover:text-[#03110F]"
                 >
                   <LuRotateCw className={`size-3.5 ${animating ? 'animate-spin' : ''}`} />
-                  Try another message
+                  Try another
                 </button>
                 <button
                   type="button"
                   onClick={() => setRevealed(false)}
-                  className="rounded-full border border-white/20 bg-transparent px-3 py-2.5 text-xs font-bold text-white hover:bg-white/10"
+                  className="rounded-full border border-white/20 bg-transparent px-3 py-2 text-xs font-bold text-white hover:bg-white/10"
                 >
-                  Seal
+                  Seal into envelope
                 </button>
               </div>
             ) : (
-              <div className="flex gap-2">
+              <div className="mb-3 flex gap-2">
                 <button
                   type="button"
                   onClick={() => setRevealed(false)}
-                  className="btn-primary flex-1 py-2.5 text-xs font-bold shadow-md"
+                  className="rounded-full border border-white/20 bg-[#071B18] px-3 py-2 text-xs font-bold text-white hover:bg-white/10 w-full"
                 >
-                  Seal into envelope ✉
+                  ✉ Seal note into envelope
                 </button>
               </div>
             )}
 
-            <p className="mt-3 text-[11px] text-[#A8F0DC]/70">
-              {mode === 'custom'
-                ? 'Your custom message will be printed and sealed in kraft envelope.'
-                : 'Curated surprise—your pack arrives with a secret message inside.'}
-            </p>
+            {/* Primary Add to Cart CTA with Selected Sticker & Secret Message */}
+            <div className="border-t border-mint/15 pt-4">
+              <button
+                type="button"
+                onClick={() => handleAddToCart(selectedStickerId)}
+                className="btn-primary w-full py-3.5 text-sm font-bold shadow-lg flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <LuShoppingBag className="size-4" />
+                <span>Add {selectedSticker.name} to Cart · {formatPrice(selectedSticker.price)}</span>
+              </button>
+
+              {addedMsg && (
+                <div className="mt-2.5 flex items-center justify-center gap-1.5 rounded-xl border border-mint/50 bg-mint/10 p-2 text-center text-xs font-bold text-mint">
+                  <LuCheck className="size-4" /> Added {addedMsg} with your sealed secret message to cart!
+                </div>
+              )}
+
+              <p className="mt-2.5 text-[11px] text-[#A8F0DC]/70">
+                Includes 1 sticker ({selectedSticker.name}) + 1 wax-sealed envelope card with your message.
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -30,16 +30,16 @@ test('options data has 5cmx5cm, 6cmx6cm and custom size with exact pricing', () 
   assert.deepEqual(customStickerSizes.map((s) => s.label), ['5cm × 5cm', '6cm × 6cm', 'Custom']);
   for (const s of customStickerSizes) assert.ok(Number.isInteger(s.unitPrice) && s.unitPrice > 0);
   assert.equal(customStickerSizes.find((s) => s.id === '5cm')?.unitPrice, 20);
-  assert.equal(customStickerSizes.find((s) => s.id === '6cm')?.unitPrice, 25);
+  assert.equal(customStickerSizes.find((s) => s.id === '6cm')?.unitPrice, 29);
   assert.ok(customStickerFinishes.some((f) => f.surcharge === 0), 'a no-extra-cost finish exists');
 });
 
-test('automated custom pricing: 5cmx5cm is 20, 6cmx6cm is 25, scales with area', () => {
+test('automated custom pricing: 1cm² = 0.8 rs formula', () => {
   assert.equal(calculateCustomStickerPrice(5, 5), 20);
-  assert.equal(calculateCustomStickerPrice(6, 6), 25);
-  assert.equal(calculateCustomStickerPrice(7, 7), 31);
-  assert.equal(calculateCustomStickerPrice(10, 10), 54);
-  assert.ok(calculateCustomStickerPrice(3, 3) >= 15);
+  assert.equal(calculateCustomStickerPrice(6, 6), 29);
+  assert.equal(calculateCustomStickerPrice(7, 7), 39);
+  assert.equal(calculateCustomStickerPrice(10, 10), 80);
+  assert.equal(calculateCustomStickerPrice(3, 3), 7);
 });
 
 test('price = (size price + finish surcharge) × quantity', () => {

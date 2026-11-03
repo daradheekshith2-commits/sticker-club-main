@@ -483,7 +483,8 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
     : 0;
   const customSubtotal = customLinesInCart.reduce((sum, line) => sum + line.lineTotal, 0);
   const subtotalEstimate = standardSubtotal + customSubtotal;
-  const deliveryFeeVal = paymentConfig?.deliveryFee ? Number(paymentConfig.deliveryFee) : 0;
+  const isCod = paymentMethod === 'COD';
+  const deliveryFeeVal = isCod ? 20 : 15;
   const totalEstimate = subtotalEstimate + deliveryFeeVal;
 
   return (
@@ -737,10 +738,8 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
               <span>₹{subtotalEstimate.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-ink-soft">Delivery Fee</span>
-              <span>
-                {paymentConfig?.deliveryFee ? `₹${Number(paymentConfig.deliveryFee).toFixed(2)}` : 'Not configured'}
-              </span>
+              <span className="text-ink-soft">Delivery Fee ({isCod ? 'Cash on Delivery: ₹20' : 'UPI Payment: ₹15'})</span>
+              <span className="font-bold">₹{deliveryFeeVal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between border-t border-ink/10 pt-2 text-base font-extrabold">
               <span>Total</span>
@@ -764,7 +763,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
             type="button"
             className="btn-primary mt-5 w-full"
             onClick={() => void place()}
-            disabled={working || !selected || paymentConfig?.deliveryFee === null || !phone.trim() || subtotalEstimate < 99}
+            disabled={working || !selected || !phone.trim() || subtotalEstimate < 99}
           >
             {working
               ? 'Placing order…'
