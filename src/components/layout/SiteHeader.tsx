@@ -13,12 +13,12 @@ const menus = megaMenus.filter((m) => m.id !== 'posters' || brand.features.showP
 
 function Wordmark() {
   return (
-    <Link to="/" className="flex items-center gap-2" aria-label={`${brand.displayName} home`}>
-      <svg viewBox="0 0 64 64" className="size-9 -rotate-6" aria-hidden>
-        <circle cx="32" cy="32" r="30" fill="#fff" stroke="#121212" strokeWidth="2" />
-        <circle cx="32" cy="32" r="24" fill="#D4FF3A" />
-        <path d="M40 16 L26 34 h9 l-5 14 l16 -19 h-9 z" fill="#121212" />
-      </svg>
+    <Link to="/" className="flex items-center gap-2 group" aria-label={`${brand.displayName} home`}>
+      <img
+        src="/logo.jpeg"
+        alt="Pixwora Logo"
+        className="size-8 rounded-full object-cover border border-mint/40 shadow-sm transition-transform duration-200 group-hover:scale-105"
+      />
       <span className="font-display text-lg leading-none font-extrabold tracking-tight whitespace-nowrap sm:text-xl">PIXWORA</span>
     </Link>
   );

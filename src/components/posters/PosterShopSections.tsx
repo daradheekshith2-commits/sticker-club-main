@@ -452,7 +452,7 @@ export function PosterBuyingGuide() {
           <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-ink-soft">
             <li>Paper type, weight and finish — we’re testing printer samples first.</li>
             <li>Final prices, delivery and pickup details.</li>
-            <li>How we’ll receive your photos for custom walls. Nothing is uploaded in this prototype.</li>
+            <li>Custom layout configurations and photo uploads are processed directly in our print builder.</li>
           </ul>
         </div>
       </div>

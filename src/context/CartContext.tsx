@@ -31,8 +31,8 @@ import { packEligibleProducts } from '../utils/collectibles';
 
 interface CartContextValue extends CartSummary {
   items: CartItem[];
-  /** variantId is required for products with sizes, e.g. addItem('pst-002', 1, 'a4'). */
-  addItem: (productId: string, quantity?: number, variantId?: string) => void;
+  /** variantId is required for products with sizes, e.g. addItem('pst-002', 1, 'a4'). secretNote is optional custom message. */
+  addItem: (productId: string, quantity?: number, variantId?: string, secretNote?: string) => void;
   /** Adds a configured custom wall as its own line; returns the line's key. */
   addCustomWall: (wall: CustomWallConfig, quantity?: number) => string;
   /** Adds a configured custom sticker (quantity = number of stickers); returns the line's key. */
@@ -110,9 +110,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const addItem = useCallback((productId: string, quantity = 1, variantId?: string) => {
+  const addItem = useCallback((productId: string, quantity = 1, variantId?: string, secretNote?: string) => {
     if (!canAddProduct(productId, variantId)) return; // coming-soon product or missing/invalid size
-    dispatch({ type: 'add', productId, variantId, quantity });
+    dispatch({ type: 'add', productId, variantId, secretNote, quantity });
     const product = findProduct(productId);
     const size = product ? findVariant(product, variantId)?.label : undefined;
     setAnnouncement(`${product?.name ?? 'Item'}${size ? ` (${size})` : ''} added to cart`);

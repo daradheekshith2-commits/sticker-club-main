@@ -337,10 +337,11 @@ ITEMS TO PRINT & PACK (${order.items.length}):
 ${order.items.map((it, idx) => {
   const p = it.productId ? getProductById(it.productId) : undefined;
   const size = it.variantLabel || 'Standard 3" × 3" (approx 7.6 × 7.6 cm)';
+  const note = it.metadata?.secretNote || (it as any).secretNote;
   return `[Item #${idx + 1}] ${it.nameSnapshot || p?.name || 'Print Item'} (Qty: ${it.quantity})
   Type: ${p?.productType || 'Sticker'}
   Dimensions / Specs: ${size}
-  Unit Price: ₹${it.unitPrice} | Total: ₹${Number(it.unitPrice) * it.quantity}
+  ${note ? `*** CUSTOM SECRET MESSAGE TO SEAL INSIDE ENVELOPE ***: "${note}"\n` : ''}  Unit Price: ₹${it.unitPrice} | Total: ₹${Number(it.unitPrice) * it.quantity}
   Item ID: ${it.id}
   Product Code: ${it.productId || 'CUSTOM'}
 `;
@@ -365,6 +366,30 @@ ${order.customOrders.map((co, idx) => {
 PIXWORA Print Operations System
 `;
       zip.file(`ORDER_${order.id.slice(0, 8)}_DETAILS.txt`, manifest);
+
+      // 1.1 If any secret messages exist, generate a dedicated print card slip file
+      const secretItems = order.items.filter((it) => it.metadata?.secretNote || (it as any).secretNote);
+      if (secretItems.length > 0) {
+        const secretSlip = `=====================================================
+PIXWORA SECRET MESSAGE CARDS TO PRINT & WAX-SEAL
+Order ID: #${order.id}
+Customer: ${order.shippingAddress?.recipient || order.user?.name || 'Customer'}
+Phone: ${order.shippingAddress?.phone || order.user?.phone || 'N/A'}
+=====================================================
+
+${secretItems.map((it, idx) => `
+[CARD #${idx + 1}]
+Item: ${it.nameSnapshot}
+Quantity: ${it.quantity}
+-----------------------------------------------------
+SECRET MESSAGE TEXT:
+"${it.metadata?.secretNote || (it as any).secretNote}"
+-----------------------------------------------------
+Instruction: Print on kraft/linen insert card and seal with wax seal into envelope.
+`).join('\n\n')}
+`;
+        zip.file('SECRET_MESSAGES_TO_SEAL.txt', secretSlip);
+      }
 
       // 2. Fetch custom order artworks
       if (order.customOrders && order.customOrders.length > 0) {
@@ -1006,6 +1031,16 @@ PIXWORA Print Operations System
                                       <p className="font-bold text-ink">{i.nameSnapshot}</p>
                                       {i.variantLabel && (
                                         <span className="text-[11px] text-ink-soft">Variant: {i.variantLabel}</span>
+                                      )}
+                                      {(i.metadata?.secretNote || (i as any).secretNote) && (
+                                        <div className="mt-1.5 rounded-lg border border-amber-600/40 bg-amber-500/10 p-2 text-xs">
+                                          <span className="font-bold text-amber-500 flex items-center gap-1">
+                                            <span>✉</span> Customer Secret Message to Wax-Seal:
+                                          </span>
+                                          <p className="mt-0.5 font-semibold text-ink italic select-all">
+                                            "{i.metadata?.secretNote || (i as any).secretNote}"
+                                          </p>
+                                        </div>
                                       )}
                                     </td>
                                     <td className="py-2 text-center font-bold">{i.quantity}</td>

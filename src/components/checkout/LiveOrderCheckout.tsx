@@ -240,6 +240,16 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
           paymentMethod,
           clearServerCart: standard.length === 0,
           customLines: preparedCustomLines.length > 0 ? preparedCustomLines : undefined,
+          standardItems: standard.map((s) => ({
+            productId: s.product.id,
+            nameSnapshot: s.product.name,
+            variantId: s.variant?.id ?? null,
+            variantLabel: s.variant?.label ?? null,
+            quantity: s.quantity,
+            unitPrice: s.unitPrice,
+            secretNote: s.secretNote ?? null,
+            imageUrl: s.product.imageUrl || s.product.images?.[0]?.src || null,
+          })),
         }),
       });
       setOrder(placed);
@@ -664,7 +674,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
               const cartLine = standard.find(
                 (l) => l.product.id === item.productId && (l.variant?.id ?? undefined) === (item.variantId ?? undefined)
               );
-              const imgUrl = cartLine?.product.images?.[0]?.src;
+              const imgUrl = cartLine?.product.images?.[0]?.src || cartLine?.product.imageUrl;
               return (
                 <div key={item.productId} className="flex items-center justify-between gap-3 py-2 text-sm">
                   <div className="flex items-center gap-3">
@@ -673,10 +683,17 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
                     ) : (
                       <div className="h-10 w-10 rounded-md bg-ink/5 border border-ink/10" />
                     )}
-                    <span>
-                      {item.product.name}
-                      {item.variantId ? ' · ' + (item.product.variants.find((v) => v.id === item.variantId)?.label ?? item.variantId) : ''} × {item.quantity}
-                    </span>
+                    <div>
+                      <span>
+                        {item.product.name}
+                        {item.variantId ? ' · ' + (item.product.variants.find((v) => v.id === item.variantId)?.label ?? item.variantId) : ''} × {item.quantity}
+                      </span>
+                      {cartLine?.secretNote && (
+                        <p className="mt-0.5 text-xs text-mint font-semibold italic flex items-center gap-1">
+                          <span>✉</span> Wax-Sealed Secret Note: "{cartLine.secretNote}"
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <strong>₹{(unit * item.quantity).toFixed(2)}</strong>
                 </div>

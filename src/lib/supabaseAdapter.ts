@@ -369,7 +369,23 @@ export async function handleSupabaseRequest<T>(
       metadata?: any;
     }> = [];
 
-    if (cartItems && cartItems.length > 0) {
+    if (Array.isArray(body.standardItems) && body.standardItems.length > 0) {
+      for (const item of body.standardItems) {
+        const price = Number(item.unitPrice || item.price || 0);
+        const qty = Number(item.quantity) || 1;
+        subtotal += price * qty;
+        orderLines.push({
+          productId: item.productId || null,
+          nameSnapshot: item.nameSnapshot || item.name || 'Sticker Item',
+          variantId: item.variantId || null,
+          variantLabel: item.variantLabel || null,
+          unitPrice: price,
+          quantity: qty,
+          imageUrl: item.imageUrl || null,
+          metadata: item.secretNote ? { secretNote: item.secretNote } : null,
+        });
+      }
+    } else if (cartItems && cartItems.length > 0) {
       for (const item of cartItems) {
         const price = Number(item.product?.price || 0);
         subtotal += price * item.quantity;

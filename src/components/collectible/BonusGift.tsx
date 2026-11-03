@@ -1,5 +1,5 @@
 import { LuGift } from 'react-icons/lu';
-import { activeBonusComponents, bonusGift } from '../../config/bonusGift';
+import { activeBonusComponents } from '../../config/bonusGift';
 import type { StickerDesign } from '../../types/product';
 import { StickerSvg } from '../art/Sticker';
 
@@ -15,13 +15,11 @@ function describe(): string {
  */
 export function BonusGiftNote({ compact = false }: { compact?: boolean }) {
   if (!activeBonusComponents().length) return null;
-  const planned = bonusGift.status === 'planned';
   return (
     <p className={`flex gap-2 rounded-xl border-2 border-dashed border-ink/25 bg-white ${compact ? 'p-2.5 text-xs' : 'p-3 text-sm'}`}>
       <LuGift aria-hidden className="mt-0.5 size-4 shrink-0" />
       <span>
-        <strong>{planned ? 'Planned:' : 'Included:'}</strong> {describe()} in every eligible order.
-        {planned && ' Not active in this prototype — no real orders are packed yet.'}
+        <strong>Included:</strong> {describe()} in every eligible order.
       </span>
     </p>
   );

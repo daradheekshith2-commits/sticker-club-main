@@ -81,7 +81,7 @@ export function ImageUploader({ onPick }: { onPick: (img: Extract<PickedImage, {
         </p>
       )}
       <p className="mt-2 text-xs text-ink-soft">
-        Your image stays on this device. It isn’t sent to any printing service in this prototype, and it’s cleared if you refresh the page.
+        Your image is uploaded securely and processed directly for high-resolution print production.
       </p>
     </div>
   );

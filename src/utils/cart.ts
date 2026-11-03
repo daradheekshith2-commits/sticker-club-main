@@ -39,6 +39,8 @@ export interface ProductCartItem {
   productId: string;
   /** Required for products that have variants (e.g. poster sizes). */
   variantId?: string;
+  /** Optional customer secret message sealed inside secret message cards. */
+  secretNote?: string;
   quantity: number;
 }
 
@@ -82,9 +84,9 @@ export const isProductItem = (i: CartItem): i is ProductCartItem => i.kind === u
 /** True for lines holding temporary images (walls, custom stickers). */
 export const isCustomItem = (i: CartItem): i is CustomCartItem => isWallItem(i) || isStickerItem(i);
 
-/** The unique key of a product line, e.g. 'pst-001::a4' or 'stk-001::'. */
-export function lineKey(productId: string, variantId?: string): string {
-  return `${productId}::${variantId ?? ''}`;
+/** The unique key of a product line, e.g. 'pst-001::a4' or 'stk-001::' or with secret note. */
+export function lineKey(productId: string, variantId?: string, secretNote?: string): string {
+  return `${productId}::${variantId ?? ''}${secretNote ? `::note=${secretNote}` : ''}`;
 }
 
 /** The unique key of a custom wall line. */
@@ -96,7 +98,13 @@ export const stickerKey = (id: string) => `sticker::${id}`;
 export const packKey = (id: string) => `pack::${id}`;
 
 export const keyOf = (i: CartItem) =>
-  isWallItem(i) ? wallKey(i.id) : isStickerItem(i) ? stickerKey(i.id) : isPackItem(i) ? packKey(i.id) : lineKey(i.productId, i.variantId);
+  isWallItem(i)
+    ? wallKey(i.id)
+    : isStickerItem(i)
+    ? stickerKey(i.id)
+    : isPackItem(i)
+    ? packKey(i.id)
+    : lineKey(i.productId, i.variantId, i.secretNote);
 
 /** A new, practically unique id for a custom configuration, e.g. 'wall-lq2x9a-4f7k'. */
 export function newCustomId(prefix: 'wall' | 'sticker'): string {
@@ -105,7 +113,7 @@ export function newCustomId(prefix: 'wall' | 'sticker'): string {
 export const newWallId = () => newCustomId('wall');
 
 export type CartAction =
-  | { type: 'add'; productId: string; variantId?: string; quantity: number }
+  | { type: 'add'; productId: string; variantId?: string; secretNote?: string; quantity: number }
   | { type: 'addWall'; item: CustomWallCartItem }
   | { type: 'addSticker'; item: CustomStickerCartItem }
   /** Adds a pack; an identical pack already in the cart gets its quantity increased. */
@@ -126,12 +134,13 @@ export function clampQuantity(n: number): number {
 export function cartReducer(state: CartItem[], action: CartAction): CartItem[] {
   switch (action.type) {
     case 'add': {
-      const key = lineKey(action.productId, action.variantId);
+      const key = lineKey(action.productId, action.variantId, action.secretNote);
       if (state.some((i) => keyOf(i) === key)) {
         return state.map((i) => (keyOf(i) === key ? { ...i, quantity: clampQuantity(i.quantity + action.quantity) } : i));
       }
       const item: ProductCartItem = { productId: action.productId, quantity: clampQuantity(action.quantity) };
       if (action.variantId) item.variantId = action.variantId;
+      if (action.secretNote) item.secretNote = action.secretNote;
       return [...state, item];
     }
     case 'addWall':
@@ -170,6 +179,7 @@ export function findVariant(product: Product, variantId?: string): Variant | und
 /** True when this product/variant combination can exist in a cart. */
 export function isValidSelection(product: Product, variantId?: string): boolean {
   if (product.variants?.length) return Boolean(findVariant(product, variantId));
+  if (product.productType === 'secret') return true;
   return variantId === undefined;
 }
 
@@ -183,6 +193,7 @@ export interface ProductCartLine {
   key: string;
   product: Product;
   variant?: Variant;
+  secretNote?: string;
   unitPrice: number;
   quantity: number;
   lineTotal: number;
@@ -261,6 +272,7 @@ export function summariseCart(items: CartItem[], findProduct: (id: string) => Pr
       key: keyOf(item),
       product,
       variant: findVariant(product, item.variantId),
+      secretNote: item.secretNote,
       unitPrice: price,
       quantity: item.quantity,
       lineTotal: price * item.quantity,
@@ -281,9 +293,12 @@ export function serializeCart(items: CartItem[]): string {
       .map((i) =>
         isPackItem(i)
           ? { kind: 'custom-pack', id: i.id, quantity: i.quantity, pack: i.pack }
-          : i.variantId
-            ? { productId: i.productId, variantId: i.variantId, quantity: i.quantity }
-            : { productId: i.productId, quantity: i.quantity },
+          : {
+              productId: i.productId,
+              ...(i.variantId ? { variantId: i.variantId } : {}),
+              ...(i.secretNote ? { secretNote: i.secretNote } : {}),
+              quantity: i.quantity,
+            },
       ),
   );
 }
@@ -332,10 +347,12 @@ export function parseStoredCart(
     if (variantId !== undefined && typeof variantId !== 'string') continue;
     if (!isValid(productId, variantId)) continue;
     if (typeof quantity !== 'number' || !Number.isFinite(quantity) || quantity < 1) continue;
-    const key = lineKey(productId, variantId);
+    const note = typeof (entry as any).secretNote === 'string' ? ((entry as any).secretNote as string) : undefined;
+    const key = lineKey(productId, variantId, note);
     const prev = merged.get(key);
     const item: ProductCartItem = { productId, quantity: (prev?.quantity ?? 0) + quantity };
     if (variantId) item.variantId = variantId;
+    if (note) item.secretNote = note;
     merged.set(key, item);
   }
   return [...[...merged.values()].map((i) => ({ ...i, quantity: clampQuantity(i.quantity) })), ...packs.values()];

@@ -63,7 +63,10 @@ export function Footer() {
     <footer className="mt-24 border-t border-mint/15 bg-paper-deep text-ink">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
         <div>
-          <p className="font-display text-4xl font-extrabold tracking-tight">{brand.name}</p>
+          <div className="flex items-center gap-3">
+            <img src="/logo.jpeg" alt="Pixwora Logo" className="size-10 rounded-full object-cover border border-mint/40 shadow-sm" />
+            <p className="font-display text-4xl font-extrabold tracking-tight">{brand.name}</p>
+          </div>
           <p className="mt-3 max-w-sm text-ink/75">{brand.description}</p>
           <div className="mt-6 flex flex-wrap gap-2">
             {instagramUrl && (
@@ -99,7 +102,6 @@ export function Footer() {
           <p>
             © {year} {brand.displayName}. All designs original. Made in {brand.city}.
           </p>
-          {brand.isPrototype && <p>Prototype storefront — no real orders or payments are processed.</p>}
         </div>
       </div>
     </footer>

@@ -48,7 +48,7 @@ export function AboutPage() {
         <div>
           <h2 className="font-display text-5xl font-extrabold leading-none sm:text-7xl">SMALL STICKERS. BIG PERSONALITY.</h2>
           <p className="mt-7 max-w-lg text-lg leading-relaxed text-ink-soft">A plain laptop is fine. A wall with nothing on it is fine. But why settle for fine? Sticker Club is about making your everyday space unmistakably yours—with small designs, bold ideas and plenty of character.</p>
-          <p className="mt-4 max-w-lg text-sm text-ink-soft">We're starting as a student-run brand in {brand.city}. The catalogue is a prototype while we test products and finishes.</p>
+          <p className="mt-4 max-w-lg text-sm text-ink-soft">We're starting as a student-run brand in {brand.city}. Original stickers, custom cuts, and posters crafted for students and creators.</p>
         </div>
       </section>
       <section className="bg-[#F5F0E6] px-4 py-24 text-[#03110f] sm:px-6">

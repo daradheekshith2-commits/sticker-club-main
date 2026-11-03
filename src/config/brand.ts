@@ -36,7 +36,7 @@ export const brand = {
    * True while this is a frontend prototype with no real ordering.
    * Drives the "prototype" notices in the cart, checkout and footer.
    */
-  isPrototype: true,
+  isPrototype: false,
 
   contact: {
     /** e.g. 'hello@yourbrand.in' — leave null until the inbox exists. */

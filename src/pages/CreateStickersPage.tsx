@@ -6,7 +6,7 @@
  * Frontend prototype: images are not uploaded anywhere, no order is placed.
  */
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { LuCrop, LuInfo, LuRefreshCw, LuShoppingBag, LuTrash2, LuTriangleAlert } from 'react-icons/lu';
+import { LuCrop, LuRefreshCw, LuShoppingBag, LuTrash2, LuTriangleAlert } from 'react-icons/lu';
 import { brand } from '../config/brand';
 import { useCart } from '../context/CartContext';
 import {
@@ -160,13 +160,6 @@ export function CreateStickersPage() {
       <h1 className="mt-4 text-4xl leading-none font-extrabold md:text-6xl">Create your own stickers</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">
         Turn your own drawing, logo or photo into a sticker. Add an image, pick a shape and size, and see a live preview and price.
-      </p>
-      <p className="mt-4 flex max-w-3xl gap-2 rounded-xl bg-white p-3 text-sm">
-        <LuInfo aria-hidden className="mt-0.5 size-4 shrink-0" />
-        <span>
-          <strong>Prototype.</strong> No real order or payment is processed, and your image isn’t sent to a printer. Sizes, finishes and prices are provisional
-          until we’ve tested them with a supplier.
-        </span>
       </p>
       {added && (
         <p role="status" className="mt-3 max-w-3xl rounded-xl note-success p-3 text-sm font-bold">
@@ -384,7 +377,7 @@ export function CreateStickersPage() {
                 </dd>
               </div>
             </dl>
-            <p className="mt-1 text-xs text-ink-soft">Prototype estimate from test prices. No delivery charges or discounts are included.</p>
+            <p className="mt-1 text-xs text-ink-soft">Live calculated pricing. Delivery charges and discounts are confirmed at checkout.</p>
 
             <div className="mt-4 rounded-xl bg-paper p-3">
               <label className="flex cursor-pointer gap-2.5 text-sm">

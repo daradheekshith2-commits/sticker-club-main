@@ -199,30 +199,38 @@ export function CartDrawer() {
 /** One ordinary product in the cart drawer. */
 function ProductLineItem({ line }: { line: ProductCartLine }) {
   const { closeCart, setQuantity, removeItem } = useCart();
-  const { key, product, variant, unitPrice, quantity, lineTotal } = line;
+  const { key, product, variant, secretNote, unitPrice, quantity, lineTotal } = line;
   return (
     <li className="flex gap-4 py-4">
-                  <Link to={`/product/${product.slug}`} onClick={closeCart} className="block size-20 shrink-0 overflow-hidden rounded-xl border-2 border-ink/10">
-                    <ProductImage product={product} className="size-full" />
-                  </Link>
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <div className="flex justify-between gap-2">
-                      <Link to={`/product/${product.slug}`} onClick={closeCart} className="font-bold leading-tight hover:underline">
-                        {product.name}
-                      </Link>
-                      <span className="font-bold tabular-nums">{formatPrice(lineTotal)}</span>
-                    </div>
-                    <p className="text-sm text-ink-soft">
-                      {variant && <span className="mr-1.5 rounded border border-ink/25 px-1 text-xs font-bold text-ink">{variant.label}</span>}
-                      {formatPrice(unitPrice)} each
-                    </p>
-                    <div className="mt-auto flex items-center justify-between pt-2">
-                      <QuantitySelector size="sm" allowZero label={`Quantity of ${product.name}${variant ? ` ${variant.label}` : ''}`} value={quantity} onChange={(n) => setQuantity(key, n)} />
-                      <button type="button" onClick={() => removeItem(key)} className="flex items-center gap-1 text-sm text-ink-soft hover:text-ink" aria-label={`Remove ${product.name}${variant ? ` ${variant.label}` : ''}`}>
-                        <LuTrash2 aria-hidden className="size-4" /> Remove
-                      </button>
-                    </div>
-                  </div>
+      <Link to={`/product/${product.slug}`} onClick={closeCart} className="block size-20 shrink-0 overflow-hidden rounded-xl border-2 border-ink/10">
+        <ProductImage product={product} className="size-full" />
+      </Link>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex justify-between gap-2">
+          <Link to={`/product/${product.slug}`} onClick={closeCart} className="font-bold leading-tight hover:underline">
+            {product.name}
+          </Link>
+          <span className="font-bold tabular-nums">{formatPrice(lineTotal)}</span>
+        </div>
+        <p className="text-sm text-ink-soft">
+          {variant && <span className="mr-1.5 rounded border border-ink/25 px-1 text-xs font-bold text-ink">{variant.label}</span>}
+          {formatPrice(unitPrice)} each
+        </p>
+        {secretNote && (
+          <div className="mt-1.5 rounded-lg border border-mint/40 bg-mint/10 p-2 text-xs">
+            <span className="font-bold text-mint flex items-center gap-1">
+              <span>✉</span> Wax-Sealed Secret Note:
+            </span>
+            <span className="mt-0.5 block italic text-ink font-medium">"{secretNote}"</span>
+          </div>
+        )}
+        <div className="mt-auto flex items-center justify-between pt-2">
+          <QuantitySelector size="sm" allowZero label={`Quantity of ${product.name}${variant ? ` ${variant.label}` : ''}`} value={quantity} onChange={(n) => setQuantity(key, n)} />
+          <button type="button" onClick={() => removeItem(key)} className="flex items-center gap-1 text-sm text-ink-soft hover:text-ink" aria-label={`Remove ${product.name}${variant ? ` ${variant.label}` : ''}`}>
+            <LuTrash2 aria-hidden className="size-4" /> Remove
+          </button>
+        </div>
+      </div>
     </li>
   );
 }

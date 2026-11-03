@@ -7,7 +7,7 @@
 
 export interface PackSizeOption {
   /** Number of stickers the customer chooses. */
-  count: 5 | 10;
+  count: 10;
   label: string;
   /** Provisional price for the whole pack, in rupees (finish surcharge added per sticker). */
   price: number;
@@ -27,8 +27,7 @@ export interface PackFinishOption {
 }
 
 export const packSizes: PackSizeOption[] = [
-  { count: 5, label: '5 stickers', price: 109 },
-  { count: 10, label: '10 stickers', price: 199 },
+  { count: 10, label: '10 stickers', price: 200 },
 ];
 
 export const packFinishes: PackFinishOption[] = [

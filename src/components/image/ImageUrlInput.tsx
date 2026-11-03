@@ -119,7 +119,7 @@ export function ImageUrlInput({ onPick }: { onPick: (img: Extract<PickedImage, {
         )}
       </div>
       <p className="mt-2 text-xs text-ink-soft">
-        The image is displayed from its original website and isn’t stored by this prototype. If that site removes it or blocks it, it will stop showing here.
+        Direct image link will be fetched and optimized for your print configuration.
       </p>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { LuArrowRight, LuShoppingBag, LuX } from 'react-icons/lu';
-import { brand, whatsappLink } from '../config/brand';
+import { whatsappLink } from '../config/brand';
 import { useCart } from '../context/CartContext';
 import { useCatalogue } from '../context/CatalogueContext';
 import { getCollection, productTypeLabels } from '../data/collections';
@@ -30,7 +30,14 @@ export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [viewIndex, setViewIndex] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
-  const [customSecretMsg, setCustomSecretMsg] = useState('');
+  const [customSecretMsg, setCustomSecretMsg] = useState(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      return sp.get('note') || '';
+    } catch {
+      return '';
+    }
+  });
   // Default size: A4 if offered, otherwise the first size. Undefined for products without sizes.
   const [variantId, setVariantId] = useState<string | undefined>(
     product?.variants?.find((v) => v.id === 'a4')?.id ?? product?.variants?.[0]?.id,
@@ -225,7 +232,6 @@ export function ProductPage() {
           <p className="mt-4 font-display text-4xl font-extrabold" aria-live="polite">
             {formatPrice(price)}
           </p>
-          <p className="mt-1 text-sm text-ink-soft">Test price — may change before launch.</p>
 
           <p className="mt-6 text-lg leading-relaxed">{product.description}</p>
 
@@ -370,13 +376,15 @@ export function ProductPage() {
             ) : purchasable ? (
               <div className="space-y-4">
                 {product.productType === 'secret' && (
-                  <div className="rounded-2xl border-2 border-mint/40 bg-mint/5 p-4 shadow-sm">
+                  <div className="rounded-2xl border-2 border-mint/40 bg-mint/5 p-4 sm:p-5 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <span className="font-display text-sm font-extrabold text-ink">Personalize Secret Note</span>
+                      <span className="font-display text-sm font-extrabold text-ink flex items-center gap-1.5">
+                        <span>✉</span> Wax-Sealed Secret Message
+                      </span>
                       <span className="text-[11px] font-mono font-bold text-mint bg-ink px-2 py-0.5 rounded-md">Free Sealed Card</span>
                     </div>
                     <p className="mt-1 text-xs text-ink-soft">
-                      Want to surprise someone? Enter a custom message to seal inside the envelope, or leave empty for a surprise.
+                      Want to surprise someone? Type your secret message to be wax-sealed inside the envelope with your sticker. Leave blank for an inspirational surprise message.
                     </p>
                     <div className="mt-2.5">
                       <input
@@ -389,9 +397,23 @@ export function ProductPage() {
                       />
                       <div className="mt-1 flex justify-between text-[11px] text-ink-soft">
                         <span>Wax-sealed inside envelope</span>
-                        <span>{customSecretMsg.length}/100</span>
+                        <span className="font-mono">{customSecretMsg.length}/100</span>
                       </div>
                     </div>
+
+                    {customSecretMsg.trim() && (
+                      <div className="mt-3 rounded-xl border border-mint/30 bg-[#F5F0E6] p-3 text-left shadow-inner">
+                        <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-ink/70">
+                          <span className="flex items-center gap-1 text-cinema-red">
+                            <span>✉</span> Envelope Card Preview
+                          </span>
+                          <span className="text-mint font-extrabold bg-ink px-1.5 py-0.5 rounded">Wax-Sealed</span>
+                        </div>
+                        <p className="mt-1.5 font-display text-sm font-bold text-ink italic">
+                          “{customSecretMsg.trim()}”
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -401,8 +423,7 @@ export function ProductPage() {
                     type="button"
                     className="btn-primary flex-1 py-4 text-base"
                     onClick={() => {
-                      const finalVariant = customSecretMsg.trim() ? `${variantId || 'standard'}-note:${encodeURIComponent(customSecretMsg.trim())}` : variantId;
-                      addItem(product.id, quantity, finalVariant);
+                      addItem(product.id, quantity, variantId, customSecretMsg.trim() || undefined);
                       setQuantity(1);
                       openCart();
                     }}
@@ -486,11 +507,6 @@ export function ProductPage() {
               <dd className="text-right text-ink-soft">{product.tags.join(', ')}</dd>
             </div>
           </dl>
-          {brand.isPrototype && product.category !== 'posters' && (
-            <p className="mt-4 text-sm text-ink-soft">
-              Prototype store: adding to cart works, but no real orders or payments are taken yet.
-            </p>
-          )}
         </div>
       </div>
 

@@ -113,46 +113,51 @@ export function SecretMessageRevealSection() {
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {STICKER_CARDS.map((item) => (
-              <Link
-                key={item.id}
-                to={`/product/${item.slug}`}
-                className="group relative flex flex-col items-center rounded-2xl border border-mint/20 bg-[#0B2420]/80 p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:border-mint/60 hover:bg-[#0F2F2A] hover:shadow-xl"
-              >
-                {/* Artwork display with mini envelope seal badge */}
-                <div className="relative aspect-square w-28 overflow-hidden rounded-xl bg-[#03110F] p-2 flex items-center justify-center sm:w-32 border border-white/10 group-hover:border-mint/30 transition-colors">
-                  <picture className="contents">
-                    <source srcSet={item.image} type="image/webp" />
-                    <img
-                      src={item.fallbackImg}
-                      alt={item.name}
-                      className="size-full object-contain transition-transform duration-300 group-hover:scale-108"
-                      loading="lazy"
-                    />
-                  </picture>
+            {STICKER_CARDS.map((item) => {
+              const productUrl = mode === 'custom' && customText.trim()
+                ? `/product/${item.slug}?note=${encodeURIComponent(customText.trim())}`
+                : `/product/${item.slug}`;
+              return (
+                <Link
+                  key={item.id}
+                  to={productUrl}
+                  className="group relative flex flex-col items-center rounded-2xl border border-mint/20 bg-[#0B2420]/80 p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:border-mint/60 hover:bg-[#0F2F2A] hover:shadow-xl"
+                >
+                  {/* Artwork display with mini envelope seal badge */}
+                  <div className="relative aspect-square w-28 overflow-hidden rounded-xl bg-[#03110F] p-2 flex items-center justify-center sm:w-32 border border-white/10 group-hover:border-mint/30 transition-colors">
+                    <picture className="contents">
+                      <source srcSet={item.image} type="image/webp" />
+                      <img
+                        src={item.fallbackImg}
+                        alt={item.name}
+                        className="size-full object-contain transition-transform duration-300 group-hover:scale-108"
+                        loading="lazy"
+                      />
+                    </picture>
 
-                  {/* Envelope badge preview */}
-                  <div
-                    className="absolute -bottom-1 -right-1 flex items-center gap-1 rounded-md border border-ink/40 px-1.5 py-0.5 text-[9px] font-extrabold uppercase shadow-md"
-                    style={{ backgroundColor: '#D9B98C', color: '#121212' }}
-                    title="Sealed envelope card included"
-                  >
-                    <span>✉</span>
-                    <span>SEALED</span>
+                    {/* Envelope badge preview */}
+                    <div
+                      className="absolute -bottom-1 -right-1 flex items-center gap-1 rounded-md border border-ink/40 px-1.5 py-0.5 text-[9px] font-extrabold uppercase shadow-md"
+                      style={{ backgroundColor: '#D9B98C', color: '#121212' }}
+                      title="Sealed envelope card included"
+                    >
+                      <span>✉</span>
+                      <span>SEALED</span>
+                    </div>
                   </div>
-                </div>
 
-                <span className="mt-3 block font-display text-sm font-bold text-white group-hover:text-mint transition-colors">
-                  {item.name}
-                </span>
-                <span className="mt-0.5 block text-xs font-bold text-mint font-mono">
-                  {formatPrice(item.price)}
-                </span>
-                <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-cinema-red group-hover:text-white transition-colors">
-                  View pack →
-                </span>
-              </Link>
-            ))}
+                  <span className="mt-3 block font-display text-sm font-bold text-white group-hover:text-mint transition-colors">
+                    {item.name}
+                  </span>
+                  <span className="mt-0.5 block text-xs font-bold text-mint font-mono">
+                    {formatPrice(item.price)}
+                  </span>
+                  <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-cinema-red group-hover:text-white transition-colors">
+                    Customize &amp; Order →
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
 

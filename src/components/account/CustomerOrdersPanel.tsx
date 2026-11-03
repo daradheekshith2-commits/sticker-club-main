@@ -448,6 +448,16 @@ export function CustomerOrdersPanel() {
                             <p className="text-[11px] text-ink-soft">
                               {i.variantLabel ? i.variantLabel + ' · ' : ''}Qty: {i.quantity} × ₹{i.unitPrice}
                             </p>
+                            {(i.metadata?.secretNote || (i as any).secretNote) && (
+                              <div className="mt-1 rounded-md border border-mint/40 bg-mint/10 p-1.5 text-[11px]">
+                                <span className="font-bold text-mint flex items-center gap-1">
+                                  <span>✉</span> Wax-Sealed Secret Message:
+                                </span>
+                                <p className="mt-0.5 italic text-ink font-semibold">
+                                  "{i.metadata?.secretNote || (i as any).secretNote}"
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <strong className="text-ink">₹{(Number(i.unitPrice) * i.quantity).toFixed(2)}</strong>

@@ -48,7 +48,7 @@ export function WallPriceSummary({ layout, filled, usesOwnImages, rightsConfirme
           <dd className="font-display text-2xl font-extrabold tabular-nums">{formatPrice(wallPrice(layout))}</dd>
         </div>
       </dl>
-      <p className="mt-1 text-xs text-ink-soft">Prototype prices — the sum of each poster’s current test price, awaiting supplier quotes. No bundle discount is applied.</p>
+      <p className="mt-1 text-xs text-ink-soft">Bundle pricing based on selected sizes. Free arrangement preview included.</p>
 
       {usesOwnImages && (
         <div className="mt-4 rounded-xl bg-paper p-3">
@@ -72,7 +72,7 @@ export function WallPriceSummary({ layout, filled, usesOwnImages, rightsConfirme
         </p>
       )}
       <p className="mt-3 text-xs text-ink-soft">
-        This is a prototype: adding to the cart doesn’t send an order or your images anywhere. The preview shows the arrangement, not final print quality.
+        The preview displays your high-resolution layout arrangement ready for print.
       </p>
     </section>
   );

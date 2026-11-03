@@ -11,7 +11,6 @@
  * no orders, no payment.
  */
 import { useEffect, useState, type ReactNode } from 'react';
-import { LuInfo } from 'react-icons/lu';
 import { brand } from '../config/brand';
 import { useCart } from '../context/CartContext';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -70,12 +69,6 @@ export function BuildWallPage() {
           </p>
         </div>
       </div>
-      <p className="mt-4 flex max-w-3xl gap-2 rounded-xl bg-white p-3 text-sm">
-        <LuInfo aria-hidden className="mt-0.5 size-4 shrink-0" />
-        <span>
-          <strong>Prototype.</strong> Nothing you add here is uploaded or ordered. Photos from your device stay in this browser tab and are cleared if you refresh.
-        </span>
-      </p>
       {added && (
         <p role="status" className="mt-3 max-w-3xl rounded-xl note-success p-3 text-sm font-bold">
           Your wall is in the cart. You can build another one below.
