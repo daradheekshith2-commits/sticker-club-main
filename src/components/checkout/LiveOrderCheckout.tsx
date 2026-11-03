@@ -40,6 +40,7 @@ export type OrderReceipt = {
 
 type PaymentConfig = {
   upiId: string | null;
+  upiName?: string | null;
   upiQrUrl: string | null;
   deliveryFee: string | null;
 };
@@ -343,37 +344,61 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
 
         {isUpi && !isPaid && (
           <div className="mt-6 rounded-xl border-2 border-dashed border-sun/50 bg-sun/10 p-5">
-            <h3 className="text-lg font-bold">Complete your UPI payment</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold">Complete your UPI payment</h3>
+              <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600">
+                Verified Merchant
+              </span>
+            </div>
+
             {paymentConfig?.upiId ? (
               <div className="mt-3 space-y-3">
-                <p className="text-sm">
-                  Send exactly <strong>₹{order.total}</strong> to our store UPI ID:
-                </p>
-                <div className="flex items-center gap-2">
-                  <div className="inline-block rounded-lg bg-white px-3 py-2 font-mono text-base font-bold text-ink select-all">
-                    {paymentConfig.upiId}
+                <div className="rounded-xl border border-ink/10 bg-white p-3.5 shadow-sm space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-ink/10 pb-2">
+                    <span className="text-xs font-bold text-ink-soft uppercase tracking-wider">UPI Display Name (Payee)</span>
+                    <span className="font-mono text-sm font-extrabold text-ink tracking-wide">
+                      {paymentConfig.upiName || 'KOMMULA SRUJAN REDDY'}
+                    </span>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-ghost text-xs py-1.5 px-3"
-                    onClick={() => {
-                      if (paymentConfig.upiId) {
-                        navigator.clipboard.writeText(paymentConfig.upiId);
-                        setCopiedUpi(true);
-                        setTimeout(() => setCopiedUpi(false), 2000);
-                      }
-                    }}
-                  >
-                    {copiedUpi ? 'Copied!' : 'Copy UPI ID'}
-                  </button>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-ink/10 pb-2">
+                    <span className="text-xs font-bold text-ink-soft uppercase tracking-wider">Store UPI ID</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm font-bold text-ink select-all">
+                        {paymentConfig.upiId}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-ghost text-xs py-1 px-2.5"
+                        onClick={() => {
+                          if (paymentConfig.upiId) {
+                            navigator.clipboard.writeText(paymentConfig.upiId);
+                            setCopiedUpi(true);
+                            setTimeout(() => setCopiedUpi(false), 2000);
+                          }
+                        }}
+                      >
+                        {copiedUpi ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-0.5">
+                    <span className="text-xs font-bold text-ink-soft uppercase tracking-wider">Amount to Transfer</span>
+                    <span className="font-display text-lg font-extrabold text-emerald-600">
+                      ₹{order.total}
+                    </span>
+                  </div>
                 </div>
+
                 {paymentConfig.upiQrUrl && (
-                  <div className="mt-2">
-                    <img
-                      src={paymentConfig.upiQrUrl}
-                      alt="UPI QR Code"
-                      className="h-44 w-44 rounded-lg border border-ink/20 bg-white p-2"
-                    />
+                  <div className="mt-3 text-center sm:text-left">
+                    <p className="text-xs font-bold text-ink-soft mb-2">Scan with Google Pay, PhonePe, Paytm, or any UPI app:</p>
+                    <div className="inline-block rounded-xl border-2 border-ink/15 bg-white p-2.5 shadow-sm">
+                      <img
+                        src={paymentConfig.upiQrUrl}
+                        alt="UPI QR Code - Payee KOMMULA SRUJAN REDDY"
+                        className="h-44 w-44 rounded-lg object-contain"
+                      />
+                    </div>
                   </div>
                 )}
               </div>

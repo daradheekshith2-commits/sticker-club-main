@@ -6,6 +6,7 @@ import {AddressManager} from '../components/account/AddressManager';
 import {AdminInventoryPanel} from '../components/account/AdminInventoryPanel';
 import {AdminCustomersPanel} from '../components/account/AdminCustomersPanel';
 import {AdminPassportPanel} from '../components/account/AdminPassportPanel';
+import {AdminReviewsPanel} from '../components/admin/AdminReviewsPanel';
 import {ProtectedRoute, sanitizeRedirectUrl} from '../components/auth/ProtectedRoute';
 import {useEffect,useState,type FormEvent,type ReactNode} from 'react';
 import {useAuth,apiUrl,type Account} from '../context/AuthContext';
@@ -140,7 +141,7 @@ export function AdminDashboard() {
     pendingOrders?: number;
     totalRevenue?: string;
   } | null>(null);
-  const [activeTab, setActiveTab] = useState<'orders' | 'customers' | 'products' | 'inventory' | 'passport'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'customers' | 'products' | 'inventory' | 'passport' | 'reviews'>('orders');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -249,6 +250,17 @@ export function AdminDashboard() {
             >
               Passport & Rewards
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'reviews'}
+              className={`rounded-xl px-5 py-2.5 text-sm font-bold transition-all ${
+                activeTab === 'reviews' ? 'bg-white text-ink shadow' : 'text-ink-soft hover:text-ink'
+              }`}
+              onClick={() => setActiveTab('reviews')}
+            >
+              Customer Reviews
+            </button>
           </div>
 
           {/* Active Tab Panel */}
@@ -258,6 +270,7 @@ export function AdminDashboard() {
             {activeTab === 'products' && <AdminProductsPanel />}
             {activeTab === 'inventory' && <AdminInventoryPanel />}
             {activeTab === 'passport' && <AdminPassportPanel />}
+            {activeTab === 'reviews' && <AdminReviewsPanel />}
           </div>
         </main>
       )}

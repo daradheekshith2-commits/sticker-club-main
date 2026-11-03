@@ -97,7 +97,7 @@ export type ProductArt =
   | { kind: 'single'; backdrop: string; design: StickerDesign }
   | { kind: 'sheet'; backdrop: string; designs: StickerDesign[] }
   | { kind: 'pack'; backdrop: string; card: string; designs: StickerDesign[] }
-  | { kind: 'mystery'; backdrop: string; card: string; peek: StickerDesign[] }
+  | { kind: 'mystery'; backdrop: string; card: string; peek: StickerDesign[]; themeName?: string; themeCode?: string }
   /** Two stickers; for 'halves' the first design is drawn once and split down the middle. */
   | { kind: 'duo'; backdrop: string; designs: [StickerDesign, StickerDesign]; pairing: DuoPairing }
   | { kind: 'secret'; backdrop: string; design: StickerDesign; envelope: string }
@@ -140,6 +140,7 @@ export interface Product {
   tags: string[];
   art: ProductArt;
   images?: ProductImage[];
+  imageUrl?: string;
   featured: boolean;
   isNew: boolean;
   /** Lower numbers appear first in "Featured" sort. */

@@ -1,68 +1,21 @@
+import { useEffect, useState } from 'react';
 import { LuHeart, LuMessageSquare, LuShoppingBag, LuSparkles, LuStar } from 'react-icons/lu';
 import { Breadcrumbs } from '../components/ui/Breadcrumbs';
 import { brand, whatsappLink } from '../config/brand';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { Link } from '../router/router';
-
-const COMMUNITY_STORIES = [
-  {
-    name: 'Aarav Sharma',
-    city: 'Bengaluru',
-    role: 'Full-Stack Developer',
-    rating: 5,
-    tag: 'Chai First · Mini Sticker',
-    review:
-      'The matte finish on the Chai First sticker is unreal. It has survived daily laptop bag commutes and coffee shop sessions for 6 months without peeling at the edges.',
-  },
-  {
-    name: 'Priya Sundaram',
-    city: 'Mumbai',
-    role: 'Graphic Designer',
-    rating: 5,
-    tag: 'Custom Sticker · 6cm × 6cm',
-    review:
-      'Used the custom sticker crop tool to print my own digital illustration. The automated dimensions and print quality exceeded what local print shops delivered.',
-  },
-  {
-    name: 'Rohan Kulkarni',
-    city: 'Hyderabad',
-    role: 'Anime & Manga Fan',
-    rating: 5,
-    tag: 'A3 Poster · Minimalist Room',
-    review:
-      'The A3 poster paper is thick 300 GSM matte cardstock, not flimsy magazine paper. Looks premium on my desk wall.',
-  },
-  {
-    name: 'Ananya Deshmukh',
-    city: 'Pune',
-    role: 'UI Designer',
-    rating: 5,
-    tag: 'Mystery Pack · 5+1 Surprise',
-    review:
-      'Unboxing the mystery pack was so much fun! The bonus surprise sticker was actually my favorite one from the entire batch.',
-  },
-  {
-    name: 'Vikram Mehta',
-    city: 'Delhi NCR',
-    role: 'Tech Enthusiast',
-    rating: 5,
-    tag: 'Matching Duo Stickers',
-    review:
-      'Put one matching sticker on my phone case and gave the duo to my best friend. Water-resistant and colors stayed rich after months of handling.',
-  },
-  {
-    name: 'Sneha Patel',
-    city: 'Ahmedabad',
-    role: 'Architecture Student',
-    rating: 5,
-    tag: 'Custom Pack · 10 Stickers',
-    review:
-      'Created a custom sticker pack for our college design club. Every single cut line is crisp and the backing peels off smoothly.',
-  },
-];
+import { fetchReviews, type ReviewItem } from '../services/reviews';
 
 export function ReviewsPage() {
-  usePageMeta('Customer Reviews & Community', `See what thousands of sticker and wall art lovers say about ${brand.displayName}.`);
+  usePageMeta('Customer Reviews & Community', `See what sticker and wall art lovers say about ${brand.displayName}.`);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchReviews()
+      .then(setReviews)
+      .finally(() => setLoading(false));
+  }, []);
 
   const shareReviewLink = whatsappLink(
     'Hi Pixwora team! I want to share a review and picture of my stickers for the reviews wall:'
@@ -78,10 +31,10 @@ export function ReviewsPage() {
           <LuSparkles className="size-3.5" /> Community Wall of Love
         </span>
         <h1 className="mt-2 text-4xl font-extrabold md:text-6xl text-ink">
-          Loved by 10,000+ Sticker Fans Across India
+          Customer Reviews &amp; Community
         </h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-          From developer ThinkPads and college notebooks to anime wall galleries, PIXWORA stickers and posters are made to stick around.
+          From developer ThinkPads and college notebooks to anime wall galleries, discover how customers style and enjoy their PIXWORA stickers and prints.
         </p>
       </div>
 
@@ -96,8 +49,7 @@ export function ReviewsPage() {
               Got your Pixwora order? We want to see your setup!
             </h2>
             <p className="text-sm leading-relaxed text-[#F4F0E8]/80">
-              We are currently curating and featuring community reviews, laptop sticker setups, and desk wall photos! Tag{' '}
-              <strong className="text-mint">@pixwora</strong> on Instagram or send your review on WhatsApp. Selected features receive a free surprise mystery pack with their next order!
+              Tag <strong className="text-mint">@pixwora</strong> on Instagram or send your review notes and setup photos on WhatsApp. Selected features receive a free surprise mystery pack with their next order!
             </p>
           </div>
           <div className="shrink-0 flex flex-col sm:flex-row gap-3">
@@ -116,65 +68,84 @@ export function ReviewsPage() {
             </Link>
           </div>
         </div>
-
-        {/* Stats Grid */}
-        <div className="mt-8 grid grid-cols-2 gap-4 border-t border-white/10 pt-6 sm:grid-cols-4">
-          <div>
-            <p className="font-display text-3xl font-extrabold text-mint">4.9 / 5</p>
-            <p className="text-xs text-[#F4F0E8]/70 mt-1">Average verified satisfaction</p>
-          </div>
-          <div>
-            <p className="font-display text-3xl font-extrabold text-white">15,000+</p>
-            <p className="text-xs text-[#F4F0E8]/70 mt-1">Orders dispatched across India</p>
-          </div>
-          <div>
-            <p className="font-display text-3xl font-extrabold text-mint">100%</p>
-            <p className="text-xs text-[#F4F0E8]/70 mt-1">Waterproof &amp; UV fade-resistant</p>
-          </div>
-          <div>
-            <p className="font-display text-3xl font-extrabold text-white">Zero</p>
-            <p className="text-xs text-[#F4F0E8]/70 mt-1">Sticky glue residue on removal</p>
-          </div>
-        </div>
       </div>
 
-      {/* Reviews Grid */}
+      {/* Reviews Section */}
       <div className="mt-12">
-        <div className="mb-6 flex items-baseline justify-between">
+        <div className="mb-6 flex items-baseline justify-between border-b border-ink/10 pb-3">
           <h2 className="text-2xl font-extrabold text-ink sm:text-3xl">Community Highlights</h2>
-          <span className="text-xs font-bold text-ink-soft">Recent customer feedback</span>
+          <span className="text-xs font-bold text-ink-soft">
+            {reviews.length > 0 ? `${reviews.length} verified review${reviews.length === 1 ? '' : 's'}` : 'Recent feedback'}
+          </span>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {COMMUNITY_STORIES.map((c) => (
-            <article
-              key={c.name}
-              className="flex flex-col justify-between rounded-2xl border-2 border-ink/10 bg-white p-5 transition-shadow hover:shadow-lg"
-            >
-              <div>
-                <div className="flex items-center gap-1 text-mint mb-2">
-                  {Array.from({ length: c.rating }).map((_, i) => (
-                    <LuStar key={i} className="size-4 fill-mint text-mint" />
-                  ))}
-                </div>
-                <p className="text-xs font-mono font-bold text-mint bg-ink px-2 py-0.5 rounded-md inline-block mb-3">
-                  {c.tag}
-                </p>
-                <p className="text-sm leading-relaxed text-ink/90 font-medium">"{c.review}"</p>
-              </div>
-
-              <div className="mt-6 border-t border-ink/10 pt-3 flex items-center justify-between text-xs">
+        {loading ? (
+          <div className="py-16 text-center">
+            <p className="text-sm font-bold text-ink-soft animate-pulse">Loading reviews…</p>
+          </div>
+        ) : reviews.length === 0 ? (
+          // Clean empty place when no reviews are added yet
+          <div className="rounded-2xl border-2 border-dashed border-ink/15 bg-white p-12 text-center shadow-sm">
+            <div className="mx-auto grid size-16 place-items-center rounded-full bg-paper-deep text-2xl">
+              ✨
+            </div>
+            <h3 className="mt-4 font-display text-xl font-bold text-ink">
+              No reviews posted yet
+            </h3>
+            <p className="mt-2 text-sm text-ink-soft max-w-md mx-auto">
+              Be the first to share your stickers, laptop setup, or room gallery! Tap "Share Your Review" above to submit your photos.
+            </p>
+          </div>
+        ) : (
+          // Dynamic reviews added by admin
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {reviews.map((c) => (
+              <article
+                key={c.id}
+                className="flex flex-col justify-between rounded-2xl border-2 border-ink/10 bg-white p-5 transition-shadow hover:shadow-lg"
+              >
                 <div>
-                  <p className="font-bold text-ink">{c.name}</p>
-                  <p className="text-ink-soft">{c.role} · {c.city}</p>
+                  <div className="flex items-center gap-1 text-sun mb-2">
+                    {Array.from({ length: c.rating }).map((_, i) => (
+                      <LuStar key={i} className="size-4 fill-sun text-sun" />
+                    ))}
+                  </div>
+
+                  {c.tag && (
+                    <p className="text-xs font-mono font-bold text-mint bg-ink px-2 py-0.5 rounded-md inline-block mb-3">
+                      {c.tag}
+                    </p>
+                  )}
+
+                  <p className="text-sm leading-relaxed text-ink/90 font-medium">"{c.note}"</p>
+
+                  {c.photoUrl && (
+                    <div className="mt-4 overflow-hidden rounded-xl border border-ink/10 bg-paper">
+                      <img
+                        src={c.photoUrl}
+                        alt={`Setup shared by ${c.name}`}
+                        className="h-44 w-full object-cover transition-transform duration-300 hover:scale-105"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
                 </div>
-                <span className="text-[11px] font-bold text-mint bg-mint/10 border border-mint/30 rounded-full px-2 py-0.5">
-                  Verified Fan
-                </span>
-              </div>
-            </article>
-          ))}
-        </div>
+
+                <div className="mt-6 border-t border-ink/10 pt-3 flex items-center justify-between text-xs">
+                  <div>
+                    <p className="font-bold text-ink">{c.name}</p>
+                    {(c.role || c.city) && (
+                      <p className="text-ink-soft">{[c.role, c.city].filter(Boolean).join(' · ')}</p>
+                    )}
+                  </div>
+                  <span className="text-[11px] font-bold text-mint bg-mint/10 border border-mint/30 rounded-full px-2 py-0.5">
+                    Verified Customer
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

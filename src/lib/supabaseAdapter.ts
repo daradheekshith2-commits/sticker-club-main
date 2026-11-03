@@ -212,13 +212,15 @@ export async function handleSupabaseRequest<T>(
   // 5. Payment Config (/api/payment/config)
   if (urlPath === '/api/payment/config' && method === 'GET') {
     const storeUpiId = (import.meta.env.VITE_UPI_ID as string) || '7981793020@kotakbank';
-    const upiUri = `upi://pay?pa=${encodeURIComponent(storeUpiId)}&pn=Sticker%20Club&cu=INR`;
+    const upiPayeeName = 'KOMMULA SRUJAN REDDY';
+    const upiUri = `upi://pay?pa=${encodeURIComponent(storeUpiId)}&pn=${encodeURIComponent(upiPayeeName)}&cu=INR`;
     const upiQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUri)}`;
 
     return {
       handled: true,
       data: {
         upiId: storeUpiId,
+        upiName: upiPayeeName,
         upiQrUrl,
         deliveryFee: '10',
       } as unknown as T,

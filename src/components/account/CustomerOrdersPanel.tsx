@@ -351,7 +351,21 @@ export function CustomerOrdersPanel() {
                         </div>
                       )}
                       <strong>Complete your UPI payment:</strong>
-                      <p className="mt-0.5 text-xs text-ink-soft">
+                      <div className="mt-1.5 rounded-md border border-ink/10 bg-white/80 p-2.5 text-xs space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-ink-soft">Payee Name:</span>
+                          <span className="font-mono font-bold text-ink">KOMMULA SRUJAN REDDY</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-ink-soft">UPI ID:</span>
+                          <span className="font-mono font-bold text-ink select-all">7981793020@kotakbank</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-ink-soft">Amount:</span>
+                          <span className="font-bold text-emerald-600">₹{o.total}</span>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-xs text-ink-soft">
                         Transfer ₹{o.total} and submit your Transaction ID / Ref No. below.
                       </p>
 

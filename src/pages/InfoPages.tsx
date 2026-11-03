@@ -80,15 +80,50 @@ export function AboutPage() {
 }
 
 const faqs: { q: string; a: ReactNode }[] = [
-  { q: 'Can I actually order right now?', a: 'Not yet. This is a prototype store: the cart and checkout preview work, but no orders or payments are processed. We’ll announce when real ordering opens.' },
-  { q: 'What’s the difference between a sticker sheet and a pack?', a: 'A sticker sheet has several small stickers kiss-cut on one backing sheet — you peel them off one by one. A pack contains separate, individually cut stickers grouped around a theme.' },
-  { q: 'What size and material are the stickers?', a: 'We’re still testing samples from suppliers, so sizes, materials and finishes aren’t confirmed. We’ll list them on each product once they are — we won’t claim things like waterproofing until we’ve tested it.' },
-  { q: 'What poster sizes are there?', a: 'Single posters come in A5 (14.8 × 21 cm), A4 (21 × 29.7 cm) and A3 (29.7 × 42 cm). Wall packs and sets are A4. Paper type and finish will be confirmed after sampling.' },
-  { q: 'How do I put posters up without damaging the wall?', a: 'Removable mounting putty or removable tape is usually the gentlest option for hostel and PG walls. Check what your accommodation allows first.' },
-  { q: 'How will I get my order?', a: 'We plan to start with pickup on campus and simple local delivery in Hyderabad. Exact arrangements and any charges will be confirmed before launch.' },
-  { q: 'Are the prices final?', a: 'No. The prices shown are test prices we’re using to learn what feels fair. They may change before launch.' },
-  { q: 'Will you make custom stickers or photo posters?', a: 'Maybe later. A personalised photo collage is on our list, but we want to get the core range right first.' },
-  { q: 'Are the designs original?', a: 'Yes. Every design is our own. We don’t use logos, characters or artwork from other brands, shows or games.' },
+  {
+    q: 'Can I place an order right now?',
+    a: 'Yes! Pixwora is live. You can add stickers, posters, and custom prints to your cart and proceed to checkout. We deliver pan-India with a minimum order total of ₹99.',
+  },
+  {
+    q: 'What size and material are the stickers?',
+    a: 'Our stickers are printed on premium 100% waterproof, scratch-resistant vinyl with a protective matte laminate. Individual stickers fit within a standard 3" × 3" (approx 7.6 × 7.6 cm) area with die-cut precision, while sticker sheets are standard A6 format (10.5 × 14.8 cm).',
+  },
+  {
+    q: 'How does "Create Your Own" custom stickers work?',
+    a: 'You can upload your own image or photo, use our interactive corner-bracket crop tool to frame it, and pick your dimensions: 5cm × 5cm (₹20), 6cm × 6cm (₹25), or enter any custom dimensions in cm with instant automated pricing. We inspect every uploaded artwork for print clarity before production.',
+  },
+  {
+    q: 'What poster sizes do you offer and what paper is used?',
+    a: 'Our wall posters come in three standard international sizes: A5 (14.8 × 21 cm / 5.8 × 8.3 in), A4 (21 × 29.7 cm / 8.3 × 11.7 in), and A3 (29.7 × 42 cm / 11.7 × 16.5 in). All posters are printed on heavy 300 GSM archival matte cardstock with rich, fade-resistant color reproduction.',
+  },
+  {
+    q: 'What is the minimum order requirement?',
+    a: 'Pixwora has a ₹99 minimum order total to checkout. This allows us to use rigid bend-proof mailers, protective moisture-sealed packaging, and reliable tracked courier dispatch.',
+  },
+  {
+    q: 'How do I pay using UPI?',
+    a: 'Select UPI at checkout. You will see our verified store UPI ID with display payee name KOMMULA SRUJAN REDDY along with a dynamic QR code. Scan and transfer via Google Pay, PhonePe, Paytm, or any UPI app, then submit your 12-digit UPI Transaction ID (UTR) to confirm your order.',
+  },
+  {
+    q: 'Do you offer Cash on Delivery (COD)?',
+    a: 'Yes! Cash on Delivery is available for eligible addresses across India. Payment is collected in cash by the delivery courier upon arrival.',
+  },
+  {
+    q: 'What is the Mystery Sticker Pack?',
+    a: 'The Mystery Pack gives you 6 stickers for ₹129: 5 guaranteed stickers from your chosen theme (Anime, Marvel, Cars & Bikes, Gaming, Cute, Devotion, Sports, or Movies) plus 1 surprise mystery sticker chosen by our team.',
+  },
+  {
+    q: 'Can I personalize Secret Message stickers?',
+    a: 'Yes! Every Secret Message sticker includes a wax-sealed envelope card. You can enter your own custom message during checkout or in our interactive builder to surprise a friend, or receive our curated secret quote.',
+  },
+  {
+    q: 'Do your stickers peel off cleanly without residue?',
+    a: 'Yes. Our stickers use premium removable vinyl adhesive. You can peel and reposition them on laptops, phone cases, water bottles, and glass cleanly with zero sticky glue residue.',
+  },
+  {
+    q: 'How long does delivery take?',
+    a: 'Orders are printed, precision cut, and packed within 1-2 business days. Delivery across major metro cities in India typically takes 3-5 business days. You can track your order status live from your Pixwora account.',
+  },
 ];
 
 export function FaqPage() {

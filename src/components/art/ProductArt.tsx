@@ -147,9 +147,23 @@ function Pack({ designs, card, name }: { designs: StickerDesign[]; card: string;
  * A sealed kraft envelope: three stickers peek out of the top, the front shows
  * the pack format (5 + 1), the series code and a visibly DEMO pack number.
  */
-function Mystery({ card, peek, quantity }: { card: string; peek: StickerDesign[]; quantity?: number }) {
+function Mystery({
+  card,
+  peek,
+  quantity,
+  themeName,
+  themeCode,
+}: {
+  card: string;
+  peek: StickerDesign[];
+  quantity?: number;
+  themeName?: string;
+  themeCode?: string;
+}) {
   const q: StickerDesign = { name: '?', motif: 'question', shape: 'circle', bg: '#D4FF3A', fg: '#121212', accent: '#FF5B2E' };
   const env = { x: 64, y: 118, w: 272, h: 250 };
+  const titleText = themeName ? `${themeName.toUpperCase()}` : 'MYSTERY PACK';
+  const packNo = themeCode || 'DEMO-000';
   return (
     <g>
       {/* stickers sliding out of the envelope */}
@@ -164,7 +178,9 @@ function Mystery({ card, peek, quantity }: { card: string; peek: StickerDesign[]
       <path d={`M${env.x + 2} ${env.y + 4} L200 ${env.y + 70} L${env.x + env.w - 2} ${env.y + 4}`} stroke="#121212" strokeOpacity={0.35} strokeWidth={2} fill="none" />
       <Placed design={q} x={172} y={env.y + 42} size={56} rotate={-8} shadow={false} />
       {/* printed front */}
-      <text x={env.x + 22} y={env.y + 150} fontSize={26} fontWeight={800} fill="#121212" style={font}>MYSTERY PACK</text>
+      <text x={env.x + 22} y={env.y + 148} fontSize={titleText.length > 13 ? 18 : 22} fontWeight={800} fill="#121212" style={font}>
+        {titleText}
+      </text>
       <text x={env.x + 22} y={env.y + 172} fontSize={11} fontWeight={700} fill="#121212" opacity={0.75} style={font}>
         {brand.name} · {quantity ?? 6} STICKERS
       </text>
@@ -175,7 +191,9 @@ function Mystery({ card, peek, quantity }: { card: string; peek: StickerDesign[]
       <g transform={`translate(${env.x + env.w - 116} ${env.y + 190})`}>
         <rect width={96} height={36} rx={8} fill="none" stroke="#121212" strokeWidth={2} strokeDasharray="4 3" />
         <text x={48} y={15} textAnchor="middle" fontSize={8} fontWeight={800} fill="#121212" style={font}>PACK NO.</text>
-        <text x={48} y={28} textAnchor="middle" fontSize={10} fontWeight={800} fill="#121212" style={font}>DEMO-000</text>
+        <text x={48} y={28} textAnchor="middle" fontSize={9} fontWeight={800} fill="#121212" style={font}>
+          {packNo}
+        </text>
       </g>
     </g>
   );
@@ -399,7 +417,7 @@ function MainArt({ art, product }: { art: Art; product: Product }) {
     case 'pack':
       return <Pack designs={art.designs} card={art.card} name={product.name} />;
     case 'mystery':
-      return <Mystery card={art.card} peek={art.peek} quantity={product.packQuantity} />;
+      return <Mystery card={art.card} peek={art.peek} quantity={product.packQuantity} themeName={art.themeName} themeCode={art.themeCode} />;
     case 'duo':
       return <Duo designs={art.designs} pairing={art.pairing} />;
     case 'secret':

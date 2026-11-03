@@ -11,7 +11,6 @@ import type { ProductCartLine } from '../../utils/cart';
 import { WallCartLine } from './WallCartLine';
 import { StickerCartLine } from './StickerCartLine';
 import { PackCartLine } from './PackCartLine';
-import { BonusGiftNote } from '../collectible/BonusGift';
 import { QuantitySelector } from '../product/QuantitySelector';
 
 /** Slide-in cart panel available from every page via the header button. */
@@ -64,9 +63,6 @@ export function CartDrawer() {
   const suggestion = productLines.length
     ? (getRelatedProducts(productLines[0].product, 8, availableProducts).find(oneTap) ?? availableProducts.find((p) => p.featured && oneTap(p)))
     : availableProducts.find((p) => p.featured && oneTap(p));
-
-  // The planned bonus applies to orders with at least one sticker item (src/config/bonusGift.ts).
-  const hasStickers = lines.some((l) => l.type !== 'custom-wall' && (l.type !== 'product' || l.product.category === 'stickers'));
 
   const go = (to: string) => {
     closeCart();
@@ -150,11 +146,6 @@ export function CartDrawer() {
                 <span className="font-mono text-xs tracking-widest text-mint uppercase">ESTIMATED TOTAL</span>
                 <span className="font-display text-2xl font-extrabold tabular-nums text-ink">{formatPrice(subtotal)}</span>
               </div>
-              {hasStickers && (
-                <div className="mt-3">
-                  <BonusGiftNote compact />
-                </div>
-              )}
 
               {/* Minimum checkout total progress requirement */}
               {!canCheckout && (

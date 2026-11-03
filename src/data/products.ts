@@ -27,7 +27,7 @@ const mint = '#7FE0B5';
 const kraft = '#D9B98C';
 
 // ---------- Individual sticker designs (reused inside sheets and packs) ----------
-const d = {
+export const d = {
   chaiFirst: { name: 'Chai First', motif: 'chai', label: 'CHAI FIRST', shape: 'circle', bg: sun, fg: ink, accent: tomato },
   worksOnMyMachine: { name: 'Works On My Machine', label: 'WORKS ON\nMY MACHINE', shape: 'pill', bg: ink, fg: lime, accent: lime },
   seventyFive: { name: '75% Club', label: '75%\nCLUB', shape: 'badge', bg: tomato, fg: white, accent: sun },
@@ -438,6 +438,7 @@ export const products: Product[] = [
     price: 29, category: 'stickers', productType: 'secret', collections: ['motivation'],
     tags: ['secret message', 'text', 'funny', 'card'], featured: true, isNew: true, displayOrder: 60, status: 'demo', seriesId: 'S01', rarity: 'common',
     messageCardId: 'mc-student-life', messageCardCount: 1,
+    imageUrl: '/PNG/Life quotes/be-your-own-inspiration.webp',
     art: { kind: 'secret', backdrop: '#FFF0B8', design: d.mainCharacter, envelope: kraft },
   },
   {
@@ -447,6 +448,7 @@ export const products: Product[] = [
     price: 29, category: 'stickers', productType: 'secret', collections: [],
     tags: ['secret message', 'coding', 'text', 'card'], featured: true, isNew: true, displayOrder: 61, status: 'demo', seriesId: 'S02', rarity: 'common',
     messageCardId: 'mc-tech', messageCardCount: 1,
+    imageUrl: '/PNG/Swag/limited-edition-black-and-white.webp',
     art: { kind: 'secret', backdrop: '#EEFFC2', design: d.loading, envelope: kraft },
   },
   {
@@ -456,6 +458,7 @@ export const products: Product[] = [
     price: 29, category: 'stickers', productType: 'secret', collections: ['minimal', 'music'],
     tags: ['secret message', 'introvert', 'text', 'card'], featured: false, isNew: true, displayOrder: 62, status: 'demo', seriesId: 'S03', rarity: 'common',
     messageCardId: 'mc-introvert', messageCardCount: 1,
+    imageUrl: '/PNG/Swag/dont-touch-hand-symbol.webp',
     art: { kind: 'secret', backdrop: '#FFD9CC', design: d.doNotDisturb, envelope: kraft },
   },
   {

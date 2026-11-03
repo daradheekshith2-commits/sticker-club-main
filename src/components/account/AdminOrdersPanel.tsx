@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import JSZip from 'jszip';
 import { useAuth, apiUrl } from '../../context/AuthContext';
 import { useCatalogue } from '../../context/CatalogueContext';
 import { ProductImage } from '../art/ProductArt';
@@ -288,6 +289,144 @@ export function AdminOrdersPanel() {
       setActionNotice({ id: orderId, text: `✕ ${err}`, isError: true });
     } finally {
       setBusy(null);
+    }
+  }
+
+  const [zippingId, setZippingId] = useState<string | null>(null);
+
+  async function handleDownloadOrderZip(order: Order) {
+    try {
+      setZippingId(order.id);
+      const zip = new JSZip();
+
+      // 1. Order Summary Text
+      const manifest = `=====================================================
+PIXWORA ORDER SUMMARY - #${order.id}
+Exported At: ${new Date().toLocaleString('en-IN')}
+=====================================================
+
+ORDER STATUS & SUMMARY:
+Order ID: ${order.id}
+Created At: ${new Date(order.createdAt).toLocaleString('en-IN')}
+Current Status: ${order.status}
+Payment Method: ${order.paymentMethod}
+Payment Status: ${order.paymentStatus}
+Total Amount: ₹${order.total} (Subtotal: ₹${order.subtotal} + Delivery Fee: ₹${order.deliveryFee})
+UPI Payee: KOMMULA SRUJAN REDDY
+UPI Transaction ID (UTR): ${order.payment?.utr || 'N/A'}
+Submitted At: ${order.payment?.submittedAt ? new Date(order.payment.submittedAt).toLocaleString('en-IN') : 'N/A'}
+Verified At: ${order.payment?.verifiedAt ? new Date(order.payment.verifiedAt).toLocaleString('en-IN') : 'N/A'}
+
+CUSTOMER & CONTACT:
+Customer Name: ${order.shippingAddress?.recipient || order.user?.name || 'Customer'}
+Customer Email: ${order.user?.email || 'N/A'}
+Phone Number: ${order.shippingAddress?.phone || order.user?.phone || 'N/A'}
+
+SHIPPING ADDRESS:
+Recipient: ${order.shippingAddress?.recipient || order.user?.name || 'N/A'}
+Phone: ${order.shippingAddress?.phone || order.user?.phone || 'N/A'}
+Address Line 1: ${order.shippingAddress?.line1 || 'N/A'}
+Address Line 2: ${order.shippingAddress?.line2 || ''}
+City: ${order.shippingAddress?.city || 'N/A'}
+State: ${order.shippingAddress?.state || 'N/A'}
+Postal Code: ${order.shippingAddress?.postalCode || 'N/A'}
+Order Delivery Notes: ${order.shippingAddress?.notes || 'None'}
+
+ITEMS TO PRINT & PACK (${order.items.length}):
+-----------------------------------------------------
+${order.items.map((it, idx) => {
+  const p = it.productId ? getProductById(it.productId) : undefined;
+  const size = it.variantLabel || 'Standard 3" × 3" (approx 7.6 × 7.6 cm)';
+  return `[Item #${idx + 1}] ${it.nameSnapshot || p?.name || 'Print Item'} (Qty: ${it.quantity})
+  Type: ${p?.productType || 'Sticker'}
+  Dimensions / Specs: ${size}
+  Unit Price: ₹${it.unitPrice} | Total: ₹${Number(it.unitPrice) * it.quantity}
+  Item ID: ${it.id}
+  Product Code: ${it.productId || 'CUSTOM'}
+`;
+}).join('\n')}
+
+${order.customOrders && order.customOrders.length > 0 ? `
+CUSTOM UPLOADED ARTWORKS (${order.customOrders.length}):
+-----------------------------------------------------
+${order.customOrders.map((co, idx) => {
+  const cfg = co.config || {};
+  const fileName = co.artwork?.originalName || co.artwork?.fileName || 'custom-artwork.png';
+  return `[Custom #${idx + 1}] Custom Upload (ID: ${co.id})
+  Dimensions: ${cfg.dimensions || cfg.size || 'Custom'}
+  Material: ${cfg.material || 'Waterproof Vinyl'}
+  Finish: ${cfg.finish || 'Matte'}
+  Cut Type: ${cfg.cutType || 'Die-cut'}
+  File: ${fileName}
+`;
+}).join('\n')}
+` : ''}
+=====================================================
+PIXWORA Print Operations System
+`;
+      zip.file(`ORDER_${order.id.slice(0, 8)}_DETAILS.txt`, manifest);
+
+      // 2. Fetch custom order artworks
+      if (order.customOrders && order.customOrders.length > 0) {
+        const customFolder = zip.folder('custom-artworks');
+        for (let i = 0; i < order.customOrders.length; i++) {
+          const co = order.customOrders[i];
+          const fileName = co.artwork?.fileName;
+          const url = resolveArtworkUrl(co.artwork?.id || co.artworkId, true, fileName);
+          if (url) {
+            try {
+              const res = await fetch(url);
+              if (res.ok) {
+                const blob = await res.blob();
+                const ext = fileName?.split('.').pop() || 'png';
+                const safeTitle = (co.artwork?.originalName || `custom-artwork-${i + 1}`).replace(/[^a-zA-Z0-9_-]/g, '_');
+                customFolder?.file(`${safeTitle}.${ext}`, blob);
+              }
+            } catch (err) {
+              console.warn('Could not bundle artwork:', url, err);
+            }
+          }
+        }
+      }
+
+      // 3. Fetch standard item artworks if available
+      const itemsFolder = zip.folder('item-artworks');
+      for (let i = 0; i < order.items.length; i++) {
+        const it = order.items[i];
+        const p = it.productId ? getProductById(it.productId) : undefined;
+        const imgUrl = it.imageUrl ? resolveProductImageUrl(it.imageUrl) : (p?.images?.[0]?.src ? resolveProductImageUrl(p.images[0].src) : undefined);
+        if (imgUrl) {
+          try {
+            const res = await fetch(imgUrl);
+            if (res.ok) {
+              const blob = await res.blob();
+              const ext = imgUrl.split('.').pop()?.split('?')[0] || 'png';
+              const safeName = (it.nameSnapshot || p?.name || `item-${i + 1}`).replace(/[^a-zA-Z0-9_-]/g, '_');
+              itemsFolder?.file(`${safeName}.${ext}`, blob);
+            }
+          } catch (err) {
+            console.warn('Could not bundle item image:', imgUrl, err);
+          }
+        }
+      }
+
+      // 4. Generate and trigger download
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const downloadUrl = URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `Pixwora_Order_${order.id.slice(0, 8)}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 8000);
+      setActionNotice({ id: order.id, text: `✓ Downloaded ZIP package for Order #${order.id}` });
+    } catch (e) {
+      const err = e instanceof Error ? e.message : 'Failed to generate ZIP package';
+      setError(err);
+      setActionNotice({ id: order.id, text: `✕ ${err}`, isError: true });
+    } finally {
+      setZippingId(null);
     }
   }
 
@@ -620,6 +759,25 @@ export function AdminOrdersPanel() {
                           Subtotal: ₹{order.subtotal} + Delivery: ₹{order.deliveryFee}
                         </p>
                       </div>
+                      <button
+                        type="button"
+                        disabled={zippingId === order.id}
+                        className="btn-accent text-xs px-3 py-1 font-bold inline-flex items-center gap-1.5 shadow-sm"
+                        onClick={() => void handleDownloadOrderZip(order)}
+                        title="Download order summary & all artworks in a ZIP package"
+                      >
+                        {zippingId === order.id ? (
+                          <>
+                            <span className="inline-block size-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            <span>Creating ZIP…</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>📦</span>
+                            <span>Download ZIP</span>
+                          </>
+                        )}
+                      </button>
                       <button
                         type="button"
                         className="btn-ghost text-xs border border-ink/15 px-2.5 py-1"
@@ -1198,6 +1356,16 @@ export function AdminOrdersPanel() {
                         {busy === order.payment.id ? 'Verifying…' : '✓ Verify UPI Payment'}
                       </button>
                     )}
+
+                    <button
+                      type="button"
+                      disabled={zippingId === order.id}
+                      className="btn-ghost text-xs border border-ink/20 px-2.5 py-1 inline-flex items-center gap-1 font-semibold"
+                      onClick={() => void handleDownloadOrderZip(order)}
+                    >
+                      <span>📦</span>
+                      <span>{zippingId === order.id ? 'Bundling ZIP…' : 'Download Order ZIP Package'}</span>
+                    </button>
 
                     {/* Inline Action Notice Feedback */}
                     {actionNotice && actionNotice.id === order.id && (
