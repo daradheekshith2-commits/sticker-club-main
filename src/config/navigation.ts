@@ -71,5 +71,6 @@ export function vibeLinks(category: Category): MenuLink[] {
 export const plainLinks: MenuLink[] = [
   { label: 'Create your own', to: '/create-your-stickers' },
   { label: 'Vibes', to: '/vibes' },
+  { label: 'Reviews', to: '/reviews' },
   { label: 'About', to: '/about' },
 ];

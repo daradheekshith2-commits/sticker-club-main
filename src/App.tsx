@@ -18,6 +18,7 @@ import { DuosPage, SecretMessagesPage } from './pages/CollectionLandingPages';
 import { PassportPage } from './pages/PassportPage';
 import { RarityPage } from './pages/RarityPage';
 import { VotePage } from './pages/VotePage';
+import { ReviewsPage } from './pages/ReviewsPage';
 import { AboutPage, ContactPage, FaqPage, NotFoundPage, PolicyPage } from './pages/InfoPages';
 
 // Every page of the site. The first matching path wins; '*' catches the rest.
@@ -25,6 +26,7 @@ const routes: RouteDef[] = [
   { path: '/', element: <HomePage /> },
   { path: '/shop', element: <ShopPage /> },
   { path: '/vibes', element: <VibesPage /> },
+  { path: '/reviews', element: <ReviewsPage /> },
   { path: '/product/:slug', element: <ProductPage /> },
   { path: '/create-your-stickers', element: <CreateStickersPage /> },
   { path: '/build-your-wall', element: <BuildWallPage /> },

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import {
   LuCheck, LuCopy, LuCrop, LuRedo2, LuRefreshCw, LuRotateCcw, LuRotateCw,
-  LuTrash2, LuType, LuUndo2, LuUpload, LuX,
+  LuSlidersHorizontal, LuTrash2, LuType, LuUndo2, LuUpload, LuX, LuZoomIn,
 } from 'react-icons/lu';
 import type { PickedImage } from '../../types/image';
 import { cropExportDimensions } from '../../utils/cropGeometry';
@@ -55,19 +55,20 @@ const makeInitialEditor = (): EditorState => ({
   panX: 0,
   panY: 0,
   ratio: 'free',
-  customCrop: { x: 90, y: 90, width: 540, height: 540 },
+  customCrop: { x: 72, y: 72, width: 576, height: 576 },
   layers: [],
 });
 
 function cropRect(ratio: CropRatio, image: HTMLImageElement, rotation: number, custom?: CropRect): CropRect {
-  if (ratio === 'custom') return custom ?? { x: 90, y: 90, width: 540, height: 540 };
-  if (ratio === 'portrait') return { x: 72, y: 0, width: 576, height: 720 };
-  if (ratio === 'landscape') return { x: 0, y: 157.5, width: 720, height: 405 };
-  if (ratio === 'square') return { x: 0, y: 0, width: 720, height: 720 };
+  if (ratio === 'custom' || ratio === 'free') return custom ?? { x: 72, y: 72, width: 576, height: 576 };
+  if (ratio === 'portrait') return { x: 96, y: 36, width: 528, height: 648 };
+  if (ratio === 'landscape') return { x: 36, y: 175, width: 648, height: 365 };
+  if (ratio === 'square') return { x: 36, y: 36, width: 648, height: 648 };
 
   const rotated = Math.abs(rotation % 180) === 90;
-  const imageRatio = rotated ? image.height / image.width : image.width / image.height;
-  const safeRatio = Math.max(0.35, Math.min(2.8, imageRatio));
+  const imageWidth = rotated ? image.height : image.width;
+  const imageHeight = rotated ? image.width : image.height;
+  const safeRatio = Math.max(0.35, Math.min(2.8, imageWidth / imageHeight));
   if (safeRatio >= 1) {
     const height = CANVAS_SIZE / safeRatio;
     return { x: 0, y: (CANVAS_SIZE - height) / 2, width: CANVAS_SIZE, height };
@@ -204,6 +205,7 @@ export function CustomStickerEditor({
   onClose: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const fontFacesRef = useRef<Array<{ face: FontFace; url: string }>>([]);
@@ -214,6 +216,7 @@ export function CustomStickerEditor({
   const historyIndexRef = useRef(0);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'crop' | 'straighten' | 'rotate' | 'zoom' | 'text'>('crop');
   const [customFonts, setCustomFonts] = useState<FontChoice[]>([]);
   const [fontError, setFontError] = useState('');
   const [fontRevision, setFontRevision] = useState(0);
@@ -221,8 +224,6 @@ export function CustomStickerEditor({
   const [imageError, setImageError] = useState('');
   const [busy, setBusy] = useState(false);
   const [applyError, setApplyError] = useState('');
-  const [cropEditing, setCropEditing] = useState(false);
-  const cropBeforeRef = useRef<EditorState | null>(null);
   const cropDragRef = useRef<{ x: number; y: number; rect: CropRect; handle: string } | null>(null);
 
   const selectedLayer = editor.layers.find((layer) => layer.id === selectedLayerId) ?? null;
@@ -338,6 +339,7 @@ export function CustomStickerEditor({
     };
     commit({ ...editorRef.current, layers: [...editorRef.current.layers, layer] });
     setSelectedLayerId(id);
+    setActiveTab('text');
   }
 
   function duplicateSelected() {
@@ -390,8 +392,10 @@ export function CustomStickerEditor({
     setSelectedLayerId(null);
   }
 
-  function canvasPoint(event: ReactPointerEvent<HTMLCanvasElement>) {
-    const bounds = event.currentTarget.getBoundingClientRect();
+  function canvasPoint(event: ReactPointerEvent) {
+    const container = containerRef.current ?? canvasRef.current;
+    if (!container) return { x: 0, y: 0 };
+    const bounds = container.getBoundingClientRect();
     return {
       x: ((event.clientX - bounds.left) / bounds.width) * CANVAS_SIZE,
       y: ((event.clientY - bounds.top) / bounds.height) * CANVAS_SIZE,
@@ -409,6 +413,7 @@ export function CustomStickerEditor({
     const layer = findTextLayerAt(ctx, editorRef.current.layers, crop, point.x, point.y);
     if (layer) {
       setSelectedLayerId(layer.id);
+      setActiveTab('text');
       dragRef.current = { kind: 'text', pointerX: point.x, pointerY: point.y, layerId: layer.id, x: layer.x, y: layer.y };
     } else {
       setSelectedLayerId(null);
@@ -456,36 +461,77 @@ export function CustomStickerEditor({
     commitCurrent();
   }
 
-  function beginCustomCrop() { cropBeforeRef.current = editorRef.current; commit({...editorRef.current,ratio:'custom'}); setCropEditing(true); }
-  function getCropPoint(e: ReactPointerEvent<HTMLDivElement>) { const r=e.currentTarget.getBoundingClientRect(); return {x:(e.clientX-r.left)*720/r.width,y:(e.clientY-r.top)*720/r.height}; }
-  function cropPointerDown(e: ReactPointerEvent<HTMLDivElement>) {
-    if(e.button!==0)return;
+  // --- Corner Bracket Crop Handles Logic ---
+  function cropHandleDown(handle: string, e: ReactPointerEvent<HTMLDivElement>) {
+    if (e.button !== 0) return;
     e.preventDefault();
-    const p=getCropPoint(e),r=editorRef.current.customCrop,t=24;
-    const edgeX=Math.abs(p.x-r.x)<t?'w':Math.abs(p.x-r.x-r.width)<t?'e':'';
-    const edgeY=Math.abs(p.y-r.y)<t?'n':Math.abs(p.y-r.y-r.height)<t?'s':'';
-    const handle=edgeY+edgeX||(p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height?'move':'draw');
-    cropDragRef.current={x:p.x,y:p.y,rect:r,handle};
+    e.stopPropagation();
+    const source = imageRef.current;
+    if (!source) return;
+    const currentCrop = cropRect(editorRef.current.ratio, source, editorRef.current.rotation, editorRef.current.customCrop);
+    const p = canvasPoint(e);
+    cropDragRef.current = {
+      x: p.x,
+      y: p.y,
+      rect: { ...currentCrop },
+      handle,
+    };
     e.currentTarget.setPointerCapture(e.pointerId);
   }
-  function cropPointerMove(e: ReactPointerEvent<HTMLDivElement>) {
-    const d=cropDragRef.current;if(!d)return;const p=getCropPoint(e),dx=p.x-d.x,dy=p.y-d.y;
-    const min=36,clamp=(n:number,a:number,b:number)=>Math.min(b,Math.max(a,n));
-    let {x,y,width,height}=d.rect;
-    if(d.handle==='move'){x=clamp(x+dx,0,720-width);y=clamp(y+dy,0,720-height);}
-    else if(d.handle==='draw'){x=clamp(Math.min(p.x,d.x),0,720-min);y=clamp(Math.min(p.y,d.y),0,720-min);width=clamp(Math.abs(dx),min,720-x);height=clamp(Math.abs(dy),min,720-y);}
-    else {
-      if(d.handle.includes('w')){x=clamp(x+dx,0,x+width-min);width=d.rect.x+d.rect.width-x;}
-      if(d.handle.includes('e'))width=clamp(width+dx,min,720-x);
-      if(d.handle.includes('n')){y=clamp(y+dy,0,y+height-min);height=d.rect.y+d.rect.height-y;}
-      if(d.handle.includes('s'))height=clamp(height+dy,min,720-y);
+
+  function cropHandleMove(e: ReactPointerEvent<HTMLDivElement>) {
+    const d = cropDragRef.current;
+    if (!d) return;
+    const p = canvasPoint(e);
+    const dx = p.x - d.x;
+    const dy = p.y - d.y;
+    const min = 54;
+    const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n));
+    let { x, y, width, height } = d.rect;
+
+    if (d.handle === 'move') {
+      x = clamp(d.rect.x + dx, 0, CANVAS_SIZE - width);
+      y = clamp(d.rect.y + dy, 0, CANVAS_SIZE - height);
+    } else {
+      if (d.handle.includes('w')) {
+        x = clamp(d.rect.x + dx, 0, d.rect.x + d.rect.width - min);
+        width = d.rect.x + d.rect.width - x;
+      }
+      if (d.handle.includes('e')) {
+        width = clamp(d.rect.width + dx, min, CANVAS_SIZE - x);
+      }
+      if (d.handle.includes('n')) {
+        y = clamp(d.rect.y + dy, 0, d.rect.y + d.rect.height - min);
+        height = d.rect.y + d.rect.height - y;
+      }
+      if (d.handle.includes('s')) {
+        height = clamp(d.rect.height + dy, min, CANVAS_SIZE - y);
+      }
     }
-    updateLive({...editorRef.current,customCrop:{x,y,width,height}});
+    updateLive({ ...editorRef.current, ratio: 'custom', customCrop: { x, y, width, height } });
   }
-  function cropPointerUp(e: ReactPointerEvent<HTMLDivElement>) {
-    if(!cropDragRef.current)return;cropDragRef.current=null;
-    if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);
+
+  function cropHandleUp(e: ReactPointerEvent<HTMLDivElement>) {
+    if (!cropDragRef.current) return;
+    cropDragRef.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
     commitCurrent();
+  }
+
+  function setRatioPreset(ratio: CropRatio) {
+    const source = imageRef.current;
+    if (!source) return;
+    if (ratio === 'square') {
+      commit({ ...editorRef.current, ratio: 'square', customCrop: { x: 40, y: 40, width: 640, height: 640 } });
+    } else if (ratio === 'portrait') {
+      commit({ ...editorRef.current, ratio: 'portrait', customCrop: { x: 96, y: 36, width: 528, height: 648 } });
+    } else if (ratio === 'landscape') {
+      commit({ ...editorRef.current, ratio: 'landscape', customCrop: { x: 36, y: 175, width: 648, height: 365 } });
+    } else {
+      commit({ ...editorRef.current, ratio: 'free' });
+    }
   }
 
   async function applyDesign() {
@@ -497,8 +543,6 @@ export function CustomStickerEditor({
       await document.fonts.ready;
       const selectedCrop = cropRect(editorRef.current.ratio, source, editorRef.current.rotation, editorRef.current.customCrop);
       if (selectedCrop.width <= 0 || selectedCrop.height <= 0) throw new Error('Select a valid crop area.');
-      // Compose at high resolution, then extract ONLY the chosen crop bounds.
-      // Avoid the old 1200×1200 transparent padding on portrait and landscape crops.
       const composition = document.createElement('canvas');
       composition.width = EXPORT_SIZE;
       composition.height = EXPORT_SIZE;
@@ -532,7 +576,7 @@ export function CustomStickerEditor({
     }
   }
 
-  const crop = imageRef.current ? cropRect(editor.ratio, imageRef.current, editor.rotation, editor.customCrop) : { x: 0, y: 0, width: 720, height: 720 };
+  const crop = imageRef.current ? cropRect(editor.ratio, imageRef.current, editor.rotation, editor.customCrop) : { x: 72, y: 72, width: 576, height: 576 };
   const cropStyle = {
     left: (crop.x / CANVAS_SIZE) * 100 + '%',
     top: (crop.y / CANVAS_SIZE) * 100 + '%',
@@ -541,37 +585,73 @@ export function CustomStickerEditor({
   };
 
   return (
-    <div className="mt-4 rounded-2xl border-2 border-ink bg-paper p-3 sm:p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="mt-4 rounded-2xl border-2 border-ink bg-[#171e1b] text-[#F4F0E8] p-3 sm:p-5 shadow-2xl">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-mint/15 pb-3">
         <div>
-          <p className="flex items-center gap-2 font-display text-xl font-extrabold"><LuCrop aria-hidden /> Edit your design</p>
-          <p className="mt-1 text-xs text-ink-soft">Crop and position your image, then add text layers. Everything is processed on this device.</p>
+          <p className="flex items-center gap-2 font-display text-xl font-extrabold text-[#A8F0DC]">
+            <LuCrop aria-hidden className="size-5" /> Crop &amp; Customise Sticker
+          </p>
+          <p className="mt-0.5 text-xs text-[#F4F0E8]/70">
+            Drag the white corner bracket handles to crop freely. Move the photo to align.
+          </p>
         </div>
-        <div className="flex items-center gap-1">
-          <button type="button" onClick={undo} disabled={!hasUndo} className="grid size-9 place-items-center rounded-full border border-ink/20 disabled:opacity-35" aria-label="Undo">
-            <LuUndo2 aria-hidden />
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={undo}
+            disabled={!hasUndo}
+            className="grid size-8 place-items-center rounded-full border border-mint/20 text-[#F4F0E8] hover:bg-mint/10 disabled:opacity-30"
+            aria-label="Undo"
+          >
+            <LuUndo2 className="size-4" aria-hidden />
           </button>
-          <button type="button" onClick={redo} disabled={!hasRedo} className="grid size-9 place-items-center rounded-full border border-ink/20 disabled:opacity-35" aria-label="Redo">
-            <LuRedo2 aria-hidden />
+          <button
+            type="button"
+            onClick={redo}
+            disabled={!hasRedo}
+            className="grid size-8 place-items-center rounded-full border border-mint/20 text-[#F4F0E8] hover:bg-mint/10 disabled:opacity-30"
+            aria-label="Redo"
+          >
+            <LuRedo2 className="size-4" aria-hidden />
           </button>
-          <button type="button" onClick={resetEditor} className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-xs font-bold hover:bg-paper-deep">
-            <LuRefreshCw aria-hidden /> Reset
+          <button
+            type="button"
+            onClick={resetEditor}
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-bold text-[#F4F0E8]/80 hover:bg-mint/10"
+          >
+            <LuRefreshCw className="size-3.5" aria-hidden /> Reset
           </button>
-          <button type="button" onClick={onClose} className="grid size-9 place-items-center rounded-full hover:bg-paper-deep" aria-label="Close editor">
-            <LuX aria-hidden />
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid size-8 place-items-center rounded-full hover:bg-mint/15 text-[#F4F0E8]"
+            aria-label="Close editor"
+          >
+            <LuX className="size-5" aria-hidden />
           </button>
         </div>
       </div>
 
       {imageError ? (
-        <p role="alert" className="mt-4 rounded-xl bg-danger/10 p-3 text-sm font-bold text-danger">{imageError}</p>
+        <p role="alert" className="mt-4 rounded-xl bg-danger/20 p-3 text-sm font-bold text-tomato">{imageError}</p>
       ) : !imageReady ? (
-        <p role="status" className="mt-4 rounded-xl bg-white p-4 text-sm">Opening your image…</p>
+        <p role="status" className="mt-4 rounded-xl bg-white/5 p-4 text-sm text-center">Opening your image…</p>
       ) : (
         <>
-          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(280px,0.95fr)]">
-            <div className="min-w-0">
-              <div className="relative mx-auto aspect-square w-full max-w-[470px] overflow-hidden rounded-2xl border-2 border-ink/20 bg-[#202a27]" style={{ touchAction: 'none', backgroundImage: 'linear-gradient(45deg,#2b3531 25%,transparent 25%),linear-gradient(-45deg,#2b3531 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#2b3531 75%),linear-gradient(-45deg,transparent 75%,#2b3531 75%)', backgroundSize: '24px 24px', backgroundPosition: '0 0,0 12px,12px -12px,-12px 0px' }}>
+          <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+            {/* Canvas with Corner Bracket Crop Overlay */}
+            <div className="min-w-0 flex flex-col items-center">
+              <div
+                ref={containerRef}
+                className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-2xl border-2 border-mint/30 bg-[#0d1311] shadow-inner select-none"
+                style={{
+                  touchAction: 'none',
+                  backgroundImage:
+                    'linear-gradient(45deg,#1b2522 25%,transparent 25%),linear-gradient(-45deg,#1b2522 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1b2522 75%),linear-gradient(-45deg,transparent 75%,#1b2522 75%)',
+                  backgroundSize: '24px 24px',
+                  backgroundPosition: '0 0,0 12px,12px -12px,-12px 0px',
+                }}
+              >
                 <canvas
                   ref={canvasRef}
                   width={CANVAS_SIZE}
@@ -585,65 +665,351 @@ export function CustomStickerEditor({
                   onPointerUp={finishDrag}
                   onPointerCancel={finishDrag}
                 />
-                <div className="pointer-events-none absolute border-2 border-dashed border-white/90 shadow-[0_0_0_999px_rgba(0,0,0,0.10)]" style={cropStyle} />
-                {cropEditing && <div className="absolute inset-0 cursor-crosshair" role="application" aria-label="Drag to create, move or resize crop selection" style={{touchAction:'none'}} onPointerDown={cropPointerDown} onPointerMove={cropPointerMove} onPointerUp={cropPointerUp} onPointerCancel={cropPointerUp}>
-                  <div className="pointer-events-none absolute border-2 border-[#A8F0DC]" style={cropStyle}>
-                    {['nw','n','ne','e','se','s','sw','w'].map(h => <span key={h} className="absolute size-3 rounded-sm border border-[#03110f] bg-[#A8F0DC]" style={{left:h.includes('w')?'0%':h.includes('e')?'100%':'50%',top:h.includes('n')?'0%':h.includes('s')?'100%':'50%',transform:'translate(-50%,-50%)'}} />)}
+
+                {/* Shaded Outside Mask + Corner Bracket Handles */}
+                <div
+                  className="pointer-events-none absolute transition-all duration-75"
+                  style={{
+                    ...cropStyle,
+                    boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.65)',
+                  }}
+                >
+                  {/* Fine crop boundary line */}
+                  <div className="absolute inset-0 border border-white/40 pointer-events-none" />
+
+                  {/* Rule of thirds grid lines (subtle composition guide) */}
+                  <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3 opacity-30">
+                    <div className="border-r border-b border-white" />
+                    <div className="border-r border-b border-white" />
+                    <div className="border-b border-white" />
+                    <div className="border-r border-b border-white" />
+                    <div className="border-r border-b border-white" />
+                    <div className="border-b border-white" />
+                    <div className="border-r border-b border-white" />
+                    <div className="border-r border-b border-white" />
+                    <div />
                   </div>
-                </div>}
-              </div>
-              <p className="mt-2 text-center text-xs text-ink-soft">Drag the photo to reposition it. Select and drag any text to move that layer.</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {!cropEditing ? <button type="button" className="btn-accent" onClick={beginCustomCrop}>Custom Crop — Select Your Own Area</button> : <>
-                  <button type="button" className="btn-accent" onClick={() => {cropBeforeRef.current=null;setCropEditing(false);}}>Apply Crop</button>
-                  <button type="button" className="btn-ghost" onClick={() => {if(cropBeforeRef.current)commit(cropBeforeRef.current);cropBeforeRef.current=null;setCropEditing(false);}}>Cancel</button>
-                  <button type="button" className="btn-ghost" onClick={() => commit({...editorRef.current,customCrop:{x:90,y:90,width:540,height:540}})}>Reset crop</button>
-                </>}
+
+                  {/* Center drag area to reposition the crop box */}
+                  <div
+                    className="absolute inset-4 pointer-events-auto cursor-move select-none touch-none"
+                    onPointerDown={(e) => cropHandleDown('move', e)}
+                    onPointerMove={cropHandleMove}
+                    onPointerUp={cropHandleUp}
+                    onPointerCancel={cropHandleUp}
+                    title="Drag to move crop frame"
+                  />
+
+                  {/* Corner Bracket: Top-Left (┌) */}
+                  <div
+                    className="absolute -top-3.5 -left-3.5 size-11 pointer-events-auto cursor-nwse-resize select-none touch-none flex items-start justify-start p-1.5"
+                    onPointerDown={(e) => cropHandleDown('nw', e)}
+                    onPointerMove={cropHandleMove}
+                    onPointerUp={cropHandleUp}
+                    onPointerCancel={cropHandleUp}
+                    role="slider"
+                    aria-label="Resize crop top-left"
+                  >
+                    <div className="relative size-7 pointer-events-none">
+                      <span className="absolute top-0 left-0 h-[4px] w-7 rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.9)]" />
+                      <span className="absolute top-0 left-0 h-7 w-[4px] rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.9)]" />
+                    </div>
+                  </div>
+
+                  {/* Corner Bracket: Top-Right (┐) */}
+                  <div
+                    className="absolute -top-3.5 -right-3.5 size-11 pointer-events-auto cursor-nesw-resize select-none touch-none flex items-start justify-end p-1.5"
+                    onPointerDown={(e) => cropHandleDown('ne', e)}
+                    onPointerMove={cropHandleMove}
+                    onPointerUp={cropHandleUp}
+                    onPointerCancel={cropHandleUp}
+                    role="slider"
+                    aria-label="Resize crop top-right"
+                  >
+                    <div className="relative size-7 pointer-events-none">
+                      <span className="absolute top-0 right-0 h-[4px] w-7 rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.9)]" />
+                      <span className="absolute top-0 right-0 h-7 w-[4px] rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.9)]" />
+                    </div>
+                  </div>
+
+                  {/* Corner Bracket: Bottom-Left (└) */}
+                  <div
+                    className="absolute -bottom-3.5 -left-3.5 size-11 pointer-events-auto cursor-nesw-resize select-none touch-none flex items-end justify-start p-1.5"
+                    onPointerDown={(e) => cropHandleDown('sw', e)}
+                    onPointerMove={cropHandleMove}
+                    onPointerUp={cropHandleUp}
+                    onPointerCancel={cropHandleUp}
+                    role="slider"
+                    aria-label="Resize crop bottom-left"
+                  >
+                    <div className="relative size-7 pointer-events-none">
+                      <span className="absolute bottom-0 left-0 h-[4px] w-7 rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.9)]" />
+                      <span className="absolute bottom-0 left-0 h-7 w-[4px] rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.9)]" />
+                    </div>
+                  </div>
+
+                  {/* Corner Bracket: Bottom-Right (┘) */}
+                  <div
+                    className="absolute -bottom-3.5 -right-3.5 size-11 pointer-events-auto cursor-nwse-resize select-none touch-none flex items-end justify-end p-1.5"
+                    onPointerDown={(e) => cropHandleDown('se', e)}
+                    onPointerMove={cropHandleMove}
+                    onPointerUp={cropHandleUp}
+                    onPointerCancel={cropHandleUp}
+                    role="slider"
+                    aria-label="Resize crop bottom-right"
+                  >
+                    <div className="relative size-7 pointer-events-none">
+                      <span className="absolute bottom-0 right-0 h-[4px] w-7 rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.9)]" />
+                      <span className="absolute bottom-0 right-0 h-7 w-[4px] rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.9)]" />
+                    </div>
+                  </div>
+
+                  {/* Edge Drag Handles */}
+                  <div
+                    className="absolute -top-2 left-9 right-9 h-4 pointer-events-auto cursor-ns-resize touch-none"
+                    onPointerDown={(e) => cropHandleDown('n', e)}
+                    onPointerMove={cropHandleMove}
+                    onPointerUp={cropHandleUp}
+                    onPointerCancel={cropHandleUp}
+                  />
+                  <div
+                    className="absolute -bottom-2 left-9 right-9 h-4 pointer-events-auto cursor-ns-resize touch-none"
+                    onPointerDown={(e) => cropHandleDown('s', e)}
+                    onPointerMove={cropHandleMove}
+                    onPointerUp={cropHandleUp}
+                    onPointerCancel={cropHandleUp}
+                  />
+                  <div
+                    className="absolute top-9 bottom-9 -left-2 w-4 pointer-events-auto cursor-ew-resize touch-none"
+                    onPointerDown={(e) => cropHandleDown('w', e)}
+                    onPointerMove={cropHandleMove}
+                    onPointerUp={cropHandleUp}
+                    onPointerCancel={cropHandleUp}
+                  />
+                  <div
+                    className="absolute top-9 bottom-9 -right-2 w-4 pointer-events-auto cursor-ew-resize touch-none"
+                    onPointerDown={(e) => cropHandleDown('e', e)}
+                    onPointerMove={cropHandleMove}
+                    onPointerUp={cropHandleUp}
+                    onPointerCancel={cropHandleUp}
+                  />
+                </div>
               </div>
 
-              <div className="mt-4 rounded-xl bg-white p-3">
-                <p className="text-sm font-extrabold">Crop shape</p>
-                <div className="mt-2 grid grid-cols-4 gap-1.5">
-                  {[
-                    { id: 'free' as CropRatio, label: 'Free' },
-                    { id: 'square' as CropRatio, label: '1:1' },
-                    { id: 'portrait' as CropRatio, label: '4:5' },
-                    { id: 'landscape' as CropRatio, label: '16:9' },
-                  ].map((option) => (
-                    <button key={option.id} type="button" onClick={() => commit({ ...editorRef.current, ratio: option.id })} aria-pressed={editor.ratio === option.id} className={editor.ratio === option.id ? 'rounded-lg bg-ink px-2 py-2 text-xs font-bold text-paper' : 'rounded-lg bg-paper px-2 py-2 text-xs font-bold hover:bg-paper-deep'}>
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
+              {/* Bottom Quick Bar Matching Mobile Editor Screenshot */}
+              <div className="mt-3 flex w-full max-w-[460px] items-center justify-around rounded-full border border-mint/20 bg-[#0d1311] p-1.5 shadow-lg">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('crop')}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-xs font-bold transition-all ${
+                    activeTab === 'crop'
+                      ? 'bg-mint text-[#03110F] shadow-sm'
+                      : 'text-[#F4F0E8]/70 hover:text-[#F4F0E8] hover:bg-white/5'
+                  }`}
+                >
+                  <LuCrop className="size-4" /> Crop
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('straighten')}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-xs font-bold transition-all ${
+                    activeTab === 'straighten'
+                      ? 'bg-mint text-[#03110F] shadow-sm'
+                      : 'text-[#F4F0E8]/70 hover:text-[#F4F0E8] hover:bg-white/5'
+                  }`}
+                >
+                  <LuSlidersHorizontal className="size-4" /> Straighten
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('rotate')}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-xs font-bold transition-all ${
+                    activeTab === 'rotate'
+                      ? 'bg-mint text-[#03110F] shadow-sm'
+                      : 'text-[#F4F0E8]/70 hover:text-[#F4F0E8] hover:bg-white/5'
+                  }`}
+                >
+                  <LuRotateCw className="size-4" /> Rotate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('zoom')}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-xs font-bold transition-all ${
+                    activeTab === 'zoom'
+                      ? 'bg-mint text-[#03110F] shadow-sm'
+                      : 'text-[#F4F0E8]/70 hover:text-[#F4F0E8] hover:bg-white/5'
+                  }`}
+                >
+                  <LuZoomIn className="size-4" /> Zoom
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('text')}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-xs font-bold transition-all ${
+                    activeTab === 'text'
+                      ? 'bg-mint text-[#03110F] shadow-sm'
+                      : 'text-[#F4F0E8]/70 hover:text-[#F4F0E8] hover:bg-white/5'
+                  }`}
+                >
+                  <LuType className="size-4" /> Text
+                </button>
+              </div>
+
+              {/* Sub-controls based on active bottom tool */}
+              <div className="mt-2 w-full max-w-[460px] rounded-xl border border-white/10 bg-[#0d1311] p-3 text-xs">
+                {activeTab === 'crop' && (
+                  <div>
+                    <div className="flex items-center justify-between font-bold mb-2">
+                      <span className="text-mint uppercase tracking-wider text-[11px]">Crop Aspect Ratio</span>
+                      <button
+                        type="button"
+                        onClick={() => commit({ ...editorRef.current, ratio: 'free', customCrop: { x: 72, y: 72, width: 576, height: 576 } })}
+                        className="text-mint underline text-[11px] hover:text-white"
+                      >
+                        Reset crop box
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { id: 'free' as CropRatio, label: 'Freeform' },
+                        { id: 'square' as CropRatio, label: '1:1 Square' },
+                        { id: 'portrait' as CropRatio, label: '4:5 Portrait' },
+                        { id: 'landscape' as CropRatio, label: '16:9 Landscape' },
+                      ].map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => setRatioPreset(option.id)}
+                          className={`rounded-lg py-1.5 text-center font-bold transition-colors ${
+                            editor.ratio === option.id
+                              ? 'bg-mint text-[#03110F]'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-[11px] text-[#F4F0E8]/60 text-center">
+                      Drag any corner bracket ┌ ┐ └ ┘ directly to adjust the crop bounds.
+                    </p>
+                  </div>
+                )}
+
+                {activeTab === 'straighten' && (
+                  <div>
+                    <div className="flex items-center justify-between font-bold">
+                      <span className="text-mint uppercase tracking-wider text-[11px]">Straighten &amp; Tilt Angle</span>
+                      <span className="font-mono text-mint">{editor.rotation}°</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="-45"
+                      max="45"
+                      step="1"
+                      value={editor.rotation % 360 > 180 ? (editor.rotation % 360) - 360 : editor.rotation % 360}
+                      onChange={(e) => updateLive({ ...editorRef.current, rotation: Number(e.target.value) })}
+                      onPointerUp={commitCurrent}
+                      onKeyUp={commitCurrent}
+                      className="mt-2 w-full accent-[#A8F0DC]"
+                    />
+                    <div className="mt-2 flex justify-between">
+                      <button
+                        type="button"
+                        onClick={() => commit({ ...editorRef.current, rotation: 0 })}
+                        className="rounded bg-white/10 px-2 py-1 text-[11px] font-bold hover:bg-white/20"
+                      >
+                        Reset to 0°
+                      </button>
+                      <span className="text-[11px] text-[#F4F0E8]/60">-45° to +45° fine straightening</span>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'rotate' && (
+                  <div>
+                    <span className="block text-mint font-bold uppercase tracking-wider text-[11px] mb-2">90° Rotation</span>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => commit({ ...editorRef.current, rotation: (editorRef.current.rotation + 270) % 360 })}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-white/10 py-2 font-bold hover:bg-white/20"
+                      >
+                        <LuRotateCcw className="size-4" /> Rotate 90° Left
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => commit({ ...editorRef.current, rotation: (editorRef.current.rotation + 90) % 360 })}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-white/10 py-2 font-bold hover:bg-white/20"
+                      >
+                        <LuRotateCw className="size-4" /> Rotate 90° Right
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'zoom' && (
+                  <div>
+                    <div className="flex items-center justify-between font-bold">
+                      <span className="text-mint uppercase tracking-wider text-[11px]">Image Scale</span>
+                      <span className="font-mono text-mint">{editor.zoom.toFixed(2)}×</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="3.5"
+                      step="0.05"
+                      value={editor.zoom}
+                      onChange={(event) => updateLive({ ...editorRef.current, zoom: Number(event.currentTarget.value) })}
+                      onPointerUp={commitCurrent}
+                      onKeyUp={commitCurrent}
+                      className="mt-2 w-full accent-[#A8F0DC]"
+                    />
+                    <p className="mt-1 text-[11px] text-[#F4F0E8]/60">Pan image by dragging to place it inside crop area.</p>
+                  </div>
+                )}
+
+                {activeTab === 'text' && (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-mint font-bold uppercase tracking-wider text-[11px]">Text Layer Controls</span>
+                      <button
+                        type="button"
+                        onClick={() => addText()}
+                        className="rounded-full bg-mint px-2.5 py-1 text-xs font-bold text-[#03110F]"
+                      >
+                        + Add Text
+                      </button>
+                    </div>
+                    <p className="mt-1 text-[11px] text-[#F4F0E8]/60">Customize text styles in the side panel.</p>
+                  </div>
+                )}
               </div>
             </div>
 
+            {/* Side Panel: Text Customization & Adjustments */}
             <div className="min-w-0 space-y-3">
-              <section className="rounded-xl border border-ink/10 bg-white p-3">
-                <h3 className="font-extrabold">Image adjustments</h3>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => commit({ ...editorRef.current, rotation: (editorRef.current.rotation + 270) % 360 })} className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-3 py-2 text-xs font-bold hover:bg-paper">
-                    <LuRotateCcw aria-hidden /> Rotate left
-                  </button>
-                  <button type="button" onClick={() => commit({ ...editorRef.current, rotation: (editorRef.current.rotation + 90) % 360 })} className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-3 py-2 text-xs font-bold hover:bg-paper">
-                    <LuRotateCw aria-hidden /> Rotate right
-                  </button>
-                </div>
-                <label className="mt-4 block text-sm font-bold" htmlFor="sticker-image-zoom">Zoom · {editor.zoom.toFixed(1)}×</label>
-                <input id="sticker-image-zoom" type="range" min="1" max="3.5" step="0.05" value={editor.zoom} onChange={(event) => updateLive({ ...editorRef.current, zoom: Number(event.currentTarget.value) })} onPointerUp={commitCurrent} onKeyUp={commitCurrent} className="mt-2 w-full accent-ink" />
-                <p className="mt-1 text-xs text-ink-soft">Move the image inside the crop frame to choose exactly what stays.</p>
-              </section>
-
-              <section className="rounded-xl border border-ink/10 bg-white p-3">
+              <section className="rounded-xl border border-white/10 bg-[#0d1311] p-3 text-ink-light">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="flex items-center gap-2 font-extrabold"><LuType aria-hidden /> Text layers</h3>
-                  <button type="button" onClick={() => addText()} className="inline-flex items-center gap-1 rounded-full bg-ink px-3 py-2 text-xs font-bold text-paper hover:bg-ink/85">
+                  <h3 className="flex items-center gap-2 font-extrabold text-[#A8F0DC]">
+                    <LuType aria-hidden /> Text layers
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => addText()}
+                    className="inline-flex items-center gap-1 rounded-full bg-mint px-3 py-1.5 text-xs font-bold text-[#03110F] hover:bg-mint/85"
+                  >
                     + Add text
                   </button>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {SUGGESTIONS.map((suggestion) => (
-                    <button key={suggestion} type="button" onClick={() => addText(suggestion)} className="rounded-full border border-ink/15 bg-paper px-2.5 py-1.5 text-[10px] font-bold hover:border-ink/40 hover:bg-lime/35">
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => addText(suggestion)}
+                      className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-bold text-white hover:border-mint/60 hover:bg-mint/20"
+                    >
                       {suggestion}
                     </button>
                   ))}
@@ -652,7 +1018,17 @@ export function CustomStickerEditor({
                 {editor.layers.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5" aria-label="Your text layers">
                     {editor.layers.map((layer, index) => (
-                      <button key={layer.id} type="button" onClick={() => setSelectedLayerId(layer.id)} aria-pressed={selectedLayerId === layer.id} className={selectedLayerId === layer.id ? 'max-w-full truncate rounded-lg bg-ink px-2.5 py-1.5 text-xs font-bold text-paper' : 'max-w-full truncate rounded-lg bg-paper px-2.5 py-1.5 text-xs font-bold'}>
+                      <button
+                        key={layer.id}
+                        type="button"
+                        onClick={() => setSelectedLayerId(layer.id)}
+                        aria-pressed={selectedLayerId === layer.id}
+                        className={
+                          selectedLayerId === layer.id
+                            ? 'max-w-full truncate rounded-lg bg-mint px-2.5 py-1 text-xs font-bold text-[#03110F]'
+                            : 'max-w-full truncate rounded-lg bg-white/10 px-2.5 py-1 text-xs font-bold text-white hover:bg-white/20'
+                        }
+                      >
                         {index + 1}. {layer.text || 'Empty text'}
                       </button>
                     ))}
@@ -660,21 +1036,47 @@ export function CustomStickerEditor({
                 )}
 
                 {selectedLayer ? (
-                  <div className="mt-3 space-y-3 border-t border-ink/10 pt-3">
-                    <label className="block text-xs font-bold" htmlFor="sticker-layer-text">Text</label>
-                    <textarea id="sticker-layer-text" rows={2} maxLength={120} value={selectedLayer.text} onChange={(event) => updateSelected({ text: event.currentTarget.value })} className="w-full rounded-lg border border-ink/20 bg-white p-2 text-sm outline-offset-2" placeholder="Write your text…" />
+                  <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
+                    <label className="block text-xs font-bold text-[#F4F0E8]" htmlFor="sticker-layer-text">
+                      Text
+                    </label>
+                    <textarea
+                      id="sticker-layer-text"
+                      rows={2}
+                      maxLength={120}
+                      value={selectedLayer.text}
+                      onChange={(event) => updateSelected({ text: event.currentTarget.value })}
+                      className="w-full rounded-lg border border-white/20 bg-[#171e1b] p-2 text-sm text-white outline-none focus:border-mint"
+                      placeholder="Write your text…"
+                    />
 
                     <div className="grid grid-cols-2 gap-2">
-                      <label className="block text-xs font-bold">
+                      <label className="block text-xs font-bold text-[#F4F0E8]">
                         Font
-                        <select value={selectedLayer.fontFamily} onChange={(event) => updateSelected({ fontFamily: event.currentTarget.value })} className="mt-1 w-full rounded-lg border border-ink/20 bg-white p-2 text-xs">
-                          {BUILT_IN_FONTS.map((font) => <option key={font.family} value={font.family}>{font.label}</option>)}
-                          {customFonts.map((font) => <option key={font.family} value={font.family}>{font.label} · uploaded</option>)}
+                        <select
+                          value={selectedLayer.fontFamily}
+                          onChange={(event) => updateSelected({ fontFamily: event.currentTarget.value })}
+                          className="mt-1 w-full rounded-lg border border-white/20 bg-[#171e1b] p-2 text-xs text-white"
+                        >
+                          {BUILT_IN_FONTS.map((font) => (
+                            <option key={font.family} value={font.family}>
+                              {font.label}
+                            </option>
+                          ))}
+                          {customFonts.map((font) => (
+                            <option key={font.family} value={font.family}>
+                              {font.label} · uploaded
+                            </option>
+                          ))}
                         </select>
                       </label>
-                      <label className="block text-xs font-bold">
+                      <label className="block text-xs font-bold text-[#F4F0E8]">
                         Alignment
-                        <select value={selectedLayer.align} onChange={(event) => updateSelected({ align: event.currentTarget.value as CanvasTextAlign })} className="mt-1 w-full rounded-lg border border-ink/20 bg-white p-2 text-xs">
+                        <select
+                          value={selectedLayer.align}
+                          onChange={(event) => updateSelected({ align: event.currentTarget.value as CanvasTextAlign })}
+                          className="mt-1 w-full rounded-lg border border-white/20 bg-[#171e1b] p-2 text-xs text-white"
+                        >
                           <option value="left">Left</option>
                           <option value="center">Centre</option>
                           <option value="right">Right</option>
@@ -682,60 +1084,137 @@ export function CustomStickerEditor({
                       </label>
                     </div>
 
-                    <label className="block text-xs font-bold" htmlFor="sticker-layer-size">Text size · {selectedLayer.fontSize}px</label>
-                    <input id="sticker-layer-size" type="range" min="20" max="112" value={selectedLayer.fontSize} onChange={(event) => updateSelected({ fontSize: Number(event.currentTarget.value) })} className="w-full accent-ink" />
+                    <label className="block text-xs font-bold text-[#F4F0E8]" htmlFor="sticker-layer-size">
+                      Text size · {selectedLayer.fontSize}px
+                    </label>
+                    <input
+                      id="sticker-layer-size"
+                      type="range"
+                      min="20"
+                      max="112"
+                      value={selectedLayer.fontSize}
+                      onChange={(event) => updateSelected({ fontSize: Number(event.currentTarget.value) })}
+                      className="w-full accent-[#A8F0DC]"
+                    />
 
                     <div className="grid grid-cols-2 gap-3">
-                      <label className="flex items-center gap-2 text-xs font-bold">
-                        Text colour
-                        <input type="color" value={selectedLayer.color} onChange={(event) => updateSelected({ color: event.currentTarget.value })} className="size-9 cursor-pointer rounded border border-ink/20 bg-white p-0.5" />
+                      <label className="flex items-center gap-2 text-xs font-bold text-[#F4F0E8]">
+                        Colour
+                        <input
+                          type="color"
+                          value={selectedLayer.color}
+                          onChange={(event) => updateSelected({ color: event.currentTarget.value })}
+                          className="size-8 cursor-pointer rounded border border-white/20 bg-transparent p-0.5"
+                        />
                       </label>
-                      <label className="flex items-center gap-2 text-xs font-bold">
+                      <label className="flex items-center gap-2 text-xs font-bold text-[#F4F0E8]">
                         Outline
-                        <input type="checkbox" checked={selectedLayer.outline} onChange={(event) => updateSelected({ outline: event.currentTarget.checked })} className="size-4 accent-ink" />
-                        <input type="color" aria-label="Outline colour" value={selectedLayer.outlineColor} onChange={(event) => updateSelected({ outlineColor: event.currentTarget.value })} className="size-9 cursor-pointer rounded border border-ink/20 bg-white p-0.5" />
+                        <input
+                          type="checkbox"
+                          checked={selectedLayer.outline}
+                          onChange={(event) => updateSelected({ outline: event.currentTarget.checked })}
+                          className="size-4 accent-[#A8F0DC]"
+                        />
+                        <input
+                          type="color"
+                          aria-label="Outline colour"
+                          value={selectedLayer.outlineColor}
+                          onChange={(event) => updateSelected({ outlineColor: event.currentTarget.value })}
+                          className="size-8 cursor-pointer rounded border border-white/20 bg-transparent p-0.5"
+                        />
                       </label>
-                      <label className="flex items-center gap-2 text-xs font-bold">
+                      <label className="flex items-center gap-2 text-xs font-bold text-[#F4F0E8]">
                         Bold
-                        <input type="checkbox" checked={selectedLayer.bold} onChange={(event) => updateSelected({ bold: event.currentTarget.checked })} className="size-4 accent-ink" />
+                        <input
+                          type="checkbox"
+                          checked={selectedLayer.bold}
+                          onChange={(event) => updateSelected({ bold: event.currentTarget.checked })}
+                          className="size-4 accent-[#A8F0DC]"
+                        />
                       </label>
-                      <label className="flex items-center gap-2 text-xs font-bold">
+                      <label className="flex items-center gap-2 text-xs font-bold text-[#F4F0E8]">
                         Shadow
-                        <input type="checkbox" checked={selectedLayer.shadow} onChange={(event) => updateSelected({ shadow: event.currentTarget.checked })} className="size-4 accent-ink" />
+                        <input
+                          type="checkbox"
+                          checked={selectedLayer.shadow}
+                          onChange={(event) => updateSelected({ shadow: event.currentTarget.checked })}
+                          className="size-4 accent-[#A8F0DC]"
+                        />
                       </label>
                     </div>
 
-                    <label className="block text-xs font-bold" htmlFor="sticker-layer-rotation">Text rotation · {selectedLayer.rotation}°</label>
-                    <input id="sticker-layer-rotation" type="range" min="-45" max="45" value={selectedLayer.rotation} onChange={(event) => updateSelected({ rotation: Number(event.currentTarget.value) })} className="w-full accent-ink" />
-
-                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-ink/20 p-2 text-xs font-bold hover:bg-paper">
-                      <LuUpload aria-hidden /> Upload your own font (.ttf/.otf/.woff)
-                      <input type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" onChange={(event) => void uploadFont(event)} className="sr-only" />
+                    <label className="block text-xs font-bold text-[#F4F0E8]" htmlFor="sticker-layer-rotation">
+                      Text rotation · {selectedLayer.rotation}°
                     </label>
-                    {fontError && <p role="alert" className="text-xs font-bold text-danger">{fontError}</p>}
+                    <input
+                      id="sticker-layer-rotation"
+                      type="range"
+                      min="-45"
+                      max="45"
+                      value={selectedLayer.rotation}
+                      onChange={(event) => updateSelected({ rotation: Number(event.currentTarget.value) })}
+                      className="w-full accent-[#A8F0DC]"
+                    />
 
-                    <div className="flex flex-wrap gap-2">
-                      <button type="button" onClick={duplicateSelected} className="inline-flex items-center gap-1 rounded-full border border-ink/20 px-3 py-2 text-xs font-bold hover:bg-paper">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-white/20 p-2 text-xs font-bold hover:bg-white/5">
+                      <LuUpload aria-hidden /> Upload your own font (.ttf/.otf/.woff)
+                      <input
+                        type="file"
+                        accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2"
+                        onChange={(event) => void uploadFont(event)}
+                        className="sr-only"
+                      />
+                    </label>
+                    {fontError && <p role="alert" className="text-xs font-bold text-tomato">{fontError}</p>}
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={duplicateSelected}
+                        className="inline-flex items-center gap-1 rounded-full border border-white/20 px-3 py-1.5 text-xs font-bold hover:bg-white/10"
+                      >
                         <LuCopy aria-hidden /> Duplicate
                       </button>
-                      <button type="button" onClick={deleteSelected} className="inline-flex items-center gap-1 rounded-full border border-danger/30 px-3 py-2 text-xs font-bold text-danger hover:bg-danger/5">
+                      <button
+                        type="button"
+                        onClick={deleteSelected}
+                        className="inline-flex items-center gap-1 rounded-full border border-danger/40 px-3 py-1.5 text-xs font-bold text-tomato hover:bg-danger/10"
+                      >
                         <LuTrash2 aria-hidden /> Delete layer
                       </button>
                     </div>
-                    <p className="text-[11px] text-ink-soft">Only upload font files you have permission to use. Text is rendered into your finished sticker image when you apply the design.</p>
                   </div>
                 ) : (
-                  <p className="mt-3 rounded-lg bg-paper p-3 text-xs text-ink-soft">Add a text layer or choose a suggestion, then select it to change its font, colour, size and effects.</p>
+                  <p className="mt-3 rounded-lg bg-white/5 p-3 text-xs text-[#F4F0E8]/70">
+                    Add a text layer or click a preset badge, then select it to edit fonts, colours, and shadows.
+                  </p>
                 )}
               </section>
             </div>
           </div>
 
-          {applyError && <p role="alert" className="mt-3 rounded-lg bg-danger/10 p-3 text-sm font-bold text-danger">{applyError}</p>}
-          <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-ink/10 pt-4">
-            <button type="button" onClick={onClose} disabled={busy} className="rounded-full border border-ink/20 px-5 py-3 text-sm font-bold hover:bg-white disabled:opacity-50">Cancel</button>
-            <button type="button" onClick={() => void applyDesign()} disabled={!imageReady || busy} className="btn-primary px-5 py-3 text-sm disabled:opacity-50">
-              <LuCheck aria-hidden /> {busy ? 'Applying…' : 'Apply changes'}
+          {applyError && (
+            <p role="alert" className="mt-3 rounded-lg bg-danger/20 p-3 text-sm font-bold text-tomato">
+              {applyError}
+            </p>
+          )}
+
+          <div className="mt-5 flex flex-wrap justify-end gap-2 border-t border-white/10 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={busy}
+              className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void applyDesign()}
+              disabled={!imageReady || busy}
+              className="btn-primary px-6 py-2.5 text-sm disabled:opacity-50 inline-flex items-center gap-2"
+            >
+              <LuCheck aria-hidden /> {busy ? 'Applying…' : 'Apply Crop & Changes'}
             </button>
           </div>
         </>

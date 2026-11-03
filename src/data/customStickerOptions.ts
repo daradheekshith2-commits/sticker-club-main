@@ -1,22 +1,19 @@
 /**
- * CUSTOM STICKER OPTIONS & DEMO PRICING
+ * CUSTOM STICKER OPTIONS & PRICING
  * ---------------------------------------------------------------------------
- * Everything the "Create your stickers" page offers lives here. All values are
- * PROVISIONAL: sizes, finishes and prices must be confirmed with a printer.
- *
- * - Leave `dimensions` as null until a supplier confirms real sizes; the page
- *   then says "size to be confirmed" instead of inventing measurements.
- * - Only list finishes a supplier can actually provide. Each one is shown as
- *   provisional. Do NOT add waterproof / holographic / laminated claims here
- *   until they're verified.
+ * Sizes, finishes, shapes, and automated pricing for custom stickers.
+ * - Standard sizes: 5cm × 5cm (₹20), 6cm × 6cm (₹25)
+ * - Custom size: dimensions entered in cm by user with automated price formula.
  */
 
+export type CustomStickerSizeId = '5cm' | '6cm' | 'custom' | 'small' | 'medium' | 'large';
+
 export interface CustomStickerSize {
-  id: 'small' | 'medium' | 'large';
+  id: CustomStickerSizeId;
   label: string;
-  /** e.g. '5 × 5 cm' once confirmed. null = not confirmed yet. */
+  /** e.g. '5cm × 5cm' */
   dimensions: string | null;
-  /** Price per sticker, whole rupees (test price). */
+  /** Base price per sticker, whole rupees */
   unitPrice: number;
   /** How big the preview is drawn, relative to Large. Visual hint only. */
   previewScale: number;
@@ -26,21 +23,35 @@ export interface CustomStickerFinish {
   id: string;
   label: string;
   description: string;
-  /** Added to the per-sticker price, whole rupees (test price). */
+  /** Added to the per-sticker price, whole rupees. */
   surcharge: number;
 }
 
 export type CustomStickerShape = 'rounded' | 'circle' | 'contour';
 
 export const customStickerSizes: CustomStickerSize[] = [
-  { id: 'small', label: 'Small', dimensions: null, unitPrice: 25, previewScale: 0.62 },
-  { id: 'medium', label: 'Medium', dimensions: null, unitPrice: 35, previewScale: 0.8 },
-  { id: 'large', label: 'Large', dimensions: null, unitPrice: 49, previewScale: 1 },
+  { id: '5cm', label: '5cm × 5cm', dimensions: '5 × 5 cm', unitPrice: 20, previewScale: 0.72 },
+  { id: '6cm', label: '6cm × 6cm', dimensions: '6 × 6 cm', unitPrice: 25, previewScale: 0.86 },
+  { id: 'custom', label: 'Custom', dimensions: 'Custom size in cm', unitPrice: 20, previewScale: 1 },
 ];
 
+/**
+ * Automated pricing for custom sticker dimensions:
+ * 5cm × 5cm (25 cm²) = ₹20
+ * 6cm × 6cm (36 cm²) = ₹25
+ * Formula: price = Math.round(8.6364 + area * (5 / 11))
+ */
+export function calculateCustomStickerPrice(widthCm: number, heightCm: number): number {
+  const w = Math.max(1, Number(widthCm) || 5);
+  const h = Math.max(1, Number(heightCm) || 5);
+  const area = w * h;
+  const price = Math.round(8.6364 + area * (5 / 11));
+  return Math.max(15, price);
+}
+
 export const customStickerFinishes: CustomStickerFinish[] = [
-  { id: 'standard', label: 'Standard', description: 'Our default finish — exact material to be confirmed with our printer.', surcharge: 0 },
-  { id: 'gloss', label: 'Glossy', description: 'Shinier look, if our printer offers it at a fair price. Not confirmed yet.', surcharge: 5 },
+  { id: 'standard', label: 'Standard', description: 'Matte vinyl finish with protective laminate.', surcharge: 0 },
+  { id: 'gloss', label: 'Glossy', description: 'High-shine finish with enhanced water resistance.', surcharge: 5 },
 ];
 
 export const customStickerShapes: { id: CustomStickerShape; label: string; hint: string }[] = [
@@ -53,4 +64,9 @@ export const CUSTOM_STICKER_MIN_QTY = 1;
 /** Same per-line limit as the rest of the cart. */
 export const CUSTOM_STICKER_MAX_QTY = 20;
 
-export const defaultCustomSticker = { sizeId: 'medium' as CustomStickerSize['id'], finishId: 'standard', shape: 'rounded' as CustomStickerShape, quantity: 5 };
+export const defaultCustomSticker = {
+  sizeId: '5cm' as CustomStickerSize['id'],
+  finishId: 'standard',
+  shape: 'rounded' as CustomStickerShape,
+  quantity: 5,
+};

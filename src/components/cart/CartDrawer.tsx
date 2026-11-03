@@ -140,28 +140,66 @@ export function CartDrawer() {
           )}
         </div>
 
-        {lines.length > 0 && (
-          <div className="receipt-edge border-t-2 border-dashed border-ink/20 bg-paper-deep px-5 pt-5 pb-7 shadow-2xl">
-            <div className="flex items-baseline justify-between border-b border-ink/10 pb-3">
-              <span className="font-mono text-xs tracking-widest text-mint uppercase">ESTIMATED TOTAL</span>
-              <span className="font-display text-2xl font-extrabold tabular-nums text-ink">{formatPrice(subtotal)}</span>
-            </div>
-            {hasStickers && (
-              <div className="mt-3">
-                <BonusGiftNote compact />
+        {lines.length > 0 && (() => {
+          const MIN_CHECKOUT_TOTAL = 99;
+          const canCheckout = subtotal >= MIN_CHECKOUT_TOTAL;
+          const amountNeeded = Math.max(0, MIN_CHECKOUT_TOTAL - subtotal);
+          return (
+            <div className="receipt-edge border-t-2 border-dashed border-ink/20 bg-paper-deep px-5 pt-5 pb-7 shadow-2xl">
+              <div className="flex items-baseline justify-between border-b border-ink/10 pb-3">
+                <span className="font-mono text-xs tracking-widest text-mint uppercase">ESTIMATED TOTAL</span>
+                <span className="font-display text-2xl font-extrabold tabular-nums text-ink">{formatPrice(subtotal)}</span>
               </div>
-            )}
-            <p className="mt-2 text-xs leading-relaxed text-ink-soft">
-              Verified database pricing. Delivery fee and payment method (UPI or Cash on Delivery) are confirmed at checkout.
-            </p>
-            <button type="button" className="btn-primary mt-4 w-full" onClick={() => go('/checkout')}>
-              Proceed to checkout <LuArrowRight aria-hidden />
-            </button>
-            <button type="button" className="mt-2.5 w-full py-2 text-xs font-mono font-bold tracking-wider uppercase text-ink-soft hover:text-ink transition-colors" onClick={closeCart}>
-              ← Continue shopping
-            </button>
-          </div>
-        )}
+              {hasStickers && (
+                <div className="mt-3">
+                  <BonusGiftNote compact />
+                </div>
+              )}
+
+              {/* Minimum checkout total progress requirement */}
+              {!canCheckout && (
+                <div className="mt-3 rounded-xl border border-tomato/30 bg-tomato/10 p-3 text-xs">
+                  <div className="flex justify-between font-bold text-ink">
+                    <span>Minimum order to checkout is ₹99</span>
+                    <span className="text-tomato font-extrabold">Add {formatPrice(amountNeeded)} more</span>
+                  </div>
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink/10">
+                    <div
+                      className="h-full bg-mint transition-all duration-300"
+                      style={{ width: `${Math.min(100, (subtotal / MIN_CHECKOUT_TOTAL) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-ink-soft">
+                    Add another sticker or poster to reach the ₹99 checkout minimum.
+                  </p>
+                </div>
+              )}
+
+              <p className="mt-2 text-xs leading-relaxed text-ink-soft">
+                Verified database pricing. Delivery fee and payment method (UPI or Cash on Delivery) are confirmed at checkout.
+              </p>
+              <button
+                type="button"
+                disabled={!canCheckout}
+                className={`btn-primary mt-4 w-full flex items-center justify-center gap-1.5 ${
+                  !canCheckout ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
+                onClick={() => canCheckout && go('/checkout')}
+              >
+                {canCheckout ? (
+                  <>
+                    Proceed to checkout <LuArrowRight aria-hidden />
+                  </>
+                ) : (
+                  <>Add {formatPrice(amountNeeded)} more to checkout</>
+                )}
+              </button>
+              <button type="button" className="mt-2.5 w-full py-2 text-xs font-mono font-bold tracking-wider uppercase text-ink-soft hover:text-ink transition-colors" onClick={closeCart}>
+                ← Continue shopping
+              </button>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

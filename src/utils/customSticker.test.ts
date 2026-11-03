@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CUSTOM_STICKER_MAX_QTY, customStickerFinishes, customStickerSizes } from '../data/customStickerOptions';
+import {
+  CUSTOM_STICKER_MAX_QTY,
+  calculateCustomStickerPrice,
+  customStickerFinishes,
+  customStickerSizes,
+} from '../data/customStickerOptions';
 import {
   customStickerLabel,
   customStickerTotal,
@@ -13,7 +18,7 @@ import {
 
 const draft = (over: Partial<StickerDraft> = {}): StickerDraft => ({
   image: { source: 'url', url: 'https://example.com/a.png', width: 800, height: 800 },
-  sizeId: 'medium',
+  sizeId: '5cm',
   finishId: 'standard',
   shape: 'rounded',
   quantity: 5,
@@ -21,22 +26,34 @@ const draft = (over: Partial<StickerDraft> = {}): StickerDraft => ({
   ...over,
 });
 
-test('options data is sane and provisional', () => {
-  assert.deepEqual(customStickerSizes.map((s) => s.label), ['Small', 'Medium', 'Large']);
+test('options data has 5cmx5cm, 6cmx6cm and custom size with exact pricing', () => {
+  assert.deepEqual(customStickerSizes.map((s) => s.label), ['5cm × 5cm', '6cm × 6cm', 'Custom']);
   for (const s of customStickerSizes) assert.ok(Number.isInteger(s.unitPrice) && s.unitPrice > 0);
-  // No size is presented with unconfirmed physical dimensions.
-  assert.ok(customStickerSizes.every((s) => s.dimensions === null));
+  assert.equal(customStickerSizes.find((s) => s.id === '5cm')?.unitPrice, 20);
+  assert.equal(customStickerSizes.find((s) => s.id === '6cm')?.unitPrice, 25);
   assert.ok(customStickerFinishes.some((f) => f.surcharge === 0), 'a no-extra-cost finish exists');
 });
 
+test('automated custom pricing: 5cmx5cm is 20, 6cmx6cm is 25, scales with area', () => {
+  assert.equal(calculateCustomStickerPrice(5, 5), 20);
+  assert.equal(calculateCustomStickerPrice(6, 6), 25);
+  assert.equal(calculateCustomStickerPrice(7, 7), 31);
+  assert.equal(calculateCustomStickerPrice(10, 10), 54);
+  assert.ok(calculateCustomStickerPrice(3, 3) >= 15);
+});
+
 test('price = (size price + finish surcharge) × quantity', () => {
-  const medium = customStickerSizes.find((s) => s.id === 'medium')!.unitPrice;
+  const size5cm = customStickerSizes.find((s) => s.id === '5cm')!.unitPrice;
   const gloss = customStickerFinishes.find((f) => f.id === 'gloss')!.surcharge;
-  assert.equal(customStickerUnitPrice('medium', 'gloss'), medium + gloss);
-  assert.equal(customStickerTotal('medium', 'gloss', 4), 4 * (medium + gloss));
+  assert.equal(customStickerUnitPrice('5cm', 'gloss'), size5cm + gloss);
+  assert.equal(customStickerTotal('5cm', 'gloss', 4), 4 * (size5cm + gloss));
   assert.equal(customStickerUnitPrice('huge', 'standard'), null);
-  assert.equal(customStickerTotal('medium', 'standard', 0), null);
-  assert.equal(customStickerLabel('large', 'standard'), 'Custom sticker · Large · Standard');
+  assert.equal(customStickerTotal('5cm', 'standard', 0), null);
+  assert.equal(customStickerLabel('6cm', 'standard'), 'Custom sticker · 6cm × 6cm · Standard');
+  assert.equal(
+    customStickerLabel('custom', 'standard', { width: 8, height: 8 }),
+    'Custom sticker · 8×8cm · Standard'
+  );
 });
 
 test('quantity validation', () => {
@@ -50,8 +67,8 @@ test('a sticker needs an image, valid options and rights confirmation', () => {
   assert.match(stickerDraftProblem(draft({ quantity: 99 }))!, /Quantity/);
   assert.match(stickerDraftProblem(draft({ rightsConfirmed: false }))!, /rights/);
   assert.equal(stickerDraftProblem(draft()), null);
-  const config = toStickerConfig(draft({ sizeId: 'small' }));
-  assert.equal(config.label, 'Custom sticker · Small · Standard');
-  assert.equal(config.unitPriceAtAdd, customStickerUnitPrice('small', 'standard'));
+  const config = toStickerConfig(draft({ sizeId: '5cm' }));
+  assert.equal(config.label, 'Custom sticker · 5cm × 5cm · Standard');
+  assert.equal(config.unitPriceAtAdd, customStickerUnitPrice('5cm', 'standard'));
   assert.throws(() => toStickerConfig(draft({ rightsConfirmed: false })));
 });

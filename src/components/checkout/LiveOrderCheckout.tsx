@@ -712,13 +712,23 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
             </p>
           )}
 
+          {subtotalEstimate < 99 && (
+            <p className="mt-3 rounded-lg bg-tomato/15 border border-tomato/30 p-2.5 text-xs text-tomato font-bold">
+              Minimum cart subtotal is ₹99. Please add ₹{(99 - subtotalEstimate).toFixed(2)} more to your cart to place an order.
+            </p>
+          )}
+
           <button
             type="button"
             className="btn-primary mt-5 w-full"
             onClick={() => void place()}
-            disabled={working || !selected || paymentConfig?.deliveryFee === null || !phone.trim()}
+            disabled={working || !selected || paymentConfig?.deliveryFee === null || !phone.trim() || subtotalEstimate < 99}
           >
-            {working ? 'Placing order…' : `Place Order with ${paymentMethod} (₹${totalEstimate.toFixed(2)})`}
+            {working
+              ? 'Placing order…'
+              : subtotalEstimate < 99
+                ? `Minimum order of ₹99 required (Add ₹${(99 - subtotalEstimate).toFixed(2)} more)`
+                : `Place Order with ${paymentMethod} (₹${totalEstimate.toFixed(2)})`}
           </button>
           <button type="button" className="btn-ghost mt-2 w-full" onClick={() => setPreview(null)}>
             Change Cart or Address

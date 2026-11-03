@@ -1,13 +1,13 @@
 /**
  * CUSTOM STICKER LOGIC — validation and pricing (pure, unit-tested).
  *
- * PRICING RULE (prototype): per-sticker price = size price + finish surcharge,
- * total = per-sticker price × quantity. No quantity discounts yet; if you add
- * them, change `customStickerUnitPrice` / `customStickerTotal` only.
+ * PRICING RULE: per-sticker price = size price (or calculated custom area price) + finish surcharge,
+ * total = per-sticker price × quantity.
  */
 import {
   CUSTOM_STICKER_MAX_QTY,
   CUSTOM_STICKER_MIN_QTY,
+  calculateCustomStickerPrice,
   customStickerFinishes,
   customStickerShapes,
   customStickerSizes,
@@ -19,16 +19,24 @@ import type { PickedImage } from '../types/image';
 export interface CustomStickerConfig {
   image: PickedImage;
   sizeId: string;
+  customDimensions?: { width: number; height: number };
   finishId: string;
   shape: CustomStickerShape;
-  /** e.g. "Custom sticker · Medium · Glossy" */
+  /** e.g. "Custom sticker · 5cm × 5cm · Standard" */
   label: string;
   /** Per-sticker price when added — informational; the cart recalculates from current data. */
   unitPriceAtAdd: number;
   rightsConfirmed: boolean;
 }
 
-export const getStickerSize = (id: string) => customStickerSizes.find((s) => s.id === id);
+export const getStickerSize = (id: string) => {
+  const direct = customStickerSizes.find((s) => s.id === id);
+  if (direct) return direct;
+  // Backward compatibility with legacy stored cart sessions & tests
+  if (id === 'small' || id === 'medium') return customStickerSizes.find((s) => s.id === '5cm');
+  if (id === 'large') return customStickerSizes.find((s) => s.id === '6cm');
+  return undefined;
+};
 export const getStickerFinish = (id: string) => customStickerFinishes.find((f) => f.id === id);
 
 export function isValidStickerQuantity(q: number): boolean {
@@ -36,28 +44,53 @@ export function isValidStickerQuantity(q: number): boolean {
 }
 
 /** Per-sticker price, or null if the size/finish doesn't exist. */
-export function customStickerUnitPrice(sizeId: string, finishId: string): number | null {
+export function customStickerUnitPrice(
+  sizeId: string,
+  finishId: string,
+  customDimensions?: { width: number; height: number }
+): number | null {
   const size = getStickerSize(sizeId);
   const finish = getStickerFinish(finishId);
   if (!size || !finish) return null;
+
+  if (sizeId === 'custom') {
+    const base = customDimensions
+      ? calculateCustomStickerPrice(customDimensions.width, customDimensions.height)
+      : size.unitPrice;
+    return base + finish.surcharge;
+  }
+
   return size.unitPrice + finish.surcharge;
 }
 
-export function customStickerTotal(sizeId: string, finishId: string, quantity: number): number | null {
-  const unit = customStickerUnitPrice(sizeId, finishId);
+export function customStickerTotal(
+  sizeId: string,
+  finishId: string,
+  quantity: number,
+  customDimensions?: { width: number; height: number }
+): number | null {
+  const unit = customStickerUnitPrice(sizeId, finishId, customDimensions);
   if (unit === null || !isValidStickerQuantity(quantity)) return null;
   return unit * quantity;
 }
 
-export function customStickerLabel(sizeId: string, finishId: string): string {
+export function customStickerLabel(
+  sizeId: string,
+  finishId: string,
+  customDimensions?: { width: number; height: number }
+): string {
   const size = getStickerSize(sizeId)?.label ?? sizeId;
   const finish = getStickerFinish(finishId)?.label ?? finishId;
+  if (sizeId === 'custom' && customDimensions) {
+    return `Custom sticker · ${customDimensions.width}×${customDimensions.height}cm · ${finish}`;
+  }
   return `Custom sticker · ${size} · ${finish}`;
 }
 
 export type StickerDraft = {
   image: PickedImage | null;
   sizeId: string;
+  customDimensions?: { width: number; height: number };
   finishId: string;
   shape: CustomStickerShape;
   quantity: number;
@@ -68,6 +101,11 @@ export type StickerDraft = {
 export function stickerDraftProblem(d: StickerDraft): string | null {
   if (!d.image) return 'Add an image first.';
   if (!getStickerSize(d.sizeId)) return 'Choose a size.';
+  if (d.sizeId === 'custom' && d.customDimensions) {
+    if (d.customDimensions.width < 1 || d.customDimensions.height < 1) {
+      return 'Dimensions must be at least 1 cm.';
+    }
+  }
   if (!getStickerFinish(d.finishId)) return 'Choose a finish.';
   if (!customStickerShapes.some((s) => s.id === d.shape)) return 'Choose a shape.';
   if (!isValidStickerQuantity(d.quantity)) return `Quantity must be between ${CUSTOM_STICKER_MIN_QTY} and ${CUSTOM_STICKER_MAX_QTY}.`;
@@ -82,10 +120,11 @@ export function toStickerConfig(d: StickerDraft): CustomStickerConfig {
   return {
     image: d.image!,
     sizeId: d.sizeId,
+    customDimensions: d.sizeId === 'custom' ? d.customDimensions : undefined,
     finishId: d.finishId,
     shape: d.shape,
-    label: customStickerLabel(d.sizeId, d.finishId),
-    unitPriceAtAdd: customStickerUnitPrice(d.sizeId, d.finishId)!,
+    label: customStickerLabel(d.sizeId, d.finishId, d.customDimensions),
+    unitPriceAtAdd: customStickerUnitPrice(d.sizeId, d.finishId, d.customDimensions)!,
     rightsConfirmed: true,
   };
 }

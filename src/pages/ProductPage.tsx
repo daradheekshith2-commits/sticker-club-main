@@ -65,10 +65,15 @@ export function ProductPage() {
   const packQty = getPackQuantity(product);
   const views = product.images?.length ? product.images.map((_, i) => i) : viewsFor(product);
   const related = getRelatedProducts(product, 4, products);
+  const selectedVariant = product.variants?.find((v) => v.id === variantId);
+  const sizeValue = product.category === 'posters'
+    ? (selectedVariant ? `${selectedVariant.label} (${selectedVariant.detail})` : (product.dimensions || 'A4 (21 × 29.7 cm)'))
+    : (product.dimensions || 'Fits within 3 × 3 inches area');
+
   const specs = [
-    { label: 'Size', value: product.dimensions },
-    { label: 'Material', value: product.material },
-    { label: 'Finish', value: product.finish },
+    { label: 'Size', value: sizeValue },
+    { label: 'Material', value: product.material || (product.category === 'posters' ? '300 GSM Archival Matte Cardstock' : 'Premium Die-Cut Vinyl') },
+    { label: 'Finish', value: product.finish || (product.category === 'posters' ? 'Matte Finish' : 'Protective Water-Resistant Laminate') },
   ];
   const hasSpecs = specs.some((s) => s.value);
   const price = unitPrice(product, variantId);
@@ -154,6 +159,96 @@ export function ProductPage() {
           {product.note && (
             <div className="mt-5">
               <Notice>{product.note}</Notice>
+            </div>
+          )}
+
+          {/* Sticker Dimensions & Sizing Display */}
+          {product.category === 'stickers' && (
+            <div className="mt-6 rounded-2xl border-2 border-mint/20 bg-paper-deep/60 p-4 sm:p-5 shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="size-2.5 rounded-full bg-mint" />
+                <h3 className="font-display text-base font-extrabold text-ink uppercase tracking-wider">
+                  Dimensions —
+                </h3>
+              </div>
+              <div className="mt-3 space-y-2 text-sm leading-relaxed text-ink/90">
+                <p className="font-bold text-ink">
+                  Fits within 3 × 3 inches area{product.productType === 'sheet' ? ' (A6 sheet: 10.5 × 14.8 cm)' : ' (approx. 7.6 × 7.6 cm)'}.
+                </p>
+                <p className="text-ink-soft">
+                  Height &amp; width depends on the aspect ratio of the design.
+                </p>
+                <div className="mt-2.5 inline-flex flex-wrap items-center gap-2 rounded-xl bg-white px-3 py-1.5 border border-ink/15 text-xs font-mono font-bold text-ink">
+                  <span className="text-ink-soft">Design aspect ratio:</span>
+                  <span className="text-mint bg-ink px-2 py-0.5 rounded-md">
+                    {product.productType === 'sheet' ? 'A6 Sticker Sheet (10.5 × 14.8 cm)' : 'Max 3.0" × 3.0" (7.6 × 7.6 cm)'}
+                  </span>
+                </div>
+                <p className="mt-3 text-xs text-ink-soft/90 italic border-t border-ink/10 pt-2.5">
+                  <strong>Please Note:</strong> Colours may slightly vary depending on your screen brightness.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Poster Dimensions Guide (A5, A4, A3) */}
+          {product.category === 'posters' && (
+            <div className="mt-6 rounded-2xl border-2 border-ink/15 bg-white p-4 sm:p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-base font-extrabold text-ink uppercase tracking-wider">
+                  Poster Dimensions Guide
+                </h3>
+                <span className="text-xs font-mono font-bold text-mint bg-ink px-2.5 py-0.5 rounded-full">
+                  Selected: {variantId?.toUpperCase() ?? 'A4'}
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => setVariantId('a5')}
+                  className={`rounded-xl border p-2.5 transition-all text-left sm:text-center ${
+                    variantId === 'a5'
+                      ? 'border-ink bg-lime/25 shadow-sm ring-2 ring-ink/20'
+                      : 'border-ink/10 bg-paper/40 hover:border-ink/30'
+                  }`}
+                >
+                  <p className="font-bold text-sm text-ink">A5</p>
+                  <p className="text-xs font-extrabold text-ink mt-0.5">14.8 × 21 cm</p>
+                  <p className="text-[11px] text-ink-soft">5.8 × 8.3 in</p>
+                  <span className="mt-1 block text-[10px] text-ink-soft font-semibold">Desk frames</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVariantId('a4')}
+                  className={`rounded-xl border p-2.5 transition-all text-left sm:text-center ${
+                    variantId === 'a4' || (!variantId && true)
+                      ? 'border-ink bg-lime/25 shadow-sm ring-2 ring-ink/20'
+                      : 'border-ink/10 bg-paper/40 hover:border-ink/30'
+                  }`}
+                >
+                  <p className="font-bold text-sm text-ink">A4</p>
+                  <p className="text-xs font-extrabold text-ink mt-0.5">21 × 29.7 cm</p>
+                  <p className="text-[11px] text-ink-soft">8.3 × 11.7 in</p>
+                  <span className="mt-1 block text-[10px] text-ink-soft font-semibold">Standard poster</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVariantId('a3')}
+                  className={`rounded-xl border p-2.5 transition-all text-left sm:text-center ${
+                    variantId === 'a3'
+                      ? 'border-ink bg-lime/25 shadow-sm ring-2 ring-ink/20'
+                      : 'border-ink/10 bg-paper/40 hover:border-ink/30'
+                  }`}
+                >
+                  <p className="font-bold text-sm text-ink">A3</p>
+                  <p className="text-xs font-extrabold text-ink mt-0.5">29.7 × 42 cm</p>
+                  <p className="text-[11px] text-ink-soft">11.7 × 16.5 in</p>
+                  <span className="mt-1 block text-[10px] text-ink-soft font-semibold">Twice A4 · Wall size</span>
+                </button>
+              </div>
+              <p className="mt-3 text-[11px] text-ink-soft italic border-t border-ink/10 pt-2">
+                Printed on premium 300 GSM archival matte cardstock with crisp edge-to-edge detailing.
+              </p>
             </div>
           )}
 
@@ -283,7 +378,7 @@ export function ProductPage() {
               <dd className="text-right text-ink-soft">{product.tags.join(', ')}</dd>
             </div>
           </dl>
-          {brand.isPrototype && (
+          {brand.isPrototype && product.category !== 'posters' && (
             <p className="mt-4 text-sm text-ink-soft">
               Prototype store: adding to cart works, but no real orders or payments are taken yet.
             </p>

@@ -84,6 +84,8 @@ export function CreateStickersPage() {
   const [replacing, setReplacing] = useState(false);
   const [editing, setEditing] = useState(false);
   const [sizeId, setSizeId] = useState<string>(defaultCustomSticker.sizeId);
+  const [customWidth, setCustomWidth] = useState<number>(6);
+  const [customHeight, setCustomHeight] = useState<number>(6);
   const [finishId, setFinishId] = useState(defaultCustomSticker.finishId);
   const [shape, setShape] = useState<CustomStickerShape>(defaultCustomSticker.shape);
   const [quantity, setQuantity] = useState(defaultCustomSticker.quantity);
@@ -129,11 +131,12 @@ export function CreateStickersPage() {
     setRights(false);
   };
 
+  const customDimensions = sizeId === 'custom' ? { width: customWidth, height: customHeight } : undefined;
   const size = getStickerSize(sizeId)!;
   const finish = getStickerFinish(finishId)!;
-  const unit = customStickerUnitPrice(sizeId, finishId);
-  const total = customStickerTotal(sizeId, finishId, quantity);
-  const draft = { image, sizeId, finishId, shape, quantity, rightsConfirmed: rights };
+  const unit = customStickerUnitPrice(sizeId, finishId, customDimensions);
+  const total = customStickerTotal(sizeId, finishId, quantity, customDimensions);
+  const draft = { image, sizeId, customDimensions, finishId, shape, quantity, rightsConfirmed: rights };
   const problem = stickerDraftProblem(draft);
   const lowRes = image && Math.min(image.width, image.height) < LOW_RES_PX;
 
@@ -268,7 +271,7 @@ export function CreateStickersPage() {
             <OptionCards<CustomStickerShape> name="Sticker shape" value={shape} onChange={setShape} options={customStickerShapes.map((s) => ({ id: s.id, title: s.label, sub: s.hint }))} />
           </Section>
 
-          <Section n={3} title="Size" hint="Exact measurements will be confirmed once we’ve chosen a printer.">
+          <Section n={3} title="Size" hint="Standard 5cm × 5cm, 6cm × 6cm or enter custom dimensions in centimetres.">
             <OptionCards
               name="Sticker size"
               value={sizeId}
@@ -276,10 +279,64 @@ export function CreateStickersPage() {
               options={customStickerSizes.map((s) => ({
                 id: s.id,
                 title: s.label,
-                sub: s.dimensions ?? 'Size to be confirmed',
-                extra: `${formatPrice(s.unitPrice)} each`,
+                sub: s.id === 'custom' ? (sizeId === 'custom' ? `${customWidth} × ${customHeight} cm` : 'Enter dimensions in cm') : (s.dimensions ?? 'Size confirmed'),
+                extra: s.id === 'custom'
+                  ? `${formatPrice(customStickerUnitPrice('custom', finishId, { width: customWidth, height: customHeight }) ?? 20)} each`
+                  : `${formatPrice(s.unitPrice)} each`,
               }))}
             />
+            {sizeId === 'custom' && (
+              <div className="mt-3 rounded-xl border-2 border-ink/20 bg-paper/60 p-3.5 sm:p-4">
+                <div className="flex flex-wrap items-center justify-between gap-1">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-ink">Custom Dimensions</span>
+                  <span className="text-xs font-bold text-mint bg-ink px-2.5 py-0.5 rounded-full">
+                    {customWidth} × {customHeight} cm · {formatPrice(customStickerUnitPrice('custom', finishId, { width: customWidth, height: customHeight }) ?? 20)} each
+                  </span>
+                </div>
+                <div className="mt-2.5 grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="custom-width-input" className="block text-xs font-semibold text-ink-soft mb-1">
+                      Width (cm)
+                    </label>
+                    <div className="flex items-center rounded-lg border border-ink/25 bg-white px-3 py-2 focus-within:border-ink">
+                      <input
+                        id="custom-width-input"
+                        type="number"
+                        min="2"
+                        max="40"
+                        step="0.5"
+                        value={customWidth}
+                        onChange={(e) => setCustomWidth(Math.max(1, parseFloat(e.target.value) || 1))}
+                        className="w-full text-sm font-bold text-ink outline-none"
+                      />
+                      <span className="ml-1 text-xs font-bold text-ink-soft">cm</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="custom-height-input" className="block text-xs font-semibold text-ink-soft mb-1">
+                      Height (cm)
+                    </label>
+                    <div className="flex items-center rounded-lg border border-ink/25 bg-white px-3 py-2 focus-within:border-ink">
+                      <input
+                        id="custom-height-input"
+                        type="number"
+                        min="2"
+                        max="40"
+                        step="0.5"
+                        value={customHeight}
+                        onChange={(e) => setCustomHeight(Math.max(1, parseFloat(e.target.value) || 1))}
+                        className="w-full text-sm font-bold text-ink outline-none"
+                      />
+                      <span className="ml-1 text-xs font-bold text-ink-soft">cm</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-[11px] text-ink-soft border-t border-ink/10 pt-2">
+                  <span>Area: {(customWidth * customHeight).toFixed(1)} cm²</span>
+                  <span>Automated price formula: 5×5cm = ₹20, 6×6cm = ₹25</span>
+                </div>
+              </div>
+            )}
           </Section>
 
           <Section n={4} title="Finish" hint="Provisional — depends on what our printer can offer.">
@@ -310,7 +367,7 @@ export function CreateStickersPage() {
               {[
                 ['Image', image ? (image.source === 'upload' ? 'Your upload' : 'Image link') : 'Not added yet'],
                 ['Shape', customStickerShapes.find((s) => s.id === shape)?.label],
-                ['Size', `${size.label} (${size.dimensions ?? 'size to be confirmed'})`],
+                ['Size', sizeId === 'custom' ? `Custom (${customWidth} × ${customHeight} cm)` : `${size.label} (${size.dimensions ?? 'size confirmed'})`],
                 ['Finish', finish.label],
                 ['Per sticker', unit !== null ? formatPrice(unit) : '—'],
                 ['Quantity', String(quantity)],

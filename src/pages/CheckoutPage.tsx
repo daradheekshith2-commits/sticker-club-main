@@ -42,6 +42,23 @@ export function CheckoutPage() {
     );
   }
 
+  const MIN_CHECKOUT_TOTAL = 99;
+  if (subtotal < MIN_CHECKOUT_TOTAL && !createdOrder) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+        <EmptyState
+          title="Minimum order value is ₹99"
+          body={`Your current cart total is ${formatPrice(subtotal)}. Please add at least ${formatPrice(MIN_CHECKOUT_TOTAL - subtotal)} more to your cart to proceed to checkout.`}
+          action={
+            <Link to="/shop" className="btn-primary">
+              Browse shop &amp; add more
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
       <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Checkout' }]} />

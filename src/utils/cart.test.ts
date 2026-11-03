@@ -154,7 +154,7 @@ test('wall lines report the temporary photo links they use', () => {
 import { stickerKey, isStickerItem } from './cart';
 import { customStickerUnitPrice, toStickerConfig } from './customSticker';
 
-const stickerConfig = (sizeId = 'medium', finishId = 'standard') =>
+const stickerConfig = (sizeId = '5cm', finishId = 'standard') =>
   toStickerConfig({
     image: { source: 'upload', objectUrl: 'blob:test/s1', fileName: 'me.png', width: 1200, height: 1200 },
     sizeId,
@@ -166,9 +166,9 @@ const stickerConfig = (sizeId = 'medium', finishId = 'standard') =>
 
 test('custom stickers are their own line, priced from the options data', () => {
   let cart: CartItem[] = cartReducer([], { type: 'add', productId: 'stk-001', quantity: 1 });
-  cart = cartReducer(cart, { type: 'addSticker', item: { kind: 'custom-sticker', id: 's1', quantity: 5, sticker: stickerConfig('large', 'gloss') } });
+  cart = cartReducer(cart, { type: 'addSticker', item: { kind: 'custom-sticker', id: 's1', quantity: 5, sticker: stickerConfig('6cm', 'gloss') } });
   const s = summariseCart(cart, find);
-  const unit = customStickerUnitPrice('large', 'gloss')!;
+  const unit = customStickerUnitPrice('6cm', 'gloss')!;
   const line = s.lines.find((l) => l.key === stickerKey('s1'))!;
   assert.ok(line.type === 'custom-sticker' && line.unitPrice === unit && line.lineTotal === 5 * unit);
   assert.equal(s.subtotal, find('stk-001')!.price + 5 * unit);

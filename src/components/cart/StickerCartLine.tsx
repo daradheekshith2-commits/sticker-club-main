@@ -31,7 +31,7 @@ export function StickerCartLine({
           <span className="font-bold tabular-nums">{formatPrice(line.lineTotal)}</span>
         </div>
         <p className="text-sm text-ink-soft">
-          {shape} · {size?.dimensions ?? 'size to be confirmed'} · {sticker.image.source === 'upload' ? 'your upload' : 'image link'}
+          {shape} · {sticker.customDimensions ? `${sticker.customDimensions.width} × ${sticker.customDimensions.height} cm` : size?.dimensions ?? 'size confirmed'} · {sticker.image.source === 'upload' ? 'your upload' : 'image link'}
         </p>
         <p className="text-sm text-ink-soft">
           {compact ? `${line.quantity} × ` : ''}
