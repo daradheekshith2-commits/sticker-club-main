@@ -25,6 +25,7 @@ export function describeContents(product: Product): string {
 export function ProductCard({ product, headingLevel = 'h3' }: { product: Product; headingLevel?: 'h2' | 'h3' }) {
   const { addItem } = useCart();
   const [justAdded, setJustAdded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const purchasable = isPurchasable(product);
   const hasSizes = Boolean(product.variants?.length);
   const isTheme = product.variantLabel === 'Theme';
@@ -44,7 +45,11 @@ export function ProductCard({ product, headingLevel = 'h3' }: { product: Product
   const isPoster = product.category === 'posters' || product.productType === 'poster';
 
   return (
-    <article className="group relative flex h-full flex-col">
+    <article
+      className="group relative flex h-full flex-col"
+      onMouseEnter={() => setIsHovered(true)}
+      onFocus={() => setIsHovered(true)}
+    >
       <Link
         to={url}
         className={`relative block ${isPoster ? 'aspect-[1/1.414]' : 'aspect-square'} overflow-hidden rounded-[var(--radius-card)] border border-mint/15 bg-paper-deep shadow-[0_8px_20px_rgba(0,0,0,0.3)] transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_16px_32px_rgba(0,0,0,0.5),0_0_20px_rgba(255,16,38,0.15)] group-hover:border-mint/40`}
@@ -52,8 +57,8 @@ export function ProductCard({ product, headingLevel = 'h3' }: { product: Product
         aria-hidden
       >
         <ProductImage product={product} className="size-full object-cover object-center" />
-        {hasHover && (
-          // Tailwind's hover variants only apply on devices that can hover, so touchscreens never see this swap.
+        {hasHover && isHovered && (
+          // Only mounted and downloaded on actual desktop hover/focus, saving bandwidth on initial page loads
           <span className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
             {product.images && product.images.length > 1 ? (
               <ProductImage product={product} index={1} className="size-full object-cover object-center" />

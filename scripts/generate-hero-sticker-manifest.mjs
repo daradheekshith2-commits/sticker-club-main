@@ -125,7 +125,17 @@ const naturalSort = (a, b) => a.localeCompare(b, undefined, { numeric: true, sen
 // ---------- Main ----------
 
 const found = fs.existsSync(folder) ? fs.readdirSync(folder, { withFileTypes: true }).filter((d) => d.isFile()).map((d) => d.name) : null;
-const files = (found ?? []).filter((f) => !f.startsWith('.')).sort(naturalSort);
+const webpNames = new Set((found ?? []).filter((f) => f.toLowerCase().endsWith('.webp')).map((f) => path.parse(f).name));
+const files = (found ?? [])
+  .filter((f) => !f.startsWith('.'))
+  .filter((f) => {
+    const ext = path.extname(f).toLowerCase();
+    const name = path.parse(f).name;
+    // Prefer webp over raw jpeg/png if both exist
+    if (ext !== '.webp' && webpNames.has(name)) return false;
+    return true;
+  })
+  .sort(naturalSort);
 const entries = [];
 const skipped = [];
 const large = [];

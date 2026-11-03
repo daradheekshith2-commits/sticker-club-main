@@ -500,6 +500,15 @@ export function ShopPage() {
   const [params, setParams] = useSearchParams();
   const filters = useMemo(() => filtersFromParams(params), [params]);
   const results = useMemo(() => filterAndSort(filters, products), [filters, products]);
+  const PAGE_SIZE = 36;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // Reset pagination whenever filters or search parameters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [params]);
+
+  const visibleResults = useMemo(() => results.slice(0, visibleCount), [results, visibleCount]);
   const [query, setQuery] = useState(filters.query);
   const [sheetOpen, setSheetOpen] = useState(false);
   const title = titleFor(filters);
@@ -680,7 +689,23 @@ export function ShopPage() {
               </button>
             </div>
           ) : results.length ? (
-            <ProductGrid products={results} headingLevel="h2" layout="beside-filters" />
+            <div className="flex flex-col">
+              <ProductGrid products={visibleResults} headingLevel="h2" layout="beside-filters" />
+              {visibleCount < results.length && (
+                <div className="mt-12 flex flex-col items-center justify-center gap-3 py-6 border-t border-ink/10">
+                  <p className="text-sm font-bold text-ink-soft">
+                    Showing {visibleResults.length} of {results.length} designs
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, results.length))}
+                    className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-white px-8 py-3.5 text-base font-extrabold text-ink transition-all hover:bg-ink hover:text-paper active:scale-95 shadow-sm"
+                  >
+                    Load more designs ({Math.min(PAGE_SIZE, results.length - visibleCount)} more)
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <EmptyState
               title="Nothing matches that (yet)."

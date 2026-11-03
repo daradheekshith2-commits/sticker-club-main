@@ -229,101 +229,176 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
   return result;
 }
 
+const CACHE_KEY_PRODUCTS = 'sc_catalogue_products_v1';
+const CACHE_KEY_CATEGORIES = 'sc_catalogue_categories_v1';
+
 export function CatalogueProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const cached = typeof window !== 'undefined' ? window.sessionStorage?.getItem(CACHE_KEY_PRODUCTS) : null;
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  });
+  const [categories, setCategories] = useState<CategoryItem[]>(() => {
+    try {
+      const cached = typeof window !== 'undefined' ? window.sessionStorage?.getItem(CACHE_KEY_CATEGORIES) : null;
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    try {
+      return typeof window !== 'undefined' && !window.sessionStorage?.getItem(CACHE_KEY_PRODUCTS);
+    } catch {
+      return true;
+    }
+  });
   const [error, setError] = useState<string | null>(null);
 
-  async function fetchCatalogue() {
+  // Background fetch from Supabase with a strict timeout so network stalls never freeze the UI
+  async function fetchSupabaseLive(timeoutMs = 6000): Promise<{ products: BackendProduct[]; categories: CategoryItem[] } | null> {
+    if (!isSupabaseConfigured) return null;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      let allProducts: any[] = [];
+      let from = 0;
+      const step = 1000;
+
+      while (true) {
+        if (controller.signal.aborted) throw new Error('Supabase fetch timed out');
+        const { data: chunk, error: supaErr } = await supabase
+          .from('Product')
+          .select('*, inventory:Inventory(quantity), images:ProductImage(*), categories:ProductCategory(*), variants:ProductVariant(*)')
+          .range(from, from + step - 1);
+
+        if (supaErr) throw supaErr;
+        if (!chunk || chunk.length === 0) break;
+        allProducts = allProducts.concat(chunk);
+        if (chunk.length < step) break;
+        from += step;
+      }
+
+      const { data: supaCats } = await supabase.from('Category').select('*').order('displayOrder', { ascending: true });
+      clearTimeout(timer);
+
+      if (allProducts.length > 0) {
+        return { products: allProducts, categories: supaCats || [] };
+      }
+      return null;
+    } catch (err) {
+      clearTimeout(timer);
+      console.warn('Background Supabase catalogue sync notice:', err instanceof Error ? err.message : err);
+      return null;
+    }
+  }
+
+  async function fetchCatalogue(forceRefresh = false) {
     try {
       setError(null);
+
+      // If we already have products in memory and it's not a forced refresh, don't show loading spinner
+      if (products.length > 0 && !forceRefresh) {
+        setLoading(false);
+      }
+
       let loaded = false;
 
-      // 1. Try API if configured
+      // 1. Fast path: load local static catalogue immediately if not already populated
+      if (products.length === 0 || forceRefresh) {
+        try {
+          const [staticRes, staticCatsRes] = await Promise.all([
+            fetch('/products-catalogue.json').catch(() => null),
+            fetch('/categories-catalogue.json').catch(() => null),
+          ]);
+
+          if (staticRes && staticRes.ok) {
+            const staticProducts: BackendProduct[] = await staticRes.json();
+            const processed = processDatabaseProducts(seedProducts, staticProducts);
+            setProducts(processed);
+            setLoading(false);
+            loaded = true;
+
+            try {
+              window.sessionStorage?.setItem(CACHE_KEY_PRODUCTS, JSON.stringify(processed));
+            } catch {}
+
+            if (staticCatsRes && staticCatsRes.ok) {
+              const cats = await staticCatsRes.json();
+              setCategories(cats);
+              try {
+                window.sessionStorage?.setItem(CACHE_KEY_CATEGORIES, JSON.stringify(cats));
+              } catch {}
+            }
+          }
+        } catch {
+          // ignore and proceed to live fetch
+        }
+      }
+
+      // 2. If API configured (e.g. local backend), try background update
       if (apiUrl) {
         try {
           const [prodRes, catRes] = await Promise.all([
-            fetch((apiUrl || '') + '/api/products', { credentials: 'include' }).catch(() => null),
-            fetch((apiUrl || '') + '/api/categories', { credentials: 'include' }).catch(() => null),
+            fetch((apiUrl || '') + '/api/products', { credentials: 'include', signal: AbortSignal.timeout(4000) }).catch(() => null),
+            fetch((apiUrl || '') + '/api/categories', { credentials: 'include', signal: AbortSignal.timeout(4000) }).catch(() => null),
           ]);
 
           if (prodRes && prodRes.ok) {
             const dbProducts: BackendProduct[] = await prodRes.json();
-            setProducts(processDatabaseProducts(seedProducts, dbProducts));
+            const processed = processDatabaseProducts(seedProducts, dbProducts);
+            setProducts(processed);
+            setLoading(false);
+            loaded = true;
+            try {
+              window.sessionStorage?.setItem(CACHE_KEY_PRODUCTS, JSON.stringify(processed));
+            } catch {}
+
             if (catRes && catRes.ok) {
               const dbCategories: CategoryItem[] = await catRes.json();
               setCategories(dbCategories);
+              try {
+                window.sessionStorage?.setItem(CACHE_KEY_CATEGORIES, JSON.stringify(dbCategories));
+              } catch {}
             }
-            loaded = true;
+            return;
           }
         } catch {
-          // Fall through to Supabase or static catalogue
+          // Fall through to Supabase
         }
       }
 
-      // 2. Try direct Supabase catalogue if live API is unavailable
-      if (!loaded && isSupabaseConfigured) {
-        try {
-          let allProducts: any[] = [];
-          let from = 0;
-          const step = 1000;
-          let fetchErr: any = null;
+      // 3. Live Supabase sync (runs in background without freezing UI)
+      if (isSupabaseConfigured) {
+        const liveData = await fetchSupabaseLive(forceRefresh ? 12000 : 6000);
+        if (liveData && liveData.products.length > 0) {
+          const processed = processDatabaseProducts(seedProducts, liveData.products);
+          setProducts(processed);
+          setLoading(false);
+          loaded = true;
+          try {
+            window.sessionStorage?.setItem(CACHE_KEY_PRODUCTS, JSON.stringify(processed));
+          } catch {}
 
-          while (true) {
-            const { data: chunk, error: supaErr } = await supabase
-              .from('Product')
-              .select('*, inventory:Inventory(quantity), images:ProductImage(*), categories:ProductCategory(*), variants:ProductVariant(*)')
-              .range(from, from + step - 1);
-
-            if (supaErr) {
-              fetchErr = supaErr;
-              break;
-            }
-            if (!chunk || chunk.length === 0) break;
-            allProducts = allProducts.concat(chunk);
-            if (chunk.length < step) break;
-            from += step;
+          if (liveData.categories.length > 0) {
+            setCategories(liveData.categories);
+            try {
+              window.sessionStorage?.setItem(CACHE_KEY_CATEGORIES, JSON.stringify(liveData.categories));
+            } catch {}
           }
-
-          if (!fetchErr && allProducts.length > 0) {
-            setProducts(processDatabaseProducts(seedProducts, allProducts as any));
-            const { data: supaCats } = await supabase.from('Category').select('*').order('displayOrder', { ascending: true });
-            if (supaCats && supaCats.length > 0) {
-              setCategories(supaCats);
-            }
-            loaded = true;
-          }
-        } catch {
-          // Fall through to static catalogue fallback
         }
       }
 
-      // 3. Fallback to static catalogue (e.g. initial loads or static hosting)
-      if (!loaded) {
-        try {
-          const staticRes = await fetch('/products-catalogue.json');
-          if (staticRes.ok) {
-            const staticProducts: BackendProduct[] = await staticRes.json();
-            setProducts(processDatabaseProducts(seedProducts, staticProducts));
-            const staticCatsRes = await fetch('/categories-catalogue.json').catch(() => null);
-            if (staticCatsRes && staticCatsRes.ok) {
-              setCategories(await staticCatsRes.json());
-            }
-            loaded = true;
-          }
-        } catch {
-          // ignore
-        }
-      }
-
-      if (!loaded) {
-        throw new Error('Failed to load database catalogue');
+      if (!loaded && products.length === 0) {
+        throw new Error('Failed to load catalogue');
       }
     } catch (e) {
       console.warn('CatalogueProvider: catalogue fetch failed.', e);
-      setError(e instanceof Error ? e.message : 'Could not fetch database catalogue');
-      setProducts([]);
+      if (products.length === 0) {
+        setError(e instanceof Error ? e.message : 'Could not fetch database catalogue');
+      }
     } finally {
       setLoading(false);
     }

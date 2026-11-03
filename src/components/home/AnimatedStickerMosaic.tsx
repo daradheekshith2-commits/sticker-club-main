@@ -79,7 +79,7 @@ function TileView({ tile, index, eager, onFail }: { tile: Tile; index: number; e
         decoding="async"
         draggable={false}
         onError={() => onFail(file.src)}
-        className={`size-full object-contain ${file.transparent ? 'drop-shadow-[0_8px_10px_rgba(0,0,0,0.35)]' : ''}`}
+        className="size-full object-contain"
       />
       {sparkle && file.transparent && <Sparkle className="top-3 right-3 size-4" color={light ? '#E3102A' : '#F4F0E8'} />}
     </div>
@@ -91,8 +91,13 @@ export function AnimatedStickerMosaic({ columns = 3, className = '' }: { columns
   const usingFiles = heroStickers.length > 0;
 
   const cols = useMemo(() => {
-    const tiles: Tile[] = usingFiles
-      ? heroStickers.filter((f) => !failed.has(f.src)).map((file) => ({ key: file.key, file }))
+    let files = usingFiles ? heroStickers.filter((f) => !failed.has(f.src)) : [];
+    // Limit to a curated 27 stickers (9 per column) so we don't spam 116 network requests and choke the browser compositor
+    if (files.length > 27) {
+      files = files.slice(0, 27);
+    }
+    const tiles: Tile[] = files.length > 0
+      ? files.map((file) => ({ key: file.key, file }))
       : fallbackTiles();
     return splitIntoColumns(tiles, columns).map((col) => fillColumn(col, MIN_TILES_PER_COPY));
   }, [usingFiles, failed, columns]);

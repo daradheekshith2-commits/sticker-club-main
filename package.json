@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "hero:manifest": "node scripts/generate-hero-sticker-manifest.mjs",
     "art:build": "node scripts/build-category-art.mjs",
-    "art:check": "node scripts/check-art-paths.mjs"
+    "art:check": "node scripts/check-art-paths.mjs",
+    "images:optimize": "node scripts/optimize-catalogue-images.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0",

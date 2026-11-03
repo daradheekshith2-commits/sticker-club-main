@@ -515,14 +515,30 @@ export function ProductImage({ product, view = 'main', index = 0, className }: {
     const src = raw.startsWith('http') || !apiUrl ? raw : `${apiUrl}${raw.startsWith('/') ? '' : '/'}${raw}`;
     const isPoster = product.category === 'posters' || product.productType === 'poster';
     const fitClass = className?.includes('object-') ? '' : (isPoster ? 'object-cover object-center' : 'object-cover');
+
+    // Fast-loading WebP alternative
+    const webpSrc = src.replace(/\.(png|jpe?g)$/i, '.webp');
+    const isStaticAsset = src.startsWith('/PNG/') || src.startsWith('/Stickers/') || src.startsWith('/Poster/') || src.startsWith('/hero-stickers/');
+
     return (
-      <img
-        src={src}
-        alt={photo.alt || product.name}
-        className={`${className ?? ''} ${fitClass}`.trim()}
-        loading="lazy"
-        onError={() => setLoadError(true)}
-      />
+      <picture className="contents">
+        {isStaticAsset && <source srcSet={webpSrc} type="image/webp" />}
+        <img
+          src={isStaticAsset ? webpSrc : src}
+          alt={photo.alt || product.name}
+          className={`${className ?? ''} ${fitClass}`.trim()}
+          loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (isStaticAsset && target.src.endsWith('.webp')) {
+              target.src = src;
+            } else {
+              setLoadError(true);
+            }
+          }}
+        />
+      </picture>
     );
   }
   return <ProductArtSvg product={product} view={view} className={className} />;
