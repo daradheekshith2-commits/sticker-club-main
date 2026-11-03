@@ -187,7 +187,7 @@ const formatRepresentatives: Partial<Record<ProductType, string>> = {
 };
 
 function ShopByFormat({ f }: { f: CatalogueFilters }) {
-  const { products, getProductBySlug, isPurchasable } = useCatalogue();
+  const { products, getProductBySlug } = useCatalogue();
   const category = f.category ?? 'stickers';
   const types: ProductType[] = category === 'posters' ? ['poster', 'poster-set'] : ['single', 'sheet', 'pack', 'mystery', 'duo', 'secret'];
   return (
@@ -198,7 +198,6 @@ function ShopByFormat({ f }: { f: CatalogueFilters }) {
       <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
         {types.map((t) => {
           const sample = getProductBySlug(formatRepresentatives[t] ?? '');
-          const count = products.filter((p) => p.category === category && p.productType === t && isPurchasable(p)).length;
           const from = getStartingPrice(t, products);
           const active = f.types.length === 1 && f.types[0] === t;
           return (
@@ -215,10 +214,7 @@ function ShopByFormat({ f }: { f: CatalogueFilters }) {
                 )}
                 <span className="min-w-0">
                   <span className="block font-display text-lg leading-tight font-extrabold">{productTypeLabels[t].plural}</span>
-                  <span className="block text-sm text-ink-soft">
-                    {pluralise(count, 'design')}
-                    {from ? ` · from ${formatPrice(from)}` : ''}
-                  </span>
+                  {from && <span className="block text-sm text-ink-soft">from {formatPrice(from)}</span>}
                 </span>
               </Link>
             </li>
@@ -242,14 +238,14 @@ function ShopByVibe({ f }: { f: CatalogueFilters }) {
     <section aria-labelledby="by-vibe" className="mt-6">
       <div className="mb-3 flex items-baseline justify-between gap-4">
         <h2 id="by-vibe" className="eyebrow">
-          Shop by vibe
+          Shop by theme
         </h2>
         <Link to="/vibes" className="flex items-center gap-1 text-sm font-bold underline underline-offset-4">
-          Explore all vibes <LuArrowRight aria-hidden className="size-3.5" />
+          Explore all themes <LuArrowRight aria-hidden className="size-3.5" />
         </Link>
       </div>
       <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-        {vibes.map(({ c, count }) => {
+        {vibes.map(({ c }) => {
           const Motif = motifs[c.motif];
           const active = f.collections.length === 1 && f.collections[0] === c.id;
           return (
@@ -264,8 +260,7 @@ function ShopByVibe({ f }: { f: CatalogueFilters }) {
                     <Motif fg="#121212" bg={c.color} accent="#FFFFFF" />
                   </svg>
                 </span>
-                {c.name}
-                <span className={`font-normal ${active ? 'text-paper/70' : 'text-ink-soft'}`}>{count}</span>
+                <span className="pr-1">{c.name}</span>
               </Link>
             </li>
           );
@@ -344,7 +339,7 @@ function FilterGroup({
 }
 
 /** A checkbox-style row: label on the left, result count on the right. */
-function FilterOption({ active, onClick, count, children }: { active: boolean; onClick: () => void; count: number; children: ReactNode }) {
+function FilterOption({ active, onClick, count, showCount = true, children }: { active: boolean; onClick: () => void; count: number; showCount?: boolean; children: ReactNode }) {
   const disabled = count === 0 && !active;
   return (
     <button
@@ -359,7 +354,7 @@ function FilterOption({ active, onClick, count, children }: { active: boolean; o
         {active && <span className="size-1.5 rounded-sm bg-lime" />}
       </span>
       <span className={`flex-1 ${active ? 'font-bold' : ''}`}>{children}</span>
-      <span className="text-xs text-ink-soft tabular-nums">{count}</span>
+      {showCount && <span className="text-xs text-ink-soft tabular-nums">{count}</span>}
     </button>
   );
 }
@@ -381,6 +376,7 @@ function Filters({ f, update }: { f: CatalogueFilters; update: (next: Partial<Ca
             key={t}
             active={f.types.includes(t)}
             count={facetCount(f, { types: f.types.includes(t) ? f.types : [...f.types, t] }, products)}
+            showCount={false}
             onClick={() => update({ types: toggle(f.types, t) })}
           >
             {productTypeLabels[t].plural}
@@ -401,12 +397,13 @@ function Filters({ f, update }: { f: CatalogueFilters; update: (next: Partial<Ca
           ))}
         </FilterGroup>
       )}
-      <FilterGroup title="Vibe" activeCount={f.collections.length} onReset={() => update({ collections: [] })}>
+      <FilterGroup title="Theme" activeCount={f.collections.length} onReset={() => update({ collections: [] })}>
         {vibeList.map((c) => (
           <FilterOption
             key={c.id}
             active={f.collections.includes(c.id)}
             count={facetCount(f, { collections: f.collections.includes(c.id) ? f.collections : [...f.collections, c.id] }, products)}
+            showCount={false}
             onClick={() => update({ collections: toggle<CollectionId>(f.collections, c.id) })}
           >
             {c.name}

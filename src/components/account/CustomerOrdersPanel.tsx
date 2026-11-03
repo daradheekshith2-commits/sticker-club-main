@@ -120,14 +120,23 @@ export function CustomerOrdersPanel() {
   const [modalImgFailed, setModalImgFailed] = useState(false);
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
 
-  function resolveArtworkUrl(rawUrlOrId?: string | null, isDownload = false): string {
-    if (!rawUrlOrId) return '';
-    let url = rawUrlOrId;
-    if (!url.startsWith('http') && !url.startsWith('/api')) {
-      url = `/api/uploads/artwork/${rawUrlOrId}/${isDownload ? 'download' : 'file'}`;
-    } else if (isDownload && url.endsWith('/file')) {
-      url = url.replace(/\/file$/, '/download');
+  function resolveArtworkUrl(rawUrlOrId?: string | null, isDownload = false, fileName?: string | null): string {
+    if (!rawUrlOrId && !fileName) return '';
+    if (rawUrlOrId?.startsWith('http')) return rawUrlOrId;
+    if (fileName) {
+      return `https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks/${fileName}`;
     }
+    if (rawUrlOrId && !rawUrlOrId.startsWith('/api')) {
+      if (apiUrl) {
+        let url = `${apiUrl}/api/uploads/artwork/${rawUrlOrId}/${isDownload ? 'download' : 'file'}`;
+        if (token && !url.includes('token=')) {
+          url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
+        }
+        return url;
+      }
+      return `https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks/${rawUrlOrId}`;
+    }
+    let url = rawUrlOrId || '';
     if (token && !url.includes('token=')) {
       url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
     }
@@ -318,7 +327,7 @@ export function CustomerOrdersPanel() {
                 )}
               </div>
 
-              {/* UTR Submission / Status Block for UPI */}
+              {/* Transaction ID Submission / Status Block for UPI */}
               {isUpi && !isPaid && !isCancelled && (
                 <div className="mt-4 rounded-lg border border-sun/30 bg-sun/5 p-4 text-sm">
                   {o.payment?.status === 'SUBMITTED' ? (
@@ -328,7 +337,7 @@ export function CustomerOrdersPanel() {
                         <strong className="text-sun">Payment Verification in Progress</strong>
                       </div>
                       <p className="mt-1 text-xs text-ink-soft">
-                        Submitted UTR: <span className="font-mono font-bold text-ink select-all">{o.payment.utr}</span>. An admin is
+                        Submitted Transaction ID: <span className="font-mono font-bold text-ink select-all">{o.payment.utr}</span>. An admin is
                         reviewing your payment.
                       </p>
                     </div>
@@ -336,14 +345,14 @@ export function CustomerOrdersPanel() {
                     <div>
                       {o.payment?.status === 'REJECTED' && (
                         <div className="mb-3 rounded-lg bg-danger/15 p-2.5 text-xs text-danger">
-                          <strong>Previous UTR was rejected:</strong> {o.payment.rejectionReason}
+                          <strong>Previous Transaction ID was rejected:</strong> {o.payment.rejectionReason}
                           <br />
-                          Please check your payment app and submit the correct 12-digit UTR reference number below.
+                          Please check your payment app and submit the correct Transaction ID / Ref No. below.
                         </div>
                       )}
                       <strong>Complete your UPI payment:</strong>
                       <p className="mt-0.5 text-xs text-ink-soft">
-                        Transfer ₹{o.total} and submit your 12-digit transaction ID / UTR below.
+                        Transfer ₹{o.total} and submit your Transaction ID / Ref No. below.
                       </p>
 
                       {feedback[o.id]?.success && (
@@ -358,7 +367,7 @@ export function CustomerOrdersPanel() {
                           <input
                             type="text"
                             required
-                            placeholder="e.g. 12-digit UTR number"
+                            placeholder="e.g. UPI Transaction ID / Ref No."
                             className="field-input flex-1 text-xs"
                             value={utrInputs[o.id] ?? ''}
                             onChange={(e) => setUtrInputs((prev) => ({ ...prev, [o.id]: e.target.value }))}
@@ -368,7 +377,7 @@ export function CustomerOrdersPanel() {
                             className="btn-primary text-xs"
                             disabled={submittingId === o.id || !(utrInputs[o.id] ?? '').trim()}
                           >
-                            {submittingId === o.id ? 'Submitting…' : 'Submit UTR'}
+                            {submittingId === o.id ? 'Submitting…' : 'Submit Transaction ID'}
                           </button>
                         </form>
                       )}
@@ -448,12 +457,16 @@ export function CustomerOrdersPanel() {
                       const isPack = config.type === 'custom-pack';
 
                       const physicalDim = isSticker ? PHYSICAL_SIZES[config.sizeId] || config.sizeId : null;
-                      const artworkPreview = co.artworkId
-                        ? resolveArtworkUrl(co.artworkId, false)
-                        : co.previewUrl;
-                      const artworkDownload = co.artworkId
-                        ? resolveArtworkUrl(co.artworkId, true)
-                        : null;
+                      const artworkPreview =
+                        co.previewUrl ||
+                        (co.artworkId
+                          ? resolveArtworkUrl(co.artworkId, false, co.artwork?.fileName)
+                          : null);
+                      const artworkDownload =
+                        co.previewUrl ||
+                        (co.artworkId
+                          ? resolveArtworkUrl(co.artworkId, true, co.artwork?.fileName)
+                          : null);
 
                       return (
                         <div

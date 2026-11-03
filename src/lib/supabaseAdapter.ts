@@ -211,11 +211,15 @@ export async function handleSupabaseRequest<T>(
 
   // 5. Payment Config (/api/payment/config)
   if (urlPath === '/api/payment/config' && method === 'GET') {
+    const storeUpiId = (import.meta.env.VITE_UPI_ID as string) || '7981793020@kotakbank';
+    const upiUri = `upi://pay?pa=${encodeURIComponent(storeUpiId)}&pn=Sticker%20Club&cu=INR`;
+    const upiQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUri)}`;
+
     return {
       handled: true,
       data: {
-        upiId: 'stickitup@test',
-        upiQrUrl: null,
+        upiId: storeUpiId,
+        upiQrUrl,
         deliveryFee: '10',
       } as unknown as T,
     };
@@ -394,6 +398,14 @@ export async function handleSupabaseRequest<T>(
           linePrice = layout ? wallPrice(layout) : 199;
         }
 
+        let lineArtworkUrl: string | null = line.previewUrl || null;
+        if (line.type === 'custom-sticker' && line.artworkId && !lineArtworkUrl) {
+          const { data: artRow } = await supabase.from('CustomArtwork').select('fileName').eq('id', line.artworkId).maybeSingle();
+          if (artRow?.fileName) {
+            lineArtworkUrl = supabase.storage.from('artworks').getPublicUrl(artRow.fileName).data.publicUrl;
+          }
+        }
+
         subtotal += linePrice * qty;
         orderLines.push({
           productId: null,
@@ -405,6 +417,7 @@ export async function handleSupabaseRequest<T>(
               : 'Custom Die-Cut Sticker',
           unitPrice: linePrice,
           quantity: qty,
+          imageUrl: lineArtworkUrl,
           metadata: line,
         });
       }
@@ -445,9 +458,43 @@ export async function handleSupabaseRequest<T>(
           variantId: l.variantId ?? null,
           unitPrice: l.unitPrice,
           quantity: l.quantity,
+          imageUrl: l.imageUrl ?? null,
           metadata: l.metadata ?? null,
         }))
       );
+    }
+
+    // 4.1 Insert Custom Order configurations & artwork linkages
+    if (customLines.length > 0) {
+      for (const cl of customLines) {
+        let artworkId = cl.artworkId || null;
+        let previewUrl = cl.previewUrl || null;
+
+        if (artworkId && !previewUrl) {
+          const { data: artRow } = await supabase
+            .from('CustomArtwork')
+            .select('fileName')
+            .eq('id', artworkId)
+            .maybeSingle();
+          if (artRow?.fileName) {
+            previewUrl = supabase.storage.from('artworks').getPublicUrl(artRow.fileName).data.publicUrl;
+          }
+        }
+
+        await supabase.from('CustomOrder').insert({
+          id: crypto.randomUUID(),
+          orderId,
+          artworkId,
+          previewUrl,
+          config: cl,
+          productionNotes:
+            cl.type === 'custom-sticker'
+              ? `Size: ${cl.sizeId || 'medium'}, Finish: ${cl.finishId || 'glossy'}, Shape: ${cl.shape || 'die-cut'}`
+              : cl.type === 'custom-wall'
+              ? `Layout: ${cl.layoutId || 'custom-wall'}`
+              : `Pack size: ${cl.size || 5}, Finish: ${cl.finishId || 'glossy'}`,
+        });
+      }
     }
 
     // 5. Insert Payment
@@ -556,7 +603,7 @@ export async function handleSupabaseRequest<T>(
 
     const { data, error } = await supabase
       .from('Order')
-      .select('*, items:OrderItem(*), payment:Payment(*), submissions:PaymentSubmission(*)')
+      .select('*, items:OrderItem(*), payment:Payment(*), submissions:PaymentSubmission(*), customOrders:CustomOrder(*, artwork:CustomArtwork(*))')
       .eq('userId', user.id)
       .order('createdAt', { ascending: false });
 

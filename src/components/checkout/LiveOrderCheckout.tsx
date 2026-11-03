@@ -122,13 +122,13 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
     }
   }
 
-  async function uploadArtworkBlob(objectUrlOrHttpUrl: string, fileName: string): Promise<string> {
+  async function uploadArtworkBlob(objectUrlOrHttpUrl: string, fileName: string): Promise<{ id: string; url?: string }> {
     const blob = await fetch(objectUrlOrHttpUrl).then((r) => r.blob());
     const formData = new FormData();
     formData.append('file', blob, fileName || 'artwork.png');
 
-    const data = await requestMultipart<{ id: string }>('/api/uploads/artwork', formData);
-    return data.id;
+    const data = await requestMultipart<{ id: string; url?: string }>('/api/uploads/artwork', formData);
+    return data;
   }
 
   async function prepare() {
@@ -177,11 +177,14 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
       for (const line of customLinesInCart) {
         if (line.type === 'custom-sticker') {
           let artId = (line.sticker.image as any).artworkId;
+          let previewUrl = (line.sticker.image as any).url || null;
           if (!artId) {
             const url = line.sticker.image.source === 'upload' ? line.sticker.image.objectUrl : (line.sticker.image as any).url;
             if (url) {
               const fileName = 'fileName' in line.sticker.image ? (line.sticker.image.fileName as string) : 'custom-sticker.png';
-              artId = await uploadArtworkBlob(url, fileName);
+              const upRes = await uploadArtworkBlob(url, fileName);
+              artId = upRes.id;
+              if (upRes.url) previewUrl = upRes.url;
             }
           }
           if (!artId) {
@@ -190,6 +193,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
           preparedCustomLines.push({
             type: 'custom-sticker',
             artworkId: artId,
+            previewUrl,
             sizeId: line.sticker.sizeId,
             finishId: line.sticker.finishId,
             shape: line.sticker.shape,
@@ -208,13 +212,13 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
           const slots = [];
           for (const s of line.wall.slots) {
             if (s.fill.source === 'upload') {
-              const artId = await uploadArtworkBlob(s.fill.objectUrl, s.fill.fileName);
-              slots.push({ slotId: s.slotId, size: s.size, fill: { source: 'upload', artworkId: artId, fileName: s.fill.fileName } });
+              const upRes = await uploadArtworkBlob(s.fill.objectUrl, s.fill.fileName);
+              slots.push({ slotId: s.slotId, size: s.size, fill: { source: 'upload', artworkId: upRes.id, previewUrl: upRes.url, fileName: s.fill.fileName } });
             } else if (s.fill.source === 'catalogue') {
               slots.push({ slotId: s.slotId, size: s.size, fill: { source: 'catalogue', productId: s.fill.productId } });
             } else if (s.fill.source === 'url') {
-              const artId = await uploadArtworkBlob(s.fill.url, 'linked-wall-slot.png');
-              slots.push({ slotId: s.slotId, size: s.size, fill: { source: 'upload', artworkId: artId, fileName: 'linked-wall-slot.png' } });
+              const upRes = await uploadArtworkBlob(s.fill.url, 'linked-wall-slot.png');
+              slots.push({ slotId: s.slotId, size: s.size, fill: { source: 'upload', artworkId: upRes.id, previewUrl: upRes.url, fileName: 'linked-wall-slot.png' } });
             }
           }
           preparedCustomLines.push({
@@ -265,11 +269,11 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
           body: JSON.stringify({ utr: utrInput.trim() }),
         }
       );
-      setUtrSuccess('UTR reference submitted successfully! Our team will verify your payment shortly.');
+      setUtrSuccess('Transaction ID submitted successfully! Our team will verify your payment shortly.');
       setOrder((prev) => (prev ? { ...prev, payment: { ...prev.payment, ...res.payment } } : prev));
       setUtrInput('');
     } catch (e) {
-      setUtrError(e instanceof Error ? e.message : 'Failed to submit UTR reference');
+      setUtrError(e instanceof Error ? e.message : 'Failed to submit Transaction ID');
     } finally {
       setSubmittingUtr(false);
     }
@@ -380,9 +384,9 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
             )}
 
             <div className="mt-5 border-t border-ink/15 pt-4">
-              <h4 className="text-sm font-bold">Submit your 12-digit UPI Reference (UTR)</h4>
+              <h4 className="text-sm font-bold">Submit your UPI Transaction ID</h4>
               <p className="mt-1 text-xs text-ink-soft">
-                After paying in your UPI app (GPay, PhonePe, Paytm, etc.), copy the transaction UTR number and paste it below.
+                After paying in your UPI app (GPay, PhonePe, Paytm, etc.), copy the Transaction ID / Ref No. and paste it below.
               </p>
               {utrSuccess && (
                 <p className="mt-3 rounded-lg bg-mint/20 p-2 text-sm text-mint font-medium" role="status">
@@ -399,13 +403,13 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
                   <input
                     type="text"
                     required
-                    placeholder="Enter 12-digit UTR number"
+                    placeholder="Enter UPI Transaction ID / Ref No."
                     className="field-input flex-1 text-xs"
                     value={utrInput}
                     onChange={(e) => setUtrInput(e.target.value)}
                   />
                   <button className="btn-primary text-xs" type="submit" disabled={submittingUtr || !utrInput.trim()}>
-                    {submittingUtr ? 'Submitting…' : 'Submit UTR'}
+                    {submittingUtr ? 'Submitting…' : 'Submit Transaction ID'}
                   </button>
                 </form>
               )}
@@ -590,7 +594,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
               <span className="font-bold">UPI (QR / VPA)</span>
               {paymentMethod === 'UPI' && <span className="text-lime" aria-hidden>●</span>}
             </div>
-            <p className="mt-1 text-xs text-ink-soft">Scan QR or transfer to store UPI ID, then submit your transaction UTR.</p>
+            <p className="mt-1 text-xs text-ink-soft">Scan QR or transfer to store UPI ID, then submit your Transaction ID.</p>
           </button>
 
           <button
@@ -632,26 +636,57 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
           <div className="mt-3 divide-y divide-ink/10">
             {preview.items.map((item) => {
               const unit = Number(item.product.variants.find((v) => v.id === item.variantId)?.price ?? item.product.price);
+              const cartLine = standard.find(
+                (l) => l.product.id === item.productId && (l.variant?.id ?? undefined) === (item.variantId ?? undefined)
+              );
+              const imgUrl = cartLine?.product.images?.[0]?.src;
               return (
-                <div key={item.productId} className="flex justify-between gap-3 py-2 text-sm">
-                  <span>
-                    {item.product.name}
-                    {item.variantId ? ' · ' + (item.product.variants.find((v) => v.id === item.variantId)?.label ?? item.variantId) : ''} × {item.quantity}
-                  </span>
+                <div key={item.productId} className="flex items-center justify-between gap-3 py-2 text-sm">
+                  <div className="flex items-center gap-3">
+                    {imgUrl ? (
+                      <img src={imgUrl} alt={item.product.name} className="h-10 w-10 rounded-md object-cover border border-ink/10" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-md bg-ink/5 border border-ink/10" />
+                    )}
+                    <span>
+                      {item.product.name}
+                      {item.variantId ? ' · ' + (item.product.variants.find((v) => v.id === item.variantId)?.label ?? item.variantId) : ''} × {item.quantity}
+                    </span>
+                  </div>
                   <strong>₹{(unit * item.quantity).toFixed(2)}</strong>
                 </div>
               );
             })}
-            {customLinesInCart.map((item) => (
-              <div key={item.key} className="flex justify-between gap-3 py-2 text-sm">
-                <span>
-                  {item.type === 'custom-sticker' && `${item.sticker.label} × ${item.quantity}`}
-                  {item.type === 'custom-pack' && `Custom Pack (${item.pack.size} stickers, ${item.pack.finishId}) × ${item.quantity}`}
-                  {item.type === 'custom-wall' && `Custom Wall (${item.wall.layoutName}) × ${item.quantity}`}
-                </span>
-                <strong>₹{item.lineTotal.toFixed(2)}</strong>
-              </div>
-            ))}
+            {customLinesInCart.map((item) => {
+              let thumb: string | null = null;
+              if (item.type === 'custom-sticker') {
+                thumb = item.sticker.image.source === 'upload' ? item.sticker.image.objectUrl : item.sticker.image.url;
+              } else if (item.type === 'custom-wall') {
+                const userSlot = item.wall.slots.find((s) => s.fill.source === 'upload' || s.fill.source === 'url');
+                if (userSlot?.fill.source === 'upload') {
+                  thumb = userSlot.fill.objectUrl;
+                } else if (userSlot?.fill.source === 'url') {
+                  thumb = userSlot.fill.url;
+                }
+              }
+              return (
+                <div key={item.key} className="flex items-center justify-between gap-3 py-2 text-sm">
+                  <div className="flex items-center gap-3">
+                    {thumb ? (
+                      <img src={thumb} alt="Custom artwork preview" className="h-10 w-10 rounded-md object-cover border border-ink/10" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-md bg-ink/5 border border-ink/10" />
+                    )}
+                    <span>
+                      {item.type === 'custom-sticker' && `${item.sticker.label} × ${item.quantity}`}
+                      {item.type === 'custom-pack' && `Custom Pack (${item.pack.size} stickers, ${item.pack.finishId}) × ${item.quantity}`}
+                      {item.type === 'custom-wall' && `Custom Wall (${item.wall.layoutName}) × ${item.quantity}`}
+                    </span>
+                  </div>
+                  <strong>₹{item.lineTotal.toFixed(2)}</strong>
+                </div>
+              );
+            })}
           </div>
 
           <div className="mt-4 space-y-1.5 border-t border-ink/15 pt-3 text-sm">

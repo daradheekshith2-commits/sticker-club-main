@@ -152,14 +152,23 @@ export function AdminOrdersPanel() {
   // Expanded detailed order state
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
-  function resolveArtworkUrl(rawUrlOrId?: string | null, isDownload = false): string {
-    if (!rawUrlOrId) return '';
-    let url = rawUrlOrId;
-    if (!url.startsWith('http') && !url.startsWith('/api')) {
-      url = `/api/uploads/artwork/${rawUrlOrId}/${isDownload ? 'download' : 'file'}`;
-    } else if (isDownload && url.endsWith('/file')) {
-      url = url.replace(/\/file$/, '/download');
+  function resolveArtworkUrl(rawUrlOrId?: string | null, isDownload = false, fileName?: string | null): string {
+    if (!rawUrlOrId && !fileName) return '';
+    if (rawUrlOrId?.startsWith('http')) return rawUrlOrId;
+    if (fileName) {
+      return `https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks/${fileName}`;
     }
+    if (rawUrlOrId && !rawUrlOrId.startsWith('/api')) {
+      if (apiUrl) {
+        let url = `${apiUrl}/api/uploads/artwork/${rawUrlOrId}/${isDownload ? 'download' : 'file'}`;
+        if (token && !url.includes('token=')) {
+          url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
+        }
+        return url;
+      }
+      return `https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks/${rawUrlOrId}`;
+    }
+    let url = rawUrlOrId || '';
     if (token && !url.includes('token=')) {
       url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
     }
@@ -368,7 +377,7 @@ export function AdminOrdersPanel() {
         <div className="mt-5">
           <h3 className="text-lg font-bold">Pending UPI Payments Verification</h3>
           <p className="mt-0.5 text-xs text-ink-soft">
-            Customer-submitted UTR references awaiting verification against your UPI/bank transaction records.
+            Customer-submitted Transaction ID references awaiting verification against your UPI/bank transaction records.
           </p>
 
           {loading ? (
@@ -388,7 +397,7 @@ export function AdminOrdersPanel() {
                       <div className="flex items-center gap-2">
                         <span className="font-bold">Order #{p.orderId}</span>
                         <span className="rounded-full bg-sun/20 px-2 py-0.5 text-xs font-bold text-sun">
-                          UTR Submitted
+                          Transaction ID Submitted
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-ink-soft">
@@ -396,7 +405,7 @@ export function AdminOrdersPanel() {
                         {p.order?.user?.phone ? ` · 📞 ${p.order.user.phone}` : ''})
                       </p>
                       <p className="mt-1 text-sm">
-                        Submitted UTR:{' '}
+                        Submitted Transaction ID:{' '}
                         <span className="rounded bg-paper px-2 py-1 font-mono text-sm font-bold text-ink select-all">
                           {p.utr}
                         </span>
@@ -432,7 +441,7 @@ export function AdminOrdersPanel() {
                         setRejectReason('');
                       }}
                     >
-                      ✗ Reject UTR
+                      ✗ Reject Transaction ID
                     </button>
                   </div>
 
@@ -670,7 +679,9 @@ export function AdminOrdersPanel() {
                         );
                       })}
                       {order.customOrders?.map((co) => {
-                        const stickerArtworkUrl = resolveArtworkUrl(co.artworkId || co.previewUrl);
+                        const stickerArtworkUrl =
+                          co.previewUrl ||
+                          resolveArtworkUrl(co.artworkId, false, co.artwork?.fileName);
                         return (
                           <button
                             key={co.id}
@@ -681,7 +692,7 @@ export function AdminOrdersPanel() {
                                 url: stickerArtworkUrl,
                                 title: `Custom Order Design`,
                                 subtitle: `Original: ${co.artwork?.originalName || 'artwork'} · ${co.artwork?.width || '—'}×${co.artwork?.height || '—'} px`,
-                                downloadUrl: resolveArtworkUrl(co.artworkId, true),
+                                downloadUrl: co.previewUrl || resolveArtworkUrl(co.artworkId, true, co.artwork?.fileName),
                                 downloadName: co.artwork?.originalName || 'artwork-production',
                               })
                             }
@@ -710,7 +721,7 @@ export function AdminOrdersPanel() {
                       </span>
                       {order.payment.utr && (
                         <span>
-                          UTR: <strong className="font-mono text-ink select-all">{order.payment.utr}</strong>
+                          Transaction ID: <strong className="font-mono text-ink select-all">{order.payment.utr}</strong>
                         </span>
                       )}
                       {order.payment.rejectionReason && (
@@ -876,12 +887,16 @@ export function AdminOrdersPanel() {
                                 co.artwork.height &&
                                 (co.artwork.width < minDpiPixels || co.artwork.height < minDpiPixels);
 
-                              const downloadUrl = co.artworkId
-                                ? resolveArtworkUrl(co.artworkId, true)
-                                : null;
-                              const artworkPreview = co.artworkId
-                                ? resolveArtworkUrl(co.artworkId, false)
-                                : co.previewUrl;
+                              const downloadUrl =
+                                co.previewUrl ||
+                                (co.artworkId
+                                  ? resolveArtworkUrl(co.artworkId, true, co.artwork?.fileName)
+                                  : null);
+                              const artworkPreview =
+                                co.previewUrl ||
+                                (co.artworkId
+                                  ? resolveArtworkUrl(co.artworkId, false, co.artwork?.fileName)
+                                  : null);
 
                               return (
                                 <div
@@ -1022,10 +1037,14 @@ export function AdminOrdersPanel() {
                                           const fill = slot.fill || {};
                                           const matchingArtwork = co.artworks?.find((a) => a.slotId === slot.slotId)?.artwork;
                                           const artworkId = fill.artworkId || matchingArtwork?.id;
-                                          const slotThumb = artworkId
-                                            ? resolveArtworkUrl(artworkId, false)
-                                            : fill.url || '/vite.svg';
-                                          const slotDl = artworkId ? resolveArtworkUrl(artworkId, true) : null;
+                                          const slotThumb =
+                                            fill.previewUrl ||
+                                            (artworkId
+                                              ? resolveArtworkUrl(artworkId, false, matchingArtwork?.fileName)
+                                              : fill.url || '/vite.svg');
+                                          const slotDl =
+                                            fill.previewUrl ||
+                                            (artworkId ? resolveArtworkUrl(artworkId, true, matchingArtwork?.fileName) : null);
 
                                           return (
                                             <div

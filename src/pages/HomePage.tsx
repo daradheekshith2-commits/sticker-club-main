@@ -5,19 +5,10 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import { Link } from '../router/router';
 import type { Category, Product } from '../types/product';
 import { isPurchasable, shopUrl } from '../utils/catalogue';
-import { formatPrice } from '../utils/format';
 import { ProductGrid } from '../components/product/ProductCard';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { ShopByVibe } from '../components/vibes/ShopByVibe';
 import { AnimatedStickerHero } from '../components/home/AnimatedStickerHero';
-
-const orderable = (products: Product[], category: Category) => products.filter((p) => p.category === category && isPurchasable(p));
-const categoryPriceSummary = (products: Product[], category: Category) => {
-  const items = orderable(products, category);
-  if (!items.length) return null;
-  const lowest = Math.min(...items.map((p) => p.price));
-  return `${items.length} designs · from ${formatPrice(lowest)}`;
-};
 
 function CategoryCardImage({ cardId, title }: { cardId: string; title: string }) {
   const [failed, setFailed] = useState(false);
@@ -55,7 +46,6 @@ function CategoryCardImage({ cardId, title }: { cardId: string; title: string })
 
 // ---------- Shop categories ----------
 function CategoryDoors() {
-  const { products } = useCatalogue();
   const cards = [
     {
       id: 'stickers',
@@ -95,7 +85,6 @@ function CategoryDoors() {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_12%_25%,rgba(25,115,96,0.42),transparent_55%),radial-gradient(ellipse_at_85%_85%,rgba(0,23,20,0.5),transparent_48%)]" />
       <ul className="relative mx-auto grid max-w-[1040px] grid-cols-1 gap-6 px-4 sm:px-7 md:grid-cols-3 md:gap-6">
         {cards.map((card) => {
-          const countText = card.category ? categoryPriceSummary(products, card.category) : null;
           return (
             <li key={card.id} className="min-w-0 flex">
               <Link
@@ -113,7 +102,6 @@ function CategoryDoors() {
                   <CategoryCardImage cardId={card.id} title={card.title} />
                 </div>
                 <div className="relative z-10 mt-auto flex flex-col pt-1">
-                  {countText && <p className="text-[10px] font-bold tracking-wide text-[#111]/80">{countText}</p>}
                   <h2 className="mt-0.5 font-display text-[22px] font-extrabold leading-tight tracking-tight text-[#111]">{card.title}</h2>
                   <p className="mt-1 text-xs leading-[1.3] text-[#111]/85">{card.description}</p>
                   <div className="mt-3">
