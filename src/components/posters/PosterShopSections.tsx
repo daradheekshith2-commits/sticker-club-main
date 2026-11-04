@@ -39,50 +39,6 @@ const yourPhoto: DisplayFill = {
 
 // ---------------------------------------------------------------------------
 
-/** Photorealistic desk scene from Wall Posters arrangement (Page 11 of design mockup) */
-function DeskScene() {
-  return (
-    <div aria-hidden className="relative overflow-hidden rounded-[var(--radius-card)] border-2 border-ink bg-[#EDE6D8] shadow-md transition-transform duration-300 hover:scale-[1.01]">
-      <img
-        src="/poster-themes/wall-posters-hero.webp"
-        alt="Posters wall arrangement above a desk"
-        className="size-full object-cover"
-      />
-    </div>
-  );
-}
-
-export function PosterShopHero() {
-  const from = Math.min(...singlePosters.map((p) => p.price));
-  return (
-    <section aria-labelledby="shop-title" className="on-light mt-4 grid items-center gap-6 rounded-[var(--radius-card)] border-2 border-ink bg-sky p-5 sm:p-8 lg:grid-cols-[1fr_minmax(0,460px)] lg:py-7">
-      <div>
-        <p className="eyebrow text-ink">The poster shop</p>
-        <h1 id="shop-title" className="mt-2 text-[2.6rem] leading-[0.95] font-extrabold sm:text-6xl">
-          Your wall.
-          <br />
-          Your vibe.
-        </h1>
-        <p className="mt-3 max-w-md">
-          Pick single prints in A5, A4 or A3, grab a ready-made wall pack, or build your own collage from our designs and your photos. Prints from{' '}
-          <strong>{formatPrice(from)}</strong>.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Link to="/build-your-wall" className="btn-primary">
-            Build your own wall <LuArrowRight aria-hidden />
-          </Link>
-          <Link to={shopUrl({ category: 'posters', types: ['poster-set'] })} className="btn-ghost bg-white">
-            Shop wall packs
-          </Link>
-        </div>
-      </div>
-      <div className="hidden sm:block">
-        <DeskScene />
-      </div>
-    </section>
-  );
-}
-
 // ---------------------------------------------------------------------------
 
 export function PosterInterestTiles() {

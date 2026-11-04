@@ -35,7 +35,6 @@ import {
   BuildWallPromo,
   PosterBuyingGuide,
   PosterInterestTiles,
-  PosterShopHero,
   SplitPosterSection,
 } from '../components/posters/PosterShopSections';
 
@@ -519,9 +518,8 @@ export function ShopPage() {
         <StickerIntro />
       ) : showPosterLanding ? (
         <>
-          <PosterShopHero />
-          <PosterInterestTiles />
           <BuildWallPromo />
+          <PosterInterestTiles />
           <SplitPosterSection />
           <h2 id="all-posters" className="mt-16 text-3xl font-extrabold md:text-4xl">
             All posters
