@@ -579,7 +579,7 @@ export const products: Product[] = [
     id: 'pst-001', slug: 'one-more-chapter-poster', name: 'One More Chapter',
     shortDescription: 'A late-night study poster for the desk wall.',
     description: 'Moon, deadline, one more chapter. A dark typographic poster for anyone who does their best work after midnight.',
-    collections: ['minimal'], tags: ['study', 'night', 'typography'], featured: true, isNew: true, displayOrder: 101,
+    collections: ['minimal', 'study'], tags: ['study', 'night', 'typography'], featured: true, isNew: true, displayOrder: 101,
     design: { title: 'ONE MORE\nCHAPTER', bg: ink, fg: paper, accent: lime, motif: 'moon', pattern: 'dots' }, backdrop: '#E9E3D6',
   }),
   poster({

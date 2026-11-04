@@ -150,7 +150,7 @@ export function FaqPage() {
 export function ContactPage() {
   usePageMeta('Contact', `How to reach ${brand.displayName}.`);
   const { email, instagramUrl, instagramHandle, phone } = brand.contact;
-  const wa = whatsappLink('Hi! I found your sticker store.');
+  const wa = whatsappLink('Hey! I am interested to buy stickers');
   return (
     <Page title="Say hi." crumb="Contact" intro="Questions, design requests, feedback on prices — we want to hear all of it.">
       {hasAnyContact() ? (

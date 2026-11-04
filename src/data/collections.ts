@@ -13,12 +13,14 @@ export interface Collection {
   featured: boolean;
   /** Shown wherever the collection is presented, e.g. a licensing disclaimer. */
   note?: string;
+  /** Theme mockup showcase image for poster collections analyzed from design mockups. */
+  posterImage?: string;
 }
 
 export const collections: Collection[] = [
-  { id: 'anime', name: 'Anime', blurb: 'Anime-inspired art, expressive characters and collectible designs.', color: '#FFD447', motif: 'animeFace', featured: true },
-  { id: 'movies', name: 'Movies', blurb: 'Cinematic vibes, iconic genres and movie-inspired art.', color: '#8FD3FF', motif: 'clapper', featured: true },
-  { id: 'quotes', name: 'Cars & Bikes', blurb: 'Original cars, motorcycles, track-day graphics and racing-inspired designs.', color: '#FF5B2E', motif: 'car', featured: true },
+  { id: 'anime', name: 'Anime', blurb: 'Anime-inspired art, expressive characters and collectible designs.', color: '#FFD447', motif: 'animeFace', featured: true, posterImage: '/poster-themes/anime.webp' },
+  { id: 'movies', name: 'Movies', blurb: 'Cinematic vibes, iconic genres and movie-inspired art.', color: '#8FD3FF', motif: 'clapper', featured: true, posterImage: '/poster-themes/movies.webp' },
+  { id: 'quotes', name: 'Cars & Bikes', blurb: 'Original cars, motorcycles, track-day graphics and racing-inspired designs.', color: '#FF5B2E', motif: 'car', featured: true, posterImage: '/poster-themes/cars-and-bikes.webp' },
   {
     id: 'marvel',
     name: 'Marvel',
@@ -26,12 +28,14 @@ export const collections: Collection[] = [
     color: '#D4FF3A',
     motif: 'hero',
     featured: true,
+    posterImage: '/poster-themes/marvel.webp',
   },
-  { id: 'cute', name: 'Cute & Aesthetic', blurb: 'Soft colours, sleepy clouds, small joys.', color: '#FFB3D1', motif: 'cloud', featured: true },
-  { id: 'gaming', name: 'Gaming-Inspired', blurb: 'Original pixel art and controller doodles.', color: '#8A6CFF', motif: 'pixelHeart', featured: false },
-  { id: 'music', name: 'Music & Everyday', blurb: 'Headphones on, world off.', color: '#7FE0B5', motif: 'headphones', featured: false },
-  { id: 'minimal', name: 'Minimal & Type', blurb: 'Clean icons that go with everything.', color: '#F5F0E6', motif: 'sparkle', featured: false },
-  { id: 'motivation', name: 'Mood & Motivation', blurb: 'Tiny pep talks for your water bottle.', color: '#FFD447', motif: 'bolt', featured: false },
+  { id: 'cute', name: 'Cute & Aesthetic', blurb: 'Soft colours, sleepy clouds, small joys.', color: '#FFB3D1', motif: 'cloud', featured: true, posterImage: '/poster-themes/cute-and-aesthetic.webp' },
+  { id: 'gaming', name: 'Gaming-Inspired', blurb: 'Original pixel art and controller doodles.', color: '#8A6CFF', motif: 'pixelHeart', featured: false, posterImage: '/poster-themes/gaming-inspired.webp' },
+  { id: 'music', name: 'Music & Everyday', blurb: 'Headphones on, world off.', color: '#7FE0B5', motif: 'headphones', featured: false, posterImage: '/poster-themes/music-and-everyday.webp' },
+  { id: 'minimal', name: 'Minimal & Type', blurb: 'Clean icons that go with everything.', color: '#F5F0E6', motif: 'sparkle', featured: false, posterImage: '/poster-themes/minimal-and-type.webp' },
+  { id: 'motivation', name: 'Mood & Motivation', blurb: 'Tiny pep talks for your water bottle.', color: '#FFD447', motif: 'bolt', featured: false, posterImage: '/poster-themes/mood-and-motivation.webp' },
+  { id: 'study', name: 'Study / Productivity', blurb: 'Desk inspiration, focus mantras and late-night study vibes.', color: '#4A5568', motif: 'books', featured: false, posterImage: '/poster-themes/study-and-productivity.webp' },
   { id: 'duos', name: 'Matching Duos', blurb: 'Coordinated sticker pairs, sold together as one product.', color: '#FF70A6', motif: 'sparkle', featured: false },
   { id: 'secret', name: 'Secret Messages', blurb: 'Message stickers with a sealed message card inside.', color: '#70D6FF', motif: 'envelope', featured: false },
   { id: 'devotion', name: 'Devotion', blurb: 'Spiritual art, divine serenity and sacred deities.', color: '#FFB347', motif: 'sparkle', featured: false },

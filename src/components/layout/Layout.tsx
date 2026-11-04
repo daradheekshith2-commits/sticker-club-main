@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useCart } from '../../context/CartContext';
 import { CartDrawer } from '../cart/CartDrawer';
+import { FloatingWhatsApp } from '../common/FloatingWhatsApp';
 import { Footer } from './Footer';
 import { SiteHeader } from './SiteHeader';
 
@@ -18,6 +19,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </main>
       <Footer />
       <CartDrawer />
+      <FloatingWhatsApp />
       {/* Screen readers hear "added to cart" messages from here. */}
       <div aria-live="polite" className="sr-only">
         {announcement}

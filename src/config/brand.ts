@@ -58,8 +58,8 @@ export const brand = {
   },
 };
 
-/** Builds a wa.me link when a WhatsApp number is configured, otherwise null. */
-export function whatsappLink(message?: string): string | null {
+/** Builds a wa.me link with pre-filled message when a WhatsApp number is configured, otherwise null. */
+export function whatsappLink(message: string = 'Hey! I am interested to buy stickers'): string | null {
   const number = brand.contact.whatsappNumber;
   if (!number) return null;
   const text = message ? `?text=${encodeURIComponent(message)}` : '';

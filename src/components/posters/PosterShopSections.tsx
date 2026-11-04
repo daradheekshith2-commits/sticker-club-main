@@ -4,12 +4,13 @@
  * ready-made wall packs, the wall-builder promo, a split-poster concept and
  * the buying guide. All content comes from the catalogue and layout data.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LuArrowRight, LuCheck, LuPlus } from 'react-icons/lu';
 import { collections } from '../../data/collections';
 import { posterSizes, products } from '../../data/products';
 import { builderLayouts, getLayout, paperSizes, sizeSummary, type PaperSizeId } from '../../data/wallLayouts';
 import { useCart } from '../../context/CartContext';
+import { useCatalogue } from '../../context/CatalogueContext';
 import { Link } from '../../router/router';
 import type { PosterDesign, Product } from '../../types/product';
 import type { DisplayFill } from '../../types/wall';
@@ -38,36 +39,15 @@ const yourPhoto: DisplayFill = {
 
 // ---------------------------------------------------------------------------
 
-/** Posters above a desk: an original scene built from our own designs. */
+/** Photorealistic desk scene from Wall Posters arrangement (Page 11 of design mockup) */
 function DeskScene() {
-  const layout = getLayout('compact')!;
-  const fills = designFills(['one-more-chapter-poster', 'ship-it-poster', 'chai-o-clock-poster', 'press-start-poster', 'side-a-poster']);
   return (
-    <div aria-hidden className="relative overflow-hidden rounded-[var(--radius-card)] border-2 border-ink bg-[#EDE6D8]">
-      <div className="px-[10%] pt-[8%] pb-[22%]">
-        <WallCanvas layout={layout} fills={fills} detail="thumb" />
-      </div>
-      {/* desk, laptop, lamp and plant */}
-      <svg viewBox="0 0 400 90" className="absolute inset-x-0 bottom-0 w-full" preserveAspectRatio="none">
-        <rect x="0" y="52" width="400" height="38" fill="#C9A57A" />
-        <rect x="0" y="48" width="400" height="8" fill="#121212" />
-      </svg>
-      <svg viewBox="0 0 400 120" className="absolute inset-x-0 bottom-[6%] w-full">
-        <g transform="translate(150 50)">
-          <rect x="0" y="0" width="100" height="56" rx="6" fill="#2B2B30" />
-          <rect x="-10" y="56" width="120" height="8" rx="3" fill="#3A3A40" />
-          <circle cx="50" cy="28" r="9" fill="#D4FF3A" />
-        </g>
-        <g transform="translate(40 30)">
-          <path d="M10 84 L22 20" stroke="#121212" strokeWidth="5" />
-          <path d="M0 26 L34 6 L40 26 Z" fill="#FF5B2E" />
-          <rect x="0" y="82" width="30" height="6" rx="3" fill="#121212" />
-        </g>
-        <g transform="translate(320 52)">
-          <path d="M6 30 h28 l-4 34 h-20 z" fill="#FF5B2E" />
-          <path d="M20 30 C10 10 2 12 0 0 C14 4 18 14 20 30 C22 10 30 4 40 2 C36 16 28 18 20 30" fill="#7FE0B5" stroke="#121212" strokeWidth="2" />
-        </g>
-      </svg>
+    <div aria-hidden className="relative overflow-hidden rounded-[var(--radius-card)] border-2 border-ink bg-[#EDE6D8] shadow-md transition-transform duration-300 hover:scale-[1.01]">
+      <img
+        src="/poster-themes/wall-posters-hero.webp"
+        alt="Posters wall arrangement above a desk"
+        className="size-full object-cover"
+      />
     </div>
   );
 }
@@ -106,34 +86,61 @@ export function PosterShopHero() {
 // ---------------------------------------------------------------------------
 
 export function PosterInterestTiles() {
-  const tiles = collections
-    .map((c) => ({ c, items: singlePosters.filter((p) => p.collections.includes(c.id)) }))
-    .filter((t) => t.items.length > 0);
+  const { products: catalogueProducts } = useCatalogue();
+  const allPosters = useMemo(() => {
+    const list = catalogueProducts.filter((p) => p.productType === 'poster' && isPurchasable(p));
+    return list.length > 0 ? list : singlePosters;
+  }, [catalogueProducts]);
+
+  const tiles = useMemo(() => {
+    return collections
+      .filter((c) => Boolean(c.posterImage))
+      .map((c) => {
+        const items = allPosters.filter((p) => p.collections.includes(c.id) || (c.id === 'study' && (p.tags?.includes('study') || p.tags?.includes('productivity'))));
+        return { c, count: items.length };
+      });
+  }, [allPosters]);
+
   return (
     <section aria-labelledby="poster-interests" className="mt-10">
-      <div className="mb-3 flex items-baseline justify-between gap-4">
-        <h2 id="poster-interests" className="text-2xl font-extrabold md:text-3xl">
-          Shop by interest
-        </h2>
-        <Link to="/vibes" className="flex items-center gap-1 text-sm font-bold underline underline-offset-4">
+      <div className="mb-4 flex items-baseline justify-between gap-4">
+        <div>
+          <h2 id="poster-interests" className="text-2xl font-extrabold md:text-3xl">
+            Shop by interest
+          </h2>
+          <p className="mt-1 text-sm text-ink-soft">
+            Explore curated poster collections styled for every room and aesthetic.
+          </p>
+        </div>
+        <Link to="/vibes" className="flex shrink-0 items-center gap-1 text-sm font-bold underline underline-offset-4">
           All vibes <LuArrowRight aria-hidden className="size-3.5" />
         </Link>
       </div>
-      <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0 lg:grid-cols-9">
-        {tiles.map(({ c, items }) => {
-          const design = designOf(items[0]);
-          return (
-            <li key={c.id} className="w-32 shrink-0 snap-start sm:w-auto">
-              <Link to={shopUrl({ category: 'posters', collections: [c.id] })} className="group block">
-                <span className="block overflow-hidden rounded-xl border-2 border-ink/10 p-2.5 transition-colors group-hover:border-ink" style={{ backgroundColor: c.color }}>
-                  {design && <PosterFaceSvg poster={design} className="mx-auto aspect-[1/1.414] w-3/4 shadow-[0_3px_8px_rgba(42,32,22,0.25)] transition-transform group-hover:-rotate-2" />}
-                </span>
-                <span className="mt-2 block text-sm leading-tight font-bold">{c.name}</span>
-                <span className="text-xs text-ink-soft">{pluralise(items.length, 'poster')}</span>
-              </Link>
-            </li>
-          );
-        })}
+      <ul className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
+        {tiles.map(({ c, count }) => (
+          <li key={c.id} className="w-36 shrink-0 snap-start sm:w-auto">
+            <Link to={shopUrl({ category: 'posters', collections: [c.id] })} className="group block">
+              <span className="relative block aspect-[4/5] overflow-hidden rounded-2xl border-2 border-ink/15 bg-black/5 shadow-sm transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-ink group-hover:shadow-md">
+                {c.posterImage ? (
+                  <img
+                    src={c.posterImage}
+                    alt={`${c.name} posters theme mockup`}
+                    loading="lazy"
+                    className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <span className="flex size-full items-center justify-center font-bold" style={{ backgroundColor: c.color }}>
+                    {c.name}
+                  </span>
+                )}
+              </span>
+              <span className="mt-2.5 block text-sm leading-tight font-extrabold text-ink transition-colors group-hover:text-cinema-red">
+                {c.name}
+              </span>
+              {count > 0 && <span className="text-xs text-ink-soft">{pluralise(count, 'poster')}</span>}
+            </Link>
+          </li>
+        ))}
       </ul>
     </section>
   );
