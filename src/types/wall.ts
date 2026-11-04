@@ -4,7 +4,7 @@
  * when it is saved as a cart line.
  */
 import type { PosterDesign } from './product';
-import type { PaperSizeId } from '../data/wallLayouts';
+import type { PaperSizeId, WallLayout } from '../data/wallLayouts';
 
 /** How a user image sits inside its slot. Affects the preview (object-fit / object-position). */
 export interface ImageFit {
@@ -61,7 +61,8 @@ export function isUserImage(fill: DisplayFill | null | undefined): fill is UserI
 export interface CustomWallConfig {
   layoutId: string;
   layoutName: string;
-  slots: { slotId: string; size: PaperSizeId; fill: SlotFill }[];
+  customLayout?: WallLayout;
+  slots: { slotId: string; size: PaperSizeId; orientation?: 'portrait' | 'landscape'; fill: SlotFill }[];
   /** Price when added — informational; cart totals are recalculated from current price data. */
   priceAtAdd: number;
   /** True when the customer confirmed they may reproduce their own images. */

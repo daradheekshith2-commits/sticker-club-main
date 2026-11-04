@@ -131,9 +131,9 @@ function single(p: {
 
 // ---------- Poster sizes ----------
 export const posterSizes: Variant[] = [
-  { id: 'a5', label: 'A5', detail: '14.8 × 21 cm', price: 89 },
-  { id: 'a4', label: 'A4', detail: '21 × 29.7 cm', price: 119 },
-  { id: 'a3', label: 'A3', detail: '29.7 × 42 cm', price: 149 },
+  { id: 'a5', label: 'A5', detail: '14.8 × 21 cm', price: 90 },
+  { id: 'a4', label: 'A4', detail: '21 × 29.7 cm', price: 120 },
+  { id: 'a3', label: 'A3', detail: '29.7 × 42 cm', price: 150 },
 ];
 
 /** Builds a single-poster product with the standard sizes, so each poster entry stays short. */

@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { Link } from '../../router/router';
 import type { ProductCartLine } from '../../utils/cart';
+import { getProductById } from '../../utils/catalogue';
 
 type Address = { id: string; recipient: string; line1: string; city: string; state: string; postalCode: string; isDefault: boolean };
 type ServerCart = {
@@ -214,17 +215,21 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
           for (const s of line.wall.slots) {
             if (s.fill.source === 'upload') {
               const upRes = await uploadArtworkBlob(s.fill.objectUrl, s.fill.fileName);
-              slots.push({ slotId: s.slotId, size: s.size, fill: { source: 'upload', artworkId: upRes.id, previewUrl: upRes.url, fileName: s.fill.fileName } });
+              slots.push({ slotId: s.slotId, size: s.size, orientation: s.orientation, fill: { source: 'upload', artworkId: upRes.id, previewUrl: upRes.url, fileName: s.fill.fileName } });
             } else if (s.fill.source === 'catalogue') {
-              slots.push({ slotId: s.slotId, size: s.size, fill: { source: 'catalogue', productId: s.fill.productId } });
+              const catProd = getProductById(s.fill.productId);
+              const previewUrl = catProd?.images?.[0]?.src || null;
+              slots.push({ slotId: s.slotId, size: s.size, orientation: s.orientation, fill: { source: 'catalogue', productId: s.fill.productId, previewUrl } });
             } else if (s.fill.source === 'url') {
               const upRes = await uploadArtworkBlob(s.fill.url, 'linked-wall-slot.png');
-              slots.push({ slotId: s.slotId, size: s.size, fill: { source: 'upload', artworkId: upRes.id, previewUrl: upRes.url, fileName: 'linked-wall-slot.png' } });
+              slots.push({ slotId: s.slotId, size: s.size, orientation: s.orientation, fill: { source: 'upload', artworkId: upRes.id, previewUrl: upRes.url, fileName: 'linked-wall-slot.png' } });
             }
           }
           preparedCustomLines.push({
             type: 'custom-wall',
             layoutId: line.wall.layoutId,
+            layoutName: line.wall.layoutName,
+            customLayout: line.wall.customLayout,
             slots,
             quantity: line.quantity,
           });

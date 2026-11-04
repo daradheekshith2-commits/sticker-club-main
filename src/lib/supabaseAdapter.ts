@@ -414,8 +414,16 @@ export async function handleSupabaseRequest<T>(
           const calc = packPrice(Number(line.size || 5), line.finishId || 'glossy');
           linePrice = calc ?? 119;
         } else if (line.type === 'custom-wall') {
-          const layout = line.layoutId ? getLayout(line.layoutId) : null;
-          linePrice = layout ? wallPrice(layout) : 199;
+          if (line.slots && Array.isArray(line.slots) && line.slots.length > 0) {
+            linePrice = line.slots.reduce((sum: number, slot: any) => {
+              const sz = slot.size;
+              const p = sz === 'a3' ? 150 : sz === 'a4' ? 120 : 90;
+              return sum + p;
+            }, 0);
+          } else {
+            const layout = line.layoutId ? getLayout(line.layoutId) : null;
+            linePrice = layout ? wallPrice(layout) : 199;
+          }
         }
 
         let lineArtworkUrl: string | null = line.previewUrl || null;

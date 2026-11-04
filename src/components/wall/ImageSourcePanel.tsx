@@ -1,7 +1,8 @@
 import { LuChevronLeft, LuChevronRight, LuLayoutGrid, LuTrash2, LuTriangleAlert } from 'react-icons/lu';
 import { paperSizes, type WallLayout } from '../../data/wallLayouts';
 import { getProductById } from '../../utils/catalogue';
-import { isLowResolution, minShortSidePixels, newFit } from '../../utils/customWall';
+import { isLowResolution, minShortSidePixels, newFit, sizePrice } from '../../utils/customWall';
+import { formatPrice } from '../../utils/format';
 import { isUserImage, type ImageFit, type SlotFill } from '../../types/wall';
 import { CataloguePosterPicker } from './CataloguePosterPicker';
 import { ImageCropControls } from './ImageCropControls';
@@ -20,8 +21,24 @@ interface Props {
 /** Everything for the selected wall position: what's in it, and where a new image comes from. */
 export function ImageSourcePanel({ layout, index, fill, onSelect, onFill, onClear, onFit }: Props) {
   const slot = layout.slots[index];
-  const size = paperSizes[slot.size];
   const total = layout.slots.length;
+
+  if (!slot || total === 0) {
+    return (
+      <section aria-labelledby="slot-panel-title" className="rounded-[var(--radius-card)] border-2 border-dashed border-ink/25 bg-white p-6 text-center">
+        <h2 id="slot-panel-title" className="font-display text-lg font-extrabold text-ink">
+          No sheet selected
+        </h2>
+        <p className="mt-1 text-sm text-ink-soft">
+          Add sheets to your wall using the toolbar above, then select one to fill it with artwork.
+        </p>
+      </section>
+    );
+  }
+
+  const size = paperSizes[slot.size];
+  const orientation = slot.orientation ?? 'portrait';
+  const price = sizePrice(slot.size);
 
   const current = !fill
     ? 'Empty'
@@ -33,26 +50,42 @@ export function ImageSourcePanel({ layout, index, fill, onSelect, onFill, onClea
   const lowRes = isUserImage(fill) && isLowResolution(fill.width, fill.height, slot.size);
 
   return (
-    <section aria-labelledby="slot-panel-title" className="rounded-[var(--radius-card)] border-2 border-ink bg-white p-4 sm:p-5">
+    <section aria-labelledby="slot-panel-title" className="rounded-[var(--radius-card)] border-2 border-ink bg-white p-4 sm:p-5 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <button type="button" onClick={() => onSelect(index - 1)} disabled={index === 0} className="grid size-9 place-items-center rounded-full border-2 border-ink/15 disabled:opacity-30" aria-label="Previous position">
+        <button
+          type="button"
+          onClick={() => onSelect(index - 1)}
+          disabled={index === 0}
+          className="grid size-9 place-items-center rounded-full border-2 border-ink/15 disabled:opacity-30"
+          aria-label="Previous position"
+        >
           <LuChevronLeft aria-hidden />
         </button>
         <div className="text-center">
-          <h2 id="slot-panel-title" className="font-display text-xl font-extrabold">
+          <h2 id="slot-panel-title" className="font-display text-xl font-extrabold text-ink">
             Position {slot.number} of {total} · {size.label}
           </h2>
-          <p className="text-xs text-ink-soft">
-            {size.w} × {size.h} cm
-          </p>
+          <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs text-ink-soft">
+            <span>{slot.w} × {slot.h} cm</span>
+            <span>·</span>
+            <span className="capitalize">{orientation}</span>
+            <span>·</span>
+            <span className="font-bold text-ink">{formatPrice(price)}</span>
+          </div>
         </div>
-        <button type="button" onClick={() => onSelect(index + 1)} disabled={index === total - 1} className="grid size-9 place-items-center rounded-full border-2 border-ink/15 disabled:opacity-30" aria-label="Next position">
+        <button
+          type="button"
+          onClick={() => onSelect(index + 1)}
+          disabled={index === total - 1}
+          className="grid size-9 place-items-center rounded-full border-2 border-ink/15 disabled:opacity-30"
+          aria-label="Next position"
+        >
           <LuChevronRight aria-hidden />
         </button>
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-paper px-3 py-2 text-sm">
-        <span className="min-w-0 truncate">
+        <span className="min-w-0 truncate text-ink">
           <span className="font-bold">Now:</span> {current}
         </span>
         {fill && (
@@ -79,7 +112,7 @@ export function ImageSourcePanel({ layout, index, fill, onSelect, onFill, onClea
       )}
 
       <div className="mt-4">
-        <p className="mb-2 text-sm font-bold">{fill ? 'Replace with…' : 'Fill this position with…'}</p>
+        <p className="mb-2 text-sm font-bold text-ink">{fill ? 'Replace with…' : 'Fill this position with…'}</p>
         <ImageSourcePicker
           key={slot.id /* fresh tabs and inputs for each position */}
           label="Image source for this position"

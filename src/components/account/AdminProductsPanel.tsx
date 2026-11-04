@@ -1222,12 +1222,12 @@ export function AdminProductsPanel() {
                       setFormat(nextType === 'posters' ? 'poster' : 'single');
                       if (!editingId) {
                         if (nextType === 'posters') {
-                          setPrice('89');
+                          setPrice('90');
                           if (variants.length === 0) {
                             setVariants([
-                              { id: 'a5', label: 'A5', price: 89 },
-                              { id: 'a4', label: 'A4', price: 119 },
-                              { id: 'a3', label: 'A3', price: 149 },
+                              { id: 'a5', label: 'A5', price: 90 },
+                              { id: 'a4', label: 'A4', price: 120 },
+                              { id: 'a3', label: 'A3', price: 150 },
                             ]);
                           }
                         } else {
@@ -1452,14 +1452,14 @@ export function AdminProductsPanel() {
                     type="button"
                     onClick={() => {
                       const posterDefaults = [
-                        { id: 'a5', label: 'A5', price: 89 },
-                        { id: 'a4', label: 'A4', price: 119 },
-                        { id: 'a3', label: 'A3', price: 149 },
+                        { id: 'a5', label: 'A5', price: 90 },
+                        { id: 'a4', label: 'A4', price: 120 },
+                        { id: 'a3', label: 'A3', price: 150 },
                       ];
                       const next = posterDefaults[variants.length] ?? {
                         id: `var-${variants.length + 1}`,
                         label: `Size ${variants.length + 1}`,
-                        price: Number(price) || 89,
+                        price: Number(price) || 90,
                       };
                       setVariants((prev) => [...prev, next]);
                     }}

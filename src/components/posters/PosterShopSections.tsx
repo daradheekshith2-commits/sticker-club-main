@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { LuArrowRight, LuCheck, LuPlus } from 'react-icons/lu';
 import { collections } from '../../data/collections';
 import { posterSizes, products } from '../../data/products';
-import { builderLayouts, getLayout, paperSizes, sizeSummary, type PaperSizeId } from '../../data/wallLayouts';
+import { getLayout, paperSizes, sizeSummary, type PaperSizeId } from '../../data/wallLayouts';
 import { useCart } from '../../context/CartContext';
 import { useCatalogue } from '../../context/CatalogueContext';
 import { Link } from '../../router/router';
@@ -319,18 +319,13 @@ export function WallPacksSection() {
 // ---------------------------------------------------------------------------
 
 export function BuildWallPromo() {
-  const layout = builderLayouts.find((l) => l.id === 'classic')!;
-  const fills: DisplayFill[] = [
-    yourPhoto,
-    ...designFills(['one-more-chapter-poster']),
-    yourPhoto,
-    ...designFills(['chai-o-clock-poster', 'redline-poster']),
-    yourPhoto,
-    ...designFills(['do-it-scared-poster', 'soft-days-poster']),
+  const steps = [
+    'Choose a preset or create your own custom layout using A5, A4, and A3 sheets',
+    'Fill each position with our website designs, photos from your device, or an image link',
+    'Check the live preview, sheet count, and subtotal, then add your custom wall to the cart',
   ];
-  const steps = ['Choose a layout — 5 to 15 posters', 'Fill each spot with our designs, your photos or an image link', 'Check the preview and price, then add it to your cart'];
   return (
-    <section aria-labelledby="build-promo" className="mt-14 grid items-center gap-8 rounded-[var(--radius-card)] border border-mint/15 bg-paper-deep p-6 text-ink md:grid-cols-[1fr_1.1fr] md:p-10">
+    <section aria-labelledby="build-promo" className="mt-14 grid items-center gap-8 rounded-[var(--radius-card)] border border-mint/15 bg-paper-deep p-6 text-ink md:grid-cols-[1.1fr_1fr] md:p-10">
       <div>
         <p className="text-xs font-bold tracking-[0.18em] text-cinema-red uppercase">New · Build your own wall</p>
         <h2 id="build-promo" className="mt-2 text-4xl leading-[1] font-extrabold md:text-5xl">
@@ -348,8 +343,13 @@ export function BuildWallPromo() {
           Start building <LuArrowRight aria-hidden />
         </Link>
       </div>
-      <div className="rounded-2xl bg-[#EDE6D8] px-[6%] pt-[7%] pb-[5%]">
-        <WallCanvas layout={layout} fills={fills} detail="thumb" label="Example wall mixing our designs with your photos" />
+      <div className="flex justify-center overflow-hidden rounded-2xl border-2 border-ink/20 bg-[#121816] shadow-lg">
+        <img
+          src="/poster-themes/custom-wall-gaming-room.webp"
+          alt="Gaming room workspace with custom poster wall arrangement above desk"
+          className="h-full max-h-[460px] w-full object-cover object-center sm:max-h-[520px]"
+          loading="lazy"
+        />
       </div>
     </section>
   );

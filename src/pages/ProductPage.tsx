@@ -172,9 +172,9 @@ export function ProductPage() {
   const views = effectiveProduct.images?.length ? effectiveProduct.images.map((_, i) => i) : viewsFor(effectiveProduct);
   const related = getRelatedProducts(product, 4, products);
   const selectedVariant = product.variants?.find((v) => v.id === variantId);
-  const a5Price = product.variants?.find((v) => v.id === 'a5')?.price ?? 89;
-  const a4Price = product.variants?.find((v) => v.id === 'a4')?.price ?? 119;
-  const a3Price = product.variants?.find((v) => v.id === 'a3')?.price ?? 149;
+  const a5Price = product.variants?.find((v) => v.id === 'a5')?.price ?? 90;
+  const a4Price = product.variants?.find((v) => v.id === 'a4')?.price ?? 120;
+  const a3Price = product.variants?.find((v) => v.id === 'a3')?.price ?? 150;
   const customPosterPrice = Math.max(1, Math.round(customPosterWidth * customPosterHeight * 0.258));
   const price = (product.category === 'posters' && variantId === 'custom')
     ? customPosterPrice

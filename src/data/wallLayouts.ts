@@ -28,6 +28,7 @@ export interface WallSlot {
   /** 1-based position number shown to customers. */
   number: number;
   size: PaperSizeId;
+  orientation?: 'portrait' | 'landscape';
   /** Top-left corner and size, in cm from the top-left of the wall. */
   x: number;
   y: number;
@@ -43,6 +44,7 @@ export interface WallLayout {
   /** Total wall area covered, in cm (for aspect ratio). */
   width: number;
   height: number;
+  isCustom?: boolean;
 }
 
 type RowItem = PaperSizeId | PaperSizeId[];

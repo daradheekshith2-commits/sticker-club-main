@@ -252,7 +252,7 @@ export function summariseCart(items: CartItem[], findProduct: (id: string) => Pr
   const lines: CartLine[] = [];
   for (const item of items) {
     if (isWallItem(item)) {
-      const layout = getLayout(item.wall.layoutId);
+      const layout = item.wall.customLayout ?? getLayout(item.wall.layoutId);
       if (!layout || layout.slots.length !== item.wall.slots.length) continue; // layout changed or removed
       const price = wallPrice(layout);
       lines.push({ type: 'custom-wall', key: keyOf(item), id: item.id, wall: item.wall, layout, unitPrice: price, quantity: item.quantity, lineTotal: price * item.quantity });

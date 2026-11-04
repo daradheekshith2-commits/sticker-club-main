@@ -143,15 +143,21 @@ export const isComplete = (state: BuilderState) => state.fills.length > 0 && sta
 export const usesOwnImages = (state: BuilderState) => state.fills.some(isUserImage);
 
 /** Snapshot the builder as a cart configuration. Throws if the wall isn't complete. */
-export function toWallConfig(state: BuilderState, rightsConfirmed: boolean): CustomWallConfig {
-  const layout = getLayout(state.layoutId);
+export function toWallConfig(state: BuilderState, rightsConfirmed: boolean, customLayout?: WallLayout): CustomWallConfig {
+  const layout = customLayout ?? getLayout(state.layoutId);
   if (!layout) throw new Error('Unknown layout');
   if (!isComplete(state)) throw new Error('Every position needs an image first');
   if (usesOwnImages(state) && !rightsConfirmed) throw new Error('Image rights must be confirmed');
   return {
     layoutId: layout.id,
     layoutName: layout.name,
-    slots: layout.slots.map((slot, i) => ({ slotId: slot.id, size: slot.size, fill: state.fills[i]! })),
+    customLayout: layout.isCustom ? layout : undefined,
+    slots: layout.slots.map((slot, i) => ({
+      slotId: slot.id,
+      size: slot.size,
+      orientation: slot.orientation,
+      fill: state.fills[i]!,
+    })),
     priceAtAdd: wallPrice(layout),
     rightsConfirmed,
   };
