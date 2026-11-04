@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { LuArrowRight, LuChevronDown, LuPackage, LuSearch, LuSlidersHorizontal, LuX } from 'react-icons/lu';
 import { brand } from '../config/brand';
 import { useCatalogue } from '../context/CatalogueContext';
-import { collections, getCollection, posterTypes, productTypeLabels, stickerTypes } from '../data/collections';
+import { collections, getCollection, productTypeLabels } from '../data/collections';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { Link, useSearchParams } from '../router/router';
 import type { Category, CollectionId, Product, ProductType, StickerDesign } from '../types/product';
@@ -36,9 +36,7 @@ import {
   PosterBuyingGuide,
   PosterInterestTiles,
   PosterShopHero,
-  PosterShoppingPaths,
   SplitPosterSection,
-  WallPacksSection,
 } from '../components/posters/PosterShopSections';
 
 function toggle<T>(list: T[], value: T): T[] {
@@ -56,13 +54,6 @@ function titleFor(f: CatalogueFilters): string {
   if (f.category === 'posters') return 'All posters';
   if (f.category === 'stickers') return 'All stickers';
   return 'Shop everything';
-}
-
-/** Formats offered for a category (the sticker page never lists poster formats). */
-function typesFor(category: Category | null): ProductType[] {
-  if (category === 'stickers') return stickerTypes;
-  if (category === 'posters') return posterTypes;
-  return [...stickerTypes, ...(brand.features.showPosters ? posterTypes : [])];
 }
 
 // ---------------------------------------------------------------------------
@@ -185,45 +176,6 @@ const formatRepresentatives: Partial<Record<ProductType, string>> = {
   poster: 'redline-poster',
   'poster-set': 'desk-wall-pack',
 };
-
-function ShopByFormat({ f }: { f: CatalogueFilters }) {
-  const { products, getProductBySlug } = useCatalogue();
-  const category = f.category ?? 'stickers';
-  const types: ProductType[] = category === 'posters' ? ['poster', 'poster-set'] : ['single', 'sheet', 'pack', 'mystery', 'duo', 'secret'];
-  return (
-    <section aria-labelledby="by-format" className="mt-8">
-      <h2 id="by-format" className="eyebrow mb-3">
-        Shop by format
-      </h2>
-      <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
-        {types.map((t) => {
-          const sample = getProductBySlug(formatRepresentatives[t] ?? '');
-          const from = getStartingPrice(t, products);
-          const active = f.types.length === 1 && f.types[0] === t;
-          return (
-            <li key={t} className="w-[72%] shrink-0 snap-start sm:w-auto">
-              <Link
-                to={shopUrl({ category, types: [t], sort: f.sort })}
-                aria-current={active ? 'true' : undefined}
-                className={`group flex items-center gap-3 rounded-2xl border-2 bg-white p-2.5 pr-4 transition-colors ${active ? 'border-ink' : 'border-ink/10 hover:border-ink'}`}
-              >
-                {sample && (
-                  <span className="block size-16 shrink-0 overflow-hidden rounded-xl sm:size-20">
-                    <ProductImage product={sample} className="size-full" />
-                  </span>
-                )}
-                <span className="min-w-0">
-                  <span className="block font-display text-lg leading-tight font-extrabold">{productTypeLabels[t].plural}</span>
-                  {from && <span className="block text-sm text-ink-soft">from {formatPrice(from)}</span>}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
-}
 
 function ShopByVibe({ f }: { f: CatalogueFilters }) {
   const { products, isPurchasable } = useCatalogue();
@@ -364,25 +316,11 @@ const VIBES_SHOWN = 8;
 function Filters({ f, update }: { f: CatalogueFilters; update: (next: Partial<CatalogueFilters>) => void }) {
   const { products } = useCatalogue();
   const [allVibes, setAllVibes] = useState(false);
-  const types = typesFor(f.category);
   // Selected vibes always stay visible, even when the list is collapsed.
   const vibeList = allVibes ? collections : collections.filter((c, i) => i < VIBES_SHOWN || f.collections.includes(c.id));
   // Each count = how many products you'd see if you ticked that option.
   return (
     <div>
-      <FilterGroup title="Format" activeCount={f.types.length} onReset={() => update({ types: [] })}>
-        {types.map((t) => (
-          <FilterOption
-            key={t}
-            active={f.types.includes(t)}
-            count={facetCount(f, { types: f.types.includes(t) ? f.types : [...f.types, t] }, products)}
-            showCount={false}
-            onClick={() => update({ types: toggle(f.types, t) })}
-          >
-            {productTypeLabels[t].plural}
-          </FilterOption>
-        ))}
-      </FilterGroup>
       {f.category === 'posters' && (
         <FilterGroup title="Poster size" activeCount={f.sizes.length} onReset={() => update({ sizes: [] })}>
           {allSizes(products).map((size) => (
@@ -583,8 +521,6 @@ export function ShopPage() {
         <>
           <PosterShopHero />
           <PosterInterestTiles />
-          <PosterShoppingPaths />
-          <WallPacksSection />
           <BuildWallPromo />
           <SplitPosterSection />
           <h2 id="all-posters" className="mt-16 text-3xl font-extrabold md:text-4xl">
@@ -606,7 +542,6 @@ export function ShopPage() {
         </p>
       ))}
 
-      {filters.category !== null && !showPosterLanding && <ShopByFormat f={filters} />}
       {filters.category !== null && !showPosterLanding && <ShopByVibe f={filters} />}
       {filters.category !== 'posters' && !showPosterLanding && <MysteryShopBanner />}
       {showIntro && <CreateYourOwnBanner />}
