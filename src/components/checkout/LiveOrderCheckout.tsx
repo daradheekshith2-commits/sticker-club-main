@@ -484,7 +484,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
   const customSubtotal = customLinesInCart.reduce((sum, line) => sum + line.lineTotal, 0);
   const subtotalEstimate = standardSubtotal + customSubtotal;
   const isCod = paymentMethod === 'COD';
-  const deliveryFeeVal = isCod ? 20 : 15;
+  const deliveryFeeVal = isCod ? 30 : 15;
   const totalEstimate = subtotalEstimate + deliveryFeeVal;
 
   return (
@@ -646,7 +646,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
               <span className="font-bold">Cash on Delivery (COD)</span>
               {paymentMethod === 'COD' && <span className="text-lime" aria-hidden>●</span>}
             </div>
-            <p className="mt-1 text-xs text-ink-soft">Pay in cash when your stickers and posters are delivered.</p>
+            <p className="mt-1 text-xs text-ink-soft">Pay in cash when your stickers and posters are delivered (+₹15 COD extra delivery charge).</p>
           </button>
         </div>
       </div>
@@ -738,7 +738,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
               <span>₹{subtotalEstimate.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-ink-soft">Delivery Fee ({isCod ? 'Cash on Delivery: ₹20' : 'UPI Payment: ₹15'})</span>
+              <span className="text-ink-soft">Delivery Fee ({isCod ? 'Cash on Delivery: ₹30 (+₹15 COD charge)' : 'UPI Payment: ₹15'})</span>
               <span className="font-bold">₹{deliveryFeeVal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between border-t border-ink/10 pt-2 text-base font-extrabold">

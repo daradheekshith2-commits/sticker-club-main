@@ -172,7 +172,10 @@ export function ProductPage() {
   const views = effectiveProduct.images?.length ? effectiveProduct.images.map((_, i) => i) : viewsFor(effectiveProduct);
   const related = getRelatedProducts(product, 4, products);
   const selectedVariant = product.variants?.find((v) => v.id === variantId);
-  const customPosterPrice = Math.max(1, Math.round(customPosterWidth * customPosterHeight * 0.8));
+  const a5Price = product.variants?.find((v) => v.id === 'a5')?.price ?? 89;
+  const a4Price = product.variants?.find((v) => v.id === 'a4')?.price ?? 119;
+  const a3Price = product.variants?.find((v) => v.id === 'a3')?.price ?? 149;
+  const customPosterPrice = Math.max(1, Math.round(customPosterWidth * customPosterHeight * 0.258));
   const price = (product.category === 'posters' && variantId === 'custom')
     ? customPosterPrice
     : unitPrice(product, variantId);
@@ -325,7 +328,7 @@ export function ProductPage() {
                 >
                   <p className="font-bold text-sm text-ink">A5</p>
                   <p className="text-xs font-extrabold text-ink mt-0.5">14.8 × 21 cm</p>
-                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹249</p>
+                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹{a5Price}</p>
                   <span className="mt-0.5 block text-[10px] text-ink-soft font-semibold">Desk frames</span>
                 </button>
                 <button
@@ -339,7 +342,7 @@ export function ProductPage() {
                 >
                   <p className="font-bold text-sm text-ink">A4</p>
                   <p className="text-xs font-extrabold text-ink mt-0.5">21 × 29.7 cm</p>
-                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹499</p>
+                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹{a4Price}</p>
                   <span className="mt-0.5 block text-[10px] text-ink-soft font-semibold">Standard poster</span>
                 </button>
                 <button
@@ -353,7 +356,7 @@ export function ProductPage() {
                 >
                   <p className="font-bold text-sm text-ink">A3</p>
                   <p className="text-xs font-extrabold text-ink mt-0.5">29.7 × 42 cm</p>
-                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹998</p>
+                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹{a3Price}</p>
                   <span className="mt-0.5 block text-[10px] text-ink-soft font-semibold">Wall size</span>
                 </button>
                 <button
@@ -367,7 +370,7 @@ export function ProductPage() {
                 >
                   <p className="font-bold text-sm text-ink">Custom</p>
                   <p className="text-xs font-extrabold text-ink mt-0.5">Any size (cm)</p>
-                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹0.8/cm²</p>
+                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹0.258/cm²</p>
                   <span className="mt-0.5 block text-[10px] text-ink-soft font-semibold">Enter dimensions</span>
                 </button>
               </div>
@@ -380,7 +383,7 @@ export function ProductPage() {
                       Enter Poster Dimensions (in cm):
                     </span>
                     <span className="text-[11px] font-mono font-bold text-mint bg-ink px-2 py-0.5 rounded">
-                      1 cm² = 0.8 rs
+                      1 cm² = 0.258 rs
                     </span>
                   </div>
                   <div className="mt-2.5 grid grid-cols-2 gap-3">

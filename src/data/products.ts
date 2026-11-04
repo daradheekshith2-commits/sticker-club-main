@@ -130,11 +130,10 @@ function single(p: {
 }
 
 // ---------- Poster sizes ----------
-// Standard ISO paper sizes calculated via 1 cm² = 0.8 rs formula
 export const posterSizes: Variant[] = [
-  { id: 'a5', label: 'A5', detail: '14.8 × 21 cm', price: 249 },
-  { id: 'a4', label: 'A4', detail: '21 × 29.7 cm', price: 499 },
-  { id: 'a3', label: 'A3', detail: '29.7 × 42 cm', price: 998 },
+  { id: 'a5', label: 'A5', detail: '14.8 × 21 cm', price: 89 },
+  { id: 'a4', label: 'A4', detail: '21 × 29.7 cm', price: 119 },
+  { id: 'a3', label: 'A3', detail: '29.7 × 42 cm', price: 149 },
 ];
 
 /** Builds a single-poster product with the standard sizes, so each poster entry stays short. */

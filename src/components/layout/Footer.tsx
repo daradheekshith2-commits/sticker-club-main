@@ -1,4 +1,4 @@
-import { LuInstagram, LuMail, LuMessageCircle } from 'react-icons/lu';
+import { LuInstagram, LuMail, LuMessageCircle, LuPhone } from 'react-icons/lu';
 import { brand, whatsappLink } from '../../config/brand';
 import { collections } from '../../data/collections';
 import { Link } from '../../router/router';
@@ -23,7 +23,7 @@ function Column({ title, links }: { title: string; links: { label: string; to: s
 }
 
 export function Footer() {
-  const { email, instagramUrl, instagramHandle, otherSocials } = brand.contact;
+  const { email, instagramUrl, instagramHandle, phone, otherSocials } = brand.contact;
   const wa = whatsappLink();
   const year = new Date().getFullYear();
 
@@ -70,12 +70,17 @@ export function Footer() {
           <p className="mt-3 max-w-sm text-ink/75">{brand.description}</p>
           <div className="mt-6 flex flex-wrap gap-2">
             {instagramUrl && (
-              <a href={instagramUrl} target="_blank" rel="noreferrer" className="chip border-ink/20 bg-transparent text-ink hover:border-lime">
+              <a href={instagramUrl} target="_blank" rel="noreferrer" className="chip border-ink/20 bg-transparent text-ink hover:border-lime" title="Follow us on Instagram">
                 <LuInstagram aria-hidden /> {instagramHandle ?? 'Instagram'}
               </a>
             )}
+            {phone && (
+              <a href={`tel:${phone}`} className="chip border-ink/20 bg-transparent text-ink hover:border-lime" title="Call or Contact us">
+                <LuPhone aria-hidden /> +91 {phone}
+              </a>
+            )}
             {wa && (
-              <a href={wa} target="_blank" rel="noreferrer" className="chip border-ink/20 bg-transparent text-ink hover:border-lime">
+              <a href={wa} target="_blank" rel="noreferrer" className="chip border-ink/20 bg-transparent text-ink hover:border-lime" title="Chat on WhatsApp">
                 <LuMessageCircle aria-hidden /> WhatsApp
               </a>
             )}
@@ -89,7 +94,7 @@ export function Footer() {
                 {s.label}
               </a>
             ))}
-            {!instagramUrl && !wa && !email && <Placeholder>Social & contact links not set up yet</Placeholder>}
+            {!instagramUrl && !phone && !wa && !email && <Placeholder>Social & contact links not set up yet</Placeholder>}
           </div>
         </div>
         <Column title="Shop" links={shopLinks} />

@@ -27,7 +27,7 @@ export const brand = {
    * Printed QR codes (packaging inserts) are generated from this. While null,
    * QR codes are previews only and say so.
    */
-  publicUrl: null as string | null,
+  publicUrl: 'https://sticker-club-main.vercel.app' as string | null,
 
   currency: 'INR',
   locale: 'en-IN',
@@ -42,11 +42,13 @@ export const brand = {
     /** e.g. 'hello@yourbrand.in' — leave null until the inbox exists. */
     email: null as string | null,
     /** e.g. 'https://instagram.com/yourbrand' */
-    instagramUrl: null as string | null,
+    instagramUrl: 'https://www.instagram.com/pixwora.store/?hl=en' as string | null,
     /** e.g. '@yourbrand' */
-    instagramHandle: null as string | null,
+    instagramHandle: '@pixwora.store' as string | null,
     /** International format without '+', e.g. '919876543210'. Null until a business number is set up. */
-    whatsappNumber: null as string | null,
+    whatsappNumber: '917981793020' as string | null,
+    /** Contact phone number */
+    phone: '7981793020' as string | null,
     otherSocials: [] as SocialLink[],
   },
 
@@ -67,5 +69,5 @@ export function whatsappLink(message?: string): string | null {
 /** True when at least one real way to reach the founders is configured. */
 export function hasAnyContact(): boolean {
   const c = brand.contact;
-  return Boolean(c.email || c.instagramUrl || c.whatsappNumber || c.otherSocials.length);
+  return Boolean(c.email || c.instagramUrl || c.whatsappNumber || c.phone || c.otherSocials.length);
 }

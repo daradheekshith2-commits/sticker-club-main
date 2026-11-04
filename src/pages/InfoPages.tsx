@@ -4,7 +4,7 @@
  * replace them with real, founder-approved terms before taking real orders.
  */
 import type { ReactNode } from 'react';
-import { LuInstagram, LuMail, LuMessageCircle } from 'react-icons/lu';
+import { LuInstagram, LuMail, LuMessageCircle, LuPhone } from 'react-icons/lu';
 import { brand, hasAnyContact, whatsappLink } from '../config/brand';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { Link, useParams } from '../router/router';
@@ -106,7 +106,7 @@ const faqs: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'Do you offer Cash on Delivery (COD)?',
-    a: 'Yes! Cash on Delivery is available for eligible addresses across India. Payment is collected in cash by the delivery courier upon arrival.',
+    a: 'Yes! Cash on Delivery is available for eligible addresses across India (with a nominal ₹15 extra delivery charge). Payment is collected in cash by the delivery courier upon arrival.',
   },
   {
     q: 'What is the Mystery Sticker Pack?',
@@ -149,7 +149,7 @@ export function FaqPage() {
 
 export function ContactPage() {
   usePageMeta('Contact', `How to reach ${brand.displayName}.`);
-  const { email, instagramUrl, instagramHandle } = brand.contact;
+  const { email, instagramUrl, instagramHandle, phone } = brand.contact;
   const wa = whatsappLink('Hi! I found your sticker store.');
   return (
     <Page title="Say hi." crumb="Contact" intro="Questions, design requests, feedback on prices — we want to hear all of it.">
@@ -159,6 +159,13 @@ export function ContactPage() {
             <li>
               <a href={instagramUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-2xl border-2 border-ink bg-white p-5 font-bold hover:bg-lime">
                 <LuInstagram aria-hidden className="size-6" /> {instagramHandle ?? 'Instagram'}
+              </a>
+            </li>
+          )}
+          {phone && (
+            <li>
+              <a href={`tel:${phone}`} className="flex items-center gap-3 rounded-2xl border-2 border-ink bg-white p-5 font-bold hover:bg-lime">
+                <LuPhone aria-hidden className="size-6" /> +91 {phone}
               </a>
             </li>
           )}

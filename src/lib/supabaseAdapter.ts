@@ -223,7 +223,7 @@ export async function handleSupabaseRequest<T>(
         upiName: upiPayeeName,
         upiQrUrl,
         deliveryFeeUPI: '15',
-        deliveryFeeCOD: '20',
+        deliveryFeeCOD: '30',
         deliveryFee: '15',
       } as unknown as T,
     };
@@ -444,7 +444,7 @@ export async function handleSupabaseRequest<T>(
     }
 
     const isCod = (body.paymentMethod || '').toUpperCase() === 'COD';
-    const deliveryFee = isCod ? 20 : 15;
+    const deliveryFee = isCod ? 30 : 15;
     const total = subtotal + deliveryFee;
     const orderId = crypto.randomUUID();
 
