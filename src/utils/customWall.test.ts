@@ -128,6 +128,52 @@ test('toWallConfig requires a complete wall and rights confirmation for own imag
   assert.equal(config.slots[2].size, 'a3');
 });
 
+test('toWallConfig preserves independent crop and transform metadata on fills', () => {
+  let s = initialBuilderState('compact');
+  const catWithEdit: SlotFill = {
+    source: 'catalogue',
+    productId: 'pst-001',
+    fit: { mode: 'cover', focusX: 50, focusY: 50 },
+    edit: {
+      crop: { x: 10, y: 15 },
+      zoom: 1.5,
+      rotation: 90,
+      aspectRatio: 1 / 1.414,
+      aspectMode: 'sheet',
+      mode: 'cover',
+      croppedArea: { x: 5, y: 5, width: 90, height: 90 },
+    },
+  };
+  const urlWithEdit: SlotFill = {
+    source: 'url',
+    url: 'https://example.com/user-photo.jpg',
+    width: 2400,
+    height: 3200,
+    fit: { mode: 'cover', focusX: 50, focusY: 50 },
+    edit: {
+      crop: { x: 0, y: 0 },
+      zoom: 1.2,
+      rotation: 0,
+      aspectRatio: 1,
+      aspectMode: 'square',
+      mode: 'contain',
+      croppedArea: { x: 10, y: 10, width: 80, height: 80 },
+    },
+  };
+
+  s = builderReducer(s, { type: 'setFill', index: 0, fill: catWithEdit });
+  for (let i = 1; i < 4; i++) s = builderReducer(s, { type: 'setFill', index: i, fill: cat('pst-002') });
+  s = builderReducer(s, { type: 'setFill', index: 4, fill: urlWithEdit });
+
+  const config = toWallConfig(s, true);
+  assert.equal(config.slots[0].fill.source, 'catalogue');
+  assert.equal((config.slots[0].fill as any).edit?.rotation, 90);
+  assert.equal((config.slots[0].fill as any).edit?.zoom, 1.5);
+  assert.equal(config.slots[4].fill.source, 'url');
+  assert.equal((config.slots[4].fill as any).edit?.aspectMode, 'square');
+  assert.equal((config.slots[4].fill as any).edit?.mode, 'contain');
+});
+
 test('low-resolution hint uses the slot size and never guesses without dimensions', () => {
   assert.ok(isLowResolution(400, 600, 'a4'));
   assert.ok(!isLowResolution(2400, 3400, 'a3'));

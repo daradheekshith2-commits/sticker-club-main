@@ -49,6 +49,7 @@ export function BuildWallPage() {
     setFill,
     clearFill,
     setFit,
+    setEdit,
     addCustomSheet,
     removeCustomSheet,
     duplicateCustomSheet,
@@ -177,12 +178,10 @@ export function BuildWallPage() {
               onSelect={select}
               onFill={(fill) => {
                 setFill(state.selected, fill);
-                // Advance to the next empty position, if one exists
-                const next = state.fills.findIndex((f, i) => !f && i !== state.selected);
-                if (next !== -1 && !state.fills[state.selected]) select(next);
               }}
               onClear={() => clearFill(state.selected)}
               onFit={(fit) => setFit(state.selected, fit)}
+              onEdit={(edit) => setEdit(state.selected, edit)}
             />
           </div>
 

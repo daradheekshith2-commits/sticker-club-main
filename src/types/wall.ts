@@ -6,6 +6,25 @@
 import type { PosterDesign } from './product';
 import type { PaperSizeId, WallLayout } from '../data/wallLayouts';
 
+export interface CropArea {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface PosterCropEdit {
+  crop: { x: number; y: number };
+  zoom: number;
+  rotation: number;
+  aspectRatio?: number;
+  aspectMode?: 'sheet' | 'a-portrait' | 'a-landscape' | 'square' | '4:5' | '16:9' | 'free';
+  mode: 'cover' | 'contain';
+  croppedArea?: CropArea;
+  croppedAreaPixels?: CropArea;
+  previewUrl?: string | null;
+}
+
 /** How a user image sits inside its slot. Affects the preview (object-fit / object-position). */
 export interface ImageFit {
   mode: 'cover' | 'contain';
@@ -20,6 +39,8 @@ export const defaultFit: ImageFit = { mode: 'cover', focusX: 50, focusY: 50 };
 export interface CatalogueFill {
   source: 'catalogue';
   productId: string;
+  fit?: ImageFit;
+  edit?: PosterCropEdit;
 }
 
 /** A file the customer chose from their device (kept in memory only). */
@@ -31,6 +52,7 @@ export interface UploadFill {
   width?: number;
   height?: number;
   fit: ImageFit;
+  edit?: PosterCropEdit;
 }
 
 /** A direct image link the customer pasted. */
@@ -40,6 +62,7 @@ export interface UrlFill {
   width?: number;
   height?: number;
   fit: ImageFit;
+  edit?: PosterCropEdit;
 }
 
 export type SlotFill = CatalogueFill | UploadFill | UrlFill;

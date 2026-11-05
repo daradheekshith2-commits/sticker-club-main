@@ -24,7 +24,7 @@ import {
 } from '../utils/customLayoutBuilder';
 import { fillsDroppedBySwitch, initialBuilderState } from '../utils/customWall';
 import { objectUrls } from '../utils/objectUrls';
-import type { ImageFit, SlotFill } from '../types/wall';
+import type { ImageFit, PosterCropEdit, SlotFill } from '../types/wall';
 
 const STORAGE_KEY = 'stickerclub_wall_builder_state_v1';
 
@@ -47,6 +47,7 @@ type BuilderAction =
   | { type: 'setFill'; index: number; fill: SlotFill }
   | { type: 'clearFill'; index: number }
   | { type: 'setFit'; index: number; fit: ImageFit }
+  | { type: 'setEdit'; index: number; edit: PosterCropEdit }
   | { type: 'addCustomSheet'; size: PaperSizeId; orientation?: 'portrait' | 'landscape' }
   | { type: 'removeCustomSheet'; index: number }
   | { type: 'duplicateCustomSheet'; index: number }
@@ -59,7 +60,7 @@ type BuilderAction =
   | { type: 'reset' }
   | { type: 'restore'; state: WallBuilderState };
 
-function getInitialState(startLayoutId: string): WallBuilderState {
+export function getInitialState(startLayoutId: string): WallBuilderState {
   // Check localStorage for saved session
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -91,7 +92,7 @@ function getInitialState(startLayoutId: string): WallBuilderState {
   };
 }
 
-function wallReducer(state: WallBuilderState, action: BuilderAction): WallBuilderState {
+export function wallReducer(state: WallBuilderState, action: BuilderAction): WallBuilderState {
   switch (action.type) {
     case 'chooseLayout': {
       if (action.layoutId === state.layoutId) return state;
@@ -212,7 +213,7 @@ function wallReducer(state: WallBuilderState, action: BuilderAction): WallBuilde
         const slot = state.customSlots[action.index];
         if (!slot) return state;
         const current = state.customFills[slot.id];
-        if (!current || current.source === 'catalogue') return state;
+        if (!current) return state;
         return {
           ...state,
           customFills: {
@@ -222,9 +223,44 @@ function wallReducer(state: WallBuilderState, action: BuilderAction): WallBuilde
         };
       }
       const current = state.presetFills[action.index];
-      if (!current || current.source === 'catalogue') return state;
+      if (!current) return state;
       const presetFills = [...state.presetFills];
       presetFills[action.index] = { ...current, fit: action.fit };
+      return { ...state, presetFills };
+    }
+
+    case 'setEdit': {
+      if (state.layoutId === 'custom') {
+        const slot = state.customSlots[action.index];
+        if (!slot) return state;
+        const current = state.customFills[slot.id];
+        if (!current) return state;
+        const updatedFit: ImageFit = current.fit
+          ? { ...current.fit, mode: action.edit.mode }
+          : { mode: action.edit.mode, focusX: 50, focusY: 50 };
+        return {
+          ...state,
+          customFills: {
+            ...state.customFills,
+            [slot.id]: {
+              ...current,
+              fit: updatedFit,
+              edit: action.edit,
+            },
+          },
+        };
+      }
+      const current = state.presetFills[action.index];
+      if (!current) return state;
+      const updatedFit: ImageFit = current.fit
+        ? { ...current.fit, mode: action.edit.mode }
+        : { mode: action.edit.mode, focusX: 50, focusY: 50 };
+      const presetFills = [...state.presetFills];
+      presetFills[action.index] = {
+        ...current,
+        fit: updatedFit,
+        edit: action.edit,
+      };
       return { ...state, presetFills };
     }
 
@@ -253,6 +289,10 @@ function wallReducer(state: WallBuilderState, action: BuilderAction): WallBuilde
         .map((s, idx) => ({ ...s, number: idx + 1 }));
 
       const nextFills = { ...state.customFills };
+      const fillToRemove = nextFills[slotToRemove.id];
+      if (fillToRemove?.source === 'upload') {
+        objectUrls.release(fillToRemove.objectUrl);
+      }
       delete nextFills[slotToRemove.id];
 
       return {
@@ -285,7 +325,14 @@ function wallReducer(state: WallBuilderState, action: BuilderAction): WallBuilde
       const nextFills = { ...state.customFills };
       const origFill = state.customFills[orig.id];
       if (origFill) {
-        nextFills[dupId] = { ...origFill };
+        if (origFill.source === 'upload') {
+          objectUrls.retain(origFill.objectUrl);
+        }
+        nextFills[dupId] = {
+          ...origFill,
+          fit: origFill.fit ? { ...origFill.fit } : { mode: 'cover', focusX: 50, focusY: 50 },
+          edit: origFill.edit ? { ...origFill.edit, crop: { ...origFill.edit.crop } } : undefined,
+        };
       }
 
       return {
@@ -511,6 +558,10 @@ export function useWallBuilder(startLayoutId = defaultLayoutId) {
     dispatch({ type: 'setFit', index, fit });
   }, []);
 
+  const setEdit = useCallback((index: number, edit: PosterCropEdit) => {
+    dispatch({ type: 'setEdit', index, edit });
+  }, []);
+
   const addCustomSheet = useCallback((size: PaperSizeId, orientation?: 'portrait' | 'landscape') => {
     dispatch({ type: 'addCustomSheet', size, orientation });
   }, []);
@@ -582,6 +633,7 @@ export function useWallBuilder(startLayoutId = defaultLayoutId) {
     setFill,
     clearFill,
     setFit,
+    setEdit,
     addCustomSheet,
     removeCustomSheet,
     duplicateCustomSheet,

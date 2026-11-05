@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { useCatalogue } from '../../context/CatalogueContext';
 import { Link } from '../../router/router';
 import type { ProductCartLine } from '../../utils/cart';
 import { getProductById } from '../../utils/catalogue';
@@ -49,6 +50,7 @@ type PaymentConfig = {
 export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderReceipt) => void } = {}) {
   const { user, request, requestMultipart } = useAuth();
   const { lines, removeItem } = useCart();
+  const { getProductById: getCatProduct } = useCatalogue();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selected, setSelected] = useState('');
   const [phone, setPhone] = useState(user?.phone || '');
@@ -217,12 +219,12 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
               const upRes = await uploadArtworkBlob(s.fill.objectUrl, s.fill.fileName);
               slots.push({ slotId: s.slotId, size: s.size, orientation: s.orientation, fill: { source: 'upload', artworkId: upRes.id, previewUrl: upRes.url, fileName: s.fill.fileName } });
             } else if (s.fill.source === 'catalogue') {
-              const catProd = getProductById(s.fill.productId);
+              const catProd = getCatProduct(s.fill.productId) ?? getProductById(s.fill.productId);
               const previewUrl = catProd?.images?.[0]?.src || null;
-              slots.push({ slotId: s.slotId, size: s.size, orientation: s.orientation, fill: { source: 'catalogue', productId: s.fill.productId, previewUrl } });
+              slots.push({ slotId: s.slotId, size: s.size, orientation: s.orientation, fill: { source: 'catalogue', productId: s.fill.productId, previewUrl, edit: s.fill.edit } });
             } else if (s.fill.source === 'url') {
               const upRes = await uploadArtworkBlob(s.fill.url, 'linked-wall-slot.png');
-              slots.push({ slotId: s.slotId, size: s.size, orientation: s.orientation, fill: { source: 'upload', artworkId: upRes.id, previewUrl: upRes.url, fileName: 'linked-wall-slot.png' } });
+              slots.push({ slotId: s.slotId, size: s.size, orientation: s.orientation, fill: { source: 'upload', artworkId: upRes.id, previewUrl: upRes.url, fileName: 'linked-wall-slot.png', edit: s.fill.edit } });
             }
           }
           preparedCustomLines.push({

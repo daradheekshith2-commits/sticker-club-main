@@ -56,7 +56,7 @@ interface CatalogueContextValue {
   isPurchasable: (product: Product) => boolean;
 }
 
-const CatalogueContext = createContext<CatalogueContextValue | null>(null);
+export const CatalogueContext = createContext<CatalogueContextValue | null>(null);
 
 function createFallbackArt(p: { name: string; category?: string; productType?: string }): ProductArt {
   if (p.category === 'posters') {

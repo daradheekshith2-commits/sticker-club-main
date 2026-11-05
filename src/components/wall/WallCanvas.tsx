@@ -6,12 +6,13 @@
  * converted to percentages so the wall scales to any width while keeping
  * true poster proportions.
  */
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { useContext, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { LuImageOff, LuPlus, LuTriangleAlert } from 'react-icons/lu';
 import { getProductById } from '../../utils/catalogue';
+import { CatalogueContext } from '../../context/CatalogueContext';
 import { paperSizes, type PaperSizeId, type WallLayout } from '../../data/wallLayouts';
-import type { DisplayFill } from '../../types/wall';
-import { PosterFaceSvg } from '../art/ProductArt';
+import type { DisplayFill, PosterCropEdit } from '../../types/wall';
+import { PosterFaceSvg, ProductImage } from '../art/ProductArt';
 import { sizePrice } from '../../utils/customWall';
 import { formatPrice } from '../../utils/format';
 
@@ -221,10 +222,14 @@ export function PosterSlot({
   const full = detail === 'full';
   const isUser = fill?.source === 'upload' || fill?.source === 'url';
   const price = sizePrice(size);
+
+  const catalogueCtx = useContext(CatalogueContext);
+  const getProduct = (id: string) => catalogueCtx?.getProductById(id) ?? getProductById(id);
+
   const describe = !fill
     ? 'empty'
     : fill.source === 'catalogue'
-      ? (getProductById(fill.productId)?.name ?? 'our design')
+      ? (getProduct(fill.productId)?.name ?? 'our design')
       : fill.source === 'design'
         ? fill.design.title.replace('\n', ' ')
         : 'your image';
@@ -310,39 +315,80 @@ function EmptySlot({ full, sizeLabel, price }: { full: boolean; sizeLabel: strin
 }
 
 function FillContent({ fill, number }: { fill: DisplayFill; number: number }) {
-  if (fill.source === 'design') return <PosterFaceSvg poster={fill.design} className="size-full" />;
+  const catalogueCtx = useContext(CatalogueContext);
+  const getProduct = (id: string) => catalogueCtx?.getProductById(id) ?? getProductById(id);
+
+  if (fill.source === 'design') {
+    return <PosterFaceSvg poster={fill.design} className="size-full" />;
+  }
+
   if (fill.source === 'catalogue') {
-    const product = getProductById(fill.productId);
-    if (product?.images?.[0]) {
+    const product = getProduct(fill.productId);
+    if (!product) return <Unavailable text="Loading design…" />;
+
+    // If an edited crop preview was generated, display it directly
+    if (fill.edit?.previewUrl) {
       return (
         <img
-          src={product.images[0].src}
+          src={fill.edit.previewUrl}
           alt={product.name}
-          className="size-full object-cover object-center"
+          className="size-full bg-paper-deep"
+          style={{ objectFit: fill.edit.mode }}
           loading="lazy"
         />
       );
     }
-    if (product?.art.kind === 'poster') return <PosterFaceSvg poster={product.art.poster} className="size-full" />;
-    return <Unavailable />;
+
+    // Standard catalogue product rendering with fallback
+    return (
+      <div
+        className="size-full overflow-hidden bg-paper-deep"
+        style={
+          fill.edit && !fill.edit.previewUrl
+            ? {
+                transform: `rotate(${fill.edit.rotation}deg) scale(${fill.edit.zoom})`,
+              }
+            : undefined
+        }
+      >
+        <ProductImage product={product} className="size-full object-cover object-center" />
+      </div>
+    );
   }
-  const src = fill.source === 'upload' ? fill.objectUrl : fill.url;
-  return <UserImage src={src} fit={fill.fit} alt={`Your image in position ${number}`} />;
+
+  // Upload or URL fill
+  const src = fill.edit?.previewUrl ?? (fill.source === 'upload' ? fill.objectUrl : fill.url);
+  const fit = fill.fit ?? { mode: fill.edit?.mode ?? 'cover', focusX: 50, focusY: 50 };
+
+  return (
+    <UserImage
+      src={src}
+      fit={fit}
+      edit={fill.edit}
+      alt={`Your image in position ${number}`}
+    />
+  );
 }
 
-/** The customer's image, with fit and focal point applied. Never shows a broken-image icon. */
+/** The customer's image, with fit, focal point, and crop edits applied. */
 function UserImage({
   src,
   fit,
+  edit,
   alt,
 }: {
   src: string;
   fit: { mode: 'cover' | 'contain'; focusX: number; focusY: number };
+  edit?: PosterCropEdit;
   alt: string;
 }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
-  if (failed) return <Unavailable />;
+
+  if (failed) return <Unavailable text="Image unavailable" />;
+
+  const isCroppedPreview = Boolean(edit?.previewUrl && src === edit.previewUrl);
+
   return (
     <img
       src={src}
@@ -350,16 +396,20 @@ function UserImage({
       referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
       className="size-full bg-paper-deep"
-      style={{ objectFit: fit.mode, objectPosition: `${fit.focusX}% ${fit.focusY}%` }}
+      style={{
+        objectFit: isCroppedPreview ? edit?.mode ?? 'cover' : fit.mode,
+        objectPosition: isCroppedPreview ? 'center' : `${fit.focusX}% ${fit.focusY}%`,
+        transform: !isCroppedPreview && edit ? `rotate(${edit.rotation}deg) scale(${edit.zoom})` : undefined,
+      }}
     />
   );
 }
 
-function Unavailable() {
+function Unavailable({ text = 'Image unavailable' }: { text?: string }) {
   return (
     <span className="flex size-full flex-col items-center justify-center gap-1 bg-paper-deep p-1 text-center text-[10px] font-bold text-ink-soft">
       <LuImageOff aria-hidden className="size-4" />
-      Image unavailable
+      {text}
     </span>
   );
 }
