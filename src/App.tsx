@@ -1,25 +1,44 @@
+import { lazy, Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './context/AuthContext';
 import { CatalogueProvider } from './context/CatalogueContext';
-import { AuthPage, CustomerDashboard, AdminDashboard } from './pages/AccountPages';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CartProvider } from './context/CartContext';
 import { Layout } from './components/layout/Layout';
 import { RouterProvider, Routes, type RouteDef } from './router/router';
 import { HomePage } from './pages/HomePage';
-import { ShopPage } from './pages/ShopPage';
-import { ProductPage } from './pages/ProductPage';
-import { VibesPage } from './pages/VibesPage';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { BuildWallPage } from './pages/BuildWallPage';
-import { CreateStickersPage } from './pages/CreateStickersPage';
-import { BuildPackPage } from './pages/BuildPackPage';
-import { CollectiblesPage } from './pages/CollectiblesPage';
-import { DuosPage, SecretMessagesPage } from './pages/CollectionLandingPages';
-import { PassportPage } from './pages/PassportPage';
-import { RarityPage } from './pages/RarityPage';
-import { VotePage } from './pages/VotePage';
-import { ReviewsPage } from './pages/ReviewsPage';
-import { AboutPage, ContactPage, FaqPage, NotFoundPage, PolicyPage } from './pages/InfoPages';
+
+// Lazy-loaded routes for code splitting and dramatically smaller initial bundle size
+const ShopPage = lazy(() => import('./pages/ShopPage').then((m) => ({ default: m.ShopPage })));
+const ProductPage = lazy(() => import('./pages/ProductPage').then((m) => ({ default: m.ProductPage })));
+const VibesPage = lazy(() => import('./pages/VibesPage').then((m) => ({ default: m.VibesPage })));
+const ReviewsPage = lazy(() => import('./pages/ReviewsPage').then((m) => ({ default: m.ReviewsPage })));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage').then((m) => ({ default: m.CheckoutPage })));
+const BuildWallPage = lazy(() => import('./pages/BuildWallPage').then((m) => ({ default: m.BuildWallPage })));
+const CreateStickersPage = lazy(() => import('./pages/CreateStickersPage').then((m) => ({ default: m.CreateStickersPage })));
+const BuildPackPage = lazy(() => import('./pages/BuildPackPage').then((m) => ({ default: m.BuildPackPage })));
+const CollectiblesPage = lazy(() => import('./pages/CollectiblesPage').then((m) => ({ default: m.CollectiblesPage })));
+const DuosPage = lazy(() => import('./pages/CollectionLandingPages').then((m) => ({ default: m.DuosPage })));
+const SecretMessagesPage = lazy(() => import('./pages/CollectionLandingPages').then((m) => ({ default: m.SecretMessagesPage })));
+const PassportPage = lazy(() => import('./pages/PassportPage').then((m) => ({ default: m.PassportPage })));
+const RarityPage = lazy(() => import('./pages/RarityPage').then((m) => ({ default: m.RarityPage })));
+const VotePage = lazy(() => import('./pages/VotePage').then((m) => ({ default: m.VotePage })));
+const AuthPage = lazy(() => import('./pages/AccountPages').then((m) => ({ default: m.AuthPage })));
+const CustomerDashboard = lazy(() => import('./pages/AccountPages').then((m) => ({ default: m.CustomerDashboard })));
+const AdminDashboard = lazy(() => import('./pages/AccountPages').then((m) => ({ default: m.AdminDashboard })));
+const AboutPage = lazy(() => import('./pages/InfoPages').then((m) => ({ default: m.AboutPage })));
+const FaqPage = lazy(() => import('./pages/InfoPages').then((m) => ({ default: m.FaqPage })));
+const ContactPage = lazy(() => import('./pages/InfoPages').then((m) => ({ default: m.ContactPage })));
+const PolicyPage = lazy(() => import('./pages/InfoPages').then((m) => ({ default: m.PolicyPage })));
+const NotFoundPage = lazy(() => import('./pages/InfoPages').then((m) => ({ default: m.NotFoundPage })));
+
+function PageLoadingFallback() {
+  return (
+    <div className="mx-auto flex min-h-[50vh] max-w-7xl items-center justify-center px-4 py-16" aria-label="Loading page">
+      <div className="size-8 animate-spin rounded-full border-4 border-mint/20 border-t-lime" />
+    </div>
+  );
+}
 
 // Every page of the site. The first matching path wins; '*' catches the rest.
 const routes: RouteDef[] = [
@@ -80,8 +99,11 @@ export default function App() {
         <CatalogueProvider>
           <CartProvider>
             <Layout>
-              <Routes routes={routes} />
+              <Suspense fallback={<PageLoadingFallback />}>
+                <Routes routes={routes} />
+              </Suspense>
             </Layout>
+            <Analytics />
           </CartProvider>
         </CatalogueProvider>
       </AuthProvider>

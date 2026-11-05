@@ -81,6 +81,8 @@ model User {
   ideas              SubmittedIdea[]
   stamps             CustomerStamp[]
   redemptions        PassportRewardRedemption[]
+
+  @@index([role])
 }
 
 model Address {
@@ -143,6 +145,10 @@ model Product {
   variants     ProductVariant[]
   movements    InventoryMovement[]
   stockChanges StockChange[]
+
+  @@index([status, active, displayOrder])
+  @@index([category, status])
+  @@index([productType])
 }
 
 model ProductVariant {
@@ -162,6 +168,7 @@ model ProductCategory {
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@id([productId, categoryId])
+  @@index([categoryId])
 }
 
 model ProductImage {
@@ -260,6 +267,7 @@ model Order {
   @@index([userId, createdAt])
   @@index([status, createdAt])
   @@index([paymentStatus])
+  @@index([createdAt])
 }
 
 model OrderItem {
@@ -277,6 +285,7 @@ model OrderItem {
   metadata     Json?
 
   @@index([orderId])
+  @@index([productId])
 }
 
 model OrderEvent {
@@ -402,6 +411,8 @@ model DropProposal {
   directions    ProposalDirection[]
   votes         ProposalVote[]
   ideas         SubmittedIdea[]
+
+  @@index([status, displayOrder])
 }
 
 model ProposalDirection {

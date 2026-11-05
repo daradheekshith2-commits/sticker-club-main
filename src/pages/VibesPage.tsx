@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { collections } from '../data/collections';
 import { useCatalogue } from '../context/CatalogueContext';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -11,6 +12,25 @@ import { pluralise } from '../utils/format';
 export function VibesPage() {
   usePageMeta('Shop by vibe', 'Find stickers by interest: anime, movies, life quotes, superheroes, cute, gaming-inspired and more.');
   const { products } = useCatalogue();
+
+  // Pre-calculate design counts per collection in a single O(N) pass instead of O(collections * products) filters
+  const counts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const c of collections) {
+      map[c.id] = 0;
+    }
+    for (const p of products) {
+      if (isPurchasable(p)) {
+        for (const coll of p.collections) {
+          if (map[coll] !== undefined) {
+            map[coll] += 1;
+          }
+        }
+      }
+    }
+    return map;
+  }, [products]);
+
   return (
     <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
       <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Vibes' }]} />
@@ -19,7 +39,7 @@ export function VibesPage() {
       <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {collections.map((c) => {
           const Motif = motifs[c.motif];
-          const count = products.filter((p) => p.collections.includes(c.id) && isPurchasable(p)).length;
+          const count = counts[c.id] ?? 0;
           return (
             <li key={c.id}>
               <Link

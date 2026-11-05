@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { LuArrowRight, LuMinus, LuPlus } from 'react-icons/lu';
 import type { Product } from '../../types/product';
 import { Link } from '../../router/router';
@@ -23,7 +23,7 @@ export function describeContents(product: Product): string {
 }
 
 /** Product tile used on the homepage, shop and related-products rows. */
-export function ProductCard({ product, headingLevel = 'h3' }: { product: Product; headingLevel?: 'h2' | 'h3' }) {
+export const ProductCard = memo(function ProductCard({ product, headingLevel = 'h3' }: { product: Product; headingLevel?: 'h2' | 'h3' }) {
   const { addItem, items, setQuantity, removeItem } = useCart();
   const [isHovered, setIsHovered] = useState(false);
   const purchasable = isPurchasable(product);
@@ -222,7 +222,7 @@ export function ProductCard({ product, headingLevel = 'h3' }: { product: Product
       </div>
     </article>
   );
-}
+});
 
 /**
  * Responsive product grid.

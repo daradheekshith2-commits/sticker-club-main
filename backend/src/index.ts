@@ -1775,6 +1775,7 @@ app.post(
 app.get(
   '/api/categories',
   wrap(async (_req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
     const categories = await db.category.findMany({
       where: { archived: false },
       orderBy: { displayOrder: 'asc' },
@@ -1842,6 +1843,7 @@ app.patch(
 app.get(
   '/api/products',
   wrap(async (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=180');
     const query = z
       .object({
         q: z.string().trim().max(100).optional(),
@@ -1903,6 +1905,7 @@ app.get(
 app.get(
   '/api/products/:slug',
   wrap(async (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=180');
     const slug = String(req.params.slug);
     const product = await db.product.findFirst({
       where: { slug, active: true, status: 'PUBLISHED' },
@@ -2850,6 +2853,11 @@ app.patch(
 app.get(
   '/api/proposals',
   wrap(async (req, res) => {
+    if (req.session?.id) {
+      res.setHeader('Cache-Control', 'private, no-cache');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=60');
+    }
     const proposals = await getActiveProposals(db, req.session?.id, req.session?.role === 'ADMIN');
     res.json(proposals);
   })

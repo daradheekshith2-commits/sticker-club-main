@@ -315,6 +315,7 @@ const VIBES_SHOWN = 8;
 function Filters({ f, update }: { f: CatalogueFilters; update: (next: Partial<CatalogueFilters>) => void }) {
   const { products } = useCatalogue();
   const [allVibes, setAllVibes] = useState(false);
+  const sizes = useMemo(() => allSizes(products), [products]);
   // Selected vibes always stay visible, even when the list is collapsed.
   const vibeList = allVibes ? collections : collections.filter((c, i) => i < VIBES_SHOWN || f.collections.includes(c.id));
   // Each count = how many products you'd see if you ticked that option.
@@ -322,7 +323,7 @@ function Filters({ f, update }: { f: CatalogueFilters; update: (next: Partial<Ca
     <div>
       {f.category === 'posters' && (
         <FilterGroup title="Poster size" activeCount={f.sizes.length} onReset={() => update({ sizes: [] })}>
-          {allSizes(products).map((size) => (
+          {sizes.map((size) => (
             <FilterOption
               key={size}
               active={f.sizes.includes(size)}

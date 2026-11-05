@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { products as seedProducts } from '../data/products';
 import type { Category, CollectionId, Product, ProductArt, ProductType, Variant } from '../types/product';
 import { apiUrl } from './AuthContext';
@@ -309,9 +309,10 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
       // 1. Fast path: load local static catalogue immediately if not already populated
       if (products.length === 0 || forceRefresh) {
         try {
+          const baseUrl = typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL ? import.meta.env.BASE_URL.replace(/\/$/, '') + '/' : '/';
           const [staticRes, staticCatsRes] = await Promise.all([
-            fetch('/products-catalogue.json').catch(() => null),
-            fetch('/categories-catalogue.json').catch(() => null),
+            fetch(`${baseUrl}products-catalogue.json`).catch(() => null),
+            fetch(`${baseUrl}categories-catalogue.json`).catch(() => null),
           ]);
 
           if (staticRes && staticRes.ok) {
@@ -408,34 +409,41 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
     void fetchCatalogue();
   }, []);
 
-  function getProductBySlug(slug: string): Product | undefined {
-    return products.find((p) => p.slug === slug);
-  }
+  // Precompute O(1) lookup tables for slug and id lookups across the storefront
+  const productBySlug = useMemo(() => new Map(products.map((p) => [p.slug, p])), [products]);
+  const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
 
-  function getProductById(id: string): Product | undefined {
-    return products.find((p) => p.id === id);
-  }
+  const getProductBySlug = useCallback((slug: string): Product | undefined => {
+    return productBySlug.get(slug);
+  }, [productBySlug]);
 
-  function isPurchasable(product: Product): boolean {
+  const getProductById = useCallback((id: string): Product | undefined => {
+    return productById.get(id);
+  }, [productById]);
+
+  const isPurchasable = useCallback((product: Product): boolean => {
     if (product.active === false) return false;
     if (product.status !== 'demo' && (product.status as string) !== 'PUBLISHED') return false;
     if (product.inventory && product.inventory.quantity <= 0) return false;
     return true;
-  }
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      products,
+      categories,
+      loading,
+      error,
+      refresh: fetchCatalogue,
+      getProductBySlug,
+      getProductById,
+      isPurchasable,
+    }),
+    [products, categories, loading, error, getProductBySlug, getProductById, isPurchasable]
+  );
 
   return (
-    <CatalogueContext.Provider
-      value={{
-        products,
-        categories,
-        loading,
-        error,
-        refresh: fetchCatalogue,
-        getProductBySlug,
-        getProductById,
-        isPurchasable,
-      }}
-    >
+    <CatalogueContext.Provider value={value}>
       {children}
     </CatalogueContext.Provider>
   );

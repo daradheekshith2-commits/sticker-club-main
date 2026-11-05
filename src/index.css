@@ -354,3 +354,24 @@
 .bg-lime .eyebrow { color: var(--color-ink); }
 /* Outline buttons on bright light surfaces use black instead of mint. */
 .on-light .btn-ghost { color: var(--color-ink); border-color: var(--color-ink); }
+
+/* Horizontal scrolling marquee for sticker ticker */
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+  will-change: transform;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+    transform: none;
+  }
+}

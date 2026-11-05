@@ -15,4 +15,29 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/@vercel/analytics/')
+          ) {
+            return 'vendor-react';
+          }
+          if (id.includes('node_modules/@supabase/')) {
+            return 'vendor-supabase';
+          }
+          if (id.includes('node_modules/react-icons/')) {
+            return 'vendor-icons';
+          }
+          if (id.includes('node_modules/react-easy-crop/') || id.includes('node_modules/jszip/')) {
+            return 'vendor-tools';
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
 });

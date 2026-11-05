@@ -50,10 +50,11 @@ export function PosterInterestTiles() {
   }, [catalogueProducts]);
 
   const tiles = useMemo(() => {
+    const excludedIds = new Set(['cute', 'gaming', 'marvel', 'minimal', 'study']);
     return collections
-      .filter((c) => Boolean(c.posterImage))
+      .filter((c) => Boolean(c.posterImage) && !excludedIds.has(c.id))
       .map((c) => {
-        const items = allPosters.filter((p) => p.collections.includes(c.id) || (c.id === 'study' && (p.tags?.includes('study') || p.tags?.includes('productivity'))));
+        const items = allPosters.filter((p) => p.collections.includes(c.id));
         return { c, count: items.length };
       });
   }, [allPosters]);

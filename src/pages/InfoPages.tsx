@@ -4,7 +4,7 @@
  * replace them with real, founder-approved terms before taking real orders.
  */
 import type { ReactNode } from 'react';
-import { LuInstagram, LuMail, LuMessageCircle, LuPhone } from 'react-icons/lu';
+import { LuArrowRight, LuCheck, LuInstagram, LuMail, LuMessageCircle, LuPhone, LuSparkles } from 'react-icons/lu';
 import { brand, hasAnyContact, whatsappLink } from '../config/brand';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { Link, useParams } from '../router/router';
@@ -12,6 +12,8 @@ import { shopUrl } from '../utils/catalogue';
 import { Breadcrumbs } from '../components/ui/Breadcrumbs';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Notice, Placeholder } from '../components/ui/Placeholder';
+import { d } from '../data/products';
+import { StickerSvg } from '../components/art/Sticker';
 
 function Page({ title, crumb, intro, children }: { title: string; crumb: string; intro?: ReactNode; children: ReactNode }) {
   return (
@@ -24,56 +26,424 @@ function Page({ title, crumb, intro, children }: { title: string; crumb: string;
   );
 }
 
+// Interactive sticker marquee items for the endless ribbon
+const marqueeStickers = [
+  { design: d.chaiFirst, badge: 'CHAI LOVER' },
+  { design: d.worksOnMyMachine, badge: 'DEV VIBES' },
+  { design: d.jugaad, badge: 'HYD ORIGINAL' },
+  { design: d.pixelHeart, badge: '1-UP' },
+  { design: d.seventyFive, badge: '75% ATTENDANCE' },
+  { design: d.redline, badge: 'RACE DAY' },
+  { design: d.sleepyCloud, badge: 'SOFT MOOD' },
+  { design: d.controller, badge: 'GAME ON' },
+  { design: d.samosa, badge: 'CAMPUS LIFE' },
+  { design: d.doItScared, badge: 'BOLD' },
+  { design: d.cassette, badge: 'LO-FI' },
+  { design: d.cat, badge: 'PET' },
+  { design: d.oneMoreEp, badge: 'BINGE' },
+  { design: d.backbencher, badge: 'BACKBENCH' },
+];
+
 export function AboutPage() {
   usePageMeta('About', 'Boring was never our thing. Meet Sticker Club.');
+
   const collections = [
-    { title: 'Stickers', copy: 'Little designs with a lot to say.', to: shopUrl({ category: 'stickers' }), color: '#FFD447' },
-    { title: 'Posters', copy: 'Give the walls a personality of their own.', to: shopUrl({ category: 'posters' }), color: '#8FD3FF' },
-    { title: 'Cars & Bikes', copy: 'For track-day dreamers and everyday riders.', to: shopUrl({ collections: ['quotes'] }), color: '#FF5B2E' },
-    { title: 'Shop Your Own', copy: 'Your design, your shape, your rules.', to: '/create-your-stickers', color: '#A8F0DC' },
+    {
+      title: 'Stickers',
+      copy: 'Little designs with a lot to say.',
+      to: shopUrl({ category: 'stickers' }),
+      color: '#FFE16B',
+      sticker: d.chaiFirst,
+      tag: 'ORIGINAL MINIS',
+    },
+    {
+      title: 'Posters',
+      copy: 'Give the walls a personality of their own.',
+      to: shopUrl({ category: 'posters' }),
+      color: '#A6DFF4',
+      sticker: d.redline,
+      tag: 'A5 · A4 · A3',
+    },
+    {
+      title: 'Cars & Bikes',
+      copy: 'For track-day dreamers and everyday riders.',
+      to: shopUrl({ collections: ['quotes'] }),
+      color: '#FF5B2E',
+      sticker: d.helmet,
+      tag: 'TRACK READY',
+    },
+    {
+      title: 'Shop Your Own',
+      copy: 'Your design, your shape, your rules.',
+      to: '/create-your-stickers',
+      color: '#A8E8C4',
+      sticker: d.jugaad,
+      tag: 'CUSTOM CUT',
+    },
   ];
+
   return (
-    <div>
-      <section className="relative overflow-hidden bg-paper-deep px-4 py-20 text-ink sm:px-6 md:py-28 border-b border-mint/15">
-        <div className="mx-auto max-w-7xl">
+    <div className="overflow-x-hidden">
+      {/* HERO SECTION WITH STICKER-SLAPPED CANVAS */}
+      <section className="relative overflow-hidden bg-paper-deep px-4 py-16 text-ink sm:px-6 md:py-24 border-b border-mint/15">
+        {/* Ambient lighting & radial glows */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,16,38,0.18),transparent_55%),radial-gradient(circle_at_85%_75%,rgba(168,240,220,0.12),transparent_50%)]" />
+
+        <div className="relative mx-auto max-w-7xl">
           <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'About' }]} />
-          <p className="mt-14 text-xs font-extrabold uppercase tracking-[0.2em] text-mint">A little rebellion against boring things</p>
-          <h1 className="mt-5 max-w-5xl font-display text-[clamp(3.5rem,10vw,9rem)] font-extrabold leading-[0.87] tracking-tight">BORING WAS NEVER OUR THING.</h1>
-          <p className="mt-8 max-w-xl text-xl leading-relaxed sm:text-2xl text-ink-soft">Your laptop, your walls, your world. Make every little corner feel a little more like you.</p>
-          <Link to="/shop" className="btn-primary mt-8">Explore the club →</Link>
+
+          <div className="mt-8 grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-mint/30 bg-mint/10 px-3.5 py-1 text-xs font-extrabold uppercase tracking-[0.2em] text-mint">
+                <LuSparkles aria-hidden className="size-3.5" /> A little rebellion against boring things
+              </div>
+
+              <h1 className="mt-5 max-w-3xl font-display text-[clamp(3.2rem,8vw,7.2rem)] font-extrabold leading-[0.88] tracking-tight text-ink uppercase">
+                BORING WAS <span className="text-cinema-red [text-shadow:0_0_28px_rgba(255,16,38,0.45)]">NEVER</span> OUR THING.
+              </h1>
+
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft sm:text-xl">
+                Your laptop, your bottles, your phone, your walls. Make every little corner feel a little more like you with thick, waterproof die-cut stickers.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Link to="/shop" className="btn-primary text-base px-8 py-3.5 shadow-[0_10px_28px_-10px_rgba(255,16,38,0.75)]">
+                  Explore the club →
+                </Link>
+                <Link to="/create-your-stickers" className="btn-ghost text-base px-7 py-3.5">
+                  Print your own stickers
+                </Link>
+              </div>
+
+              {/* Quality pill badges */}
+              <div className="mt-10 flex flex-wrap gap-2.5 text-xs font-extrabold uppercase tracking-wider text-ink-soft">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/20 bg-paper/80 px-3 py-1 text-mint">
+                  <LuCheck aria-hidden className="size-3.5" /> 100% Waterproof Vinyl
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/20 bg-paper/80 px-3 py-1 text-mint">
+                  <LuCheck aria-hidden className="size-3.5" /> Matte Laminated
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/20 bg-paper/80 px-3 py-1 text-mint">
+                  <LuCheck aria-hidden className="size-3.5" /> Precision Die-Cut
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/20 bg-paper/80 px-3 py-1 text-mint">
+                  <LuCheck aria-hidden className="size-3.5" /> Student-run in {brand.city}
+                </span>
+              </div>
+            </div>
+
+            {/* STICKER-SLAPPED LAPTOP / NOTEBOOK CANVASES */}
+            <div className="relative mx-auto w-full max-w-lg">
+              {/* Backing glow */}
+              <div className="absolute -inset-4 rounded-[36px] bg-gradient-to-tr from-cinema-red/20 via-mint/15 to-transparent blur-xl opacity-70" />
+
+              <div className="relative aspect-[4/3] w-full rounded-[28px] border-2 border-mint/25 bg-[#061815] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.75)] overflow-hidden flex items-center justify-center">
+                {/* Subtle device center dot glow */}
+                <div className="absolute size-24 rounded-full bg-mint/10 blur-xl pointer-events-none" />
+
+                {/* Grid guidelines */}
+                <div className="absolute inset-0 bg-[radial-gradient(#a8f0dc_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.06] pointer-events-none" />
+
+                {/* Overlapping slapped stickers with lively tactile angles and drop-shadows */}
+                {/* 1. Works on my machine */}
+                <div
+                  className="group absolute top-[8%] left-[8%] z-10 transition-transform duration-300 hover:scale-120 hover:rotate-0 hover:z-30 cursor-pointer"
+                  style={{ transform: 'rotate(-9deg)' }}
+                  title="Works On My Machine"
+                >
+                  <StickerSvg design={d.worksOnMyMachine} className="size-24 sm:size-28 drop-shadow-[0_12px_22px_rgba(0,0,0,0.65)]" />
+                </div>
+
+                {/* 2. Chai First */}
+                <div
+                  className="group absolute top-[10%] right-[10%] z-10 transition-transform duration-300 hover:scale-120 hover:rotate-0 hover:z-30 cursor-pointer"
+                  style={{ transform: 'rotate(11deg)' }}
+                  title="Chai First"
+                >
+                  <StickerSvg design={d.chaiFirst} className="size-24 sm:size-28 drop-shadow-[0_12px_22px_rgba(0,0,0,0.65)]" />
+                </div>
+
+                {/* 3. Jugaad Certified */}
+                <div
+                  className="group absolute top-[36%] left-[30%] z-20 transition-transform duration-300 hover:scale-125 hover:rotate-0 hover:z-30 cursor-pointer"
+                  style={{ transform: 'rotate(-4deg)' }}
+                  title="Jugaad Certified"
+                >
+                  <StickerSvg design={d.jugaad} className="size-26 sm:size-32 drop-shadow-[0_14px_28px_rgba(0,0,0,0.75)]" />
+                </div>
+
+                {/* 4. Pixel Heart */}
+                <div
+                  className="group absolute bottom-[12%] left-[10%] z-10 transition-transform duration-300 hover:scale-120 hover:rotate-0 hover:z-30 cursor-pointer"
+                  style={{ transform: 'rotate(-13deg)' }}
+                  title="Pixel Heart"
+                >
+                  <StickerSvg design={d.pixelHeart} className="size-20 sm:size-24 drop-shadow-[0_12px_22px_rgba(0,0,0,0.65)]" />
+                </div>
+
+                {/* 5. 75% Club */}
+                <div
+                  className="group absolute bottom-[10%] right-[12%] z-10 transition-transform duration-300 hover:scale-120 hover:rotate-0 hover:z-30 cursor-pointer"
+                  style={{ transform: 'rotate(8deg)' }}
+                  title="75% Club"
+                >
+                  <StickerSvg design={d.seventyFive} className="size-20 sm:size-24 drop-shadow-[0_12px_22px_rgba(0,0,0,0.65)]" />
+                </div>
+
+                {/* 6. Real transparent WebP cutout - Coca Cola Cap */}
+                <div
+                  className="group absolute top-[44%] left-[6%] z-10 transition-transform duration-300 hover:scale-125 hover:rotate-0 hover:z-30 cursor-pointer"
+                  style={{ transform: 'rotate(18deg)' }}
+                  title="Coke Cap"
+                >
+                  <img
+                    src="/PNG/Aesthetics/coca-cola-red-bottle-cap.webp"
+                    alt="Cap sticker"
+                    className="size-16 sm:size-20 object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.6)]"
+                  />
+                </div>
+
+                {/* 7. Real transparent WebP cutout - Uno Reverse Card */}
+                <div
+                  className="group absolute top-[42%] right-[6%] z-10 transition-transform duration-300 hover:scale-125 hover:rotate-0 hover:z-30 cursor-pointer"
+                  style={{ transform: 'rotate(-14deg)' }}
+                  title="Uno Reverse"
+                >
+                  <img
+                    src="/PNG/Aesthetics/green-uno-reverse-card.webp"
+                    alt="Uno Reverse sticker"
+                    className="size-16 sm:size-20 object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.6)]"
+                  />
+                </div>
+
+                {/* 8. Playstation Pixel Logo */}
+                <div
+                  className="group absolute bottom-[3%] left-[40%] z-15 transition-transform duration-300 hover:scale-125 hover:rotate-0 hover:z-30 cursor-pointer"
+                  style={{ transform: 'rotate(4deg)' }}
+                  title="Playstation Pixel"
+                >
+                  <img
+                    src="/PNG/Aesthetics/playstation-pixel-logo.webp"
+                    alt="Playstation sticker"
+                    className="size-14 sm:size-16 object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.6)]"
+                  />
+                </div>
+
+                {/* Badge overlay tag */}
+                <span className="absolute top-3 left-4 rounded-md bg-lime px-2 py-0.5 font-mono text-[10px] font-black uppercase text-paper shadow-md">
+                  ★ STICKER BOMBED
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
-      <section className="mx-auto grid max-w-7xl gap-8 px-4 py-24 sm:px-6 md:grid-cols-2 md:gap-16">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-mint">01 / What we believe</p>
+
+      {/* CONTINUOUS STICKER MARQUEE / TICKER RIBBON */}
+      <div className="relative border-y-2 border-mint/20 bg-[#071F1B] py-4 overflow-hidden select-none" aria-hidden="true">
+        <div className="animate-marquee flex items-center gap-6">
+          {[...marqueeStickers, ...marqueeStickers].map((s, idx) => (
+            <div
+              key={idx}
+              className="flex shrink-0 items-center gap-3 rounded-2xl border border-mint/20 bg-[#0A2621] px-4 py-2 shadow-sm transition-transform hover:scale-105"
+            >
+              <StickerSvg design={s.design} className="size-10 shrink-0 drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)]" />
+              <span className="font-display text-xs font-extrabold tracking-wider text-ink uppercase">
+                {s.badge}
+              </span>
+              <span className="text-mint font-bold text-xs">★</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* SECTION 01 / WHAT WE BELIEVE */}
+      <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 sm:px-6 md:grid-cols-2 md:gap-16 md:py-28">
+        {/* Left Side: Creative Sticker Board Showcase */}
+        <div className="relative">
+          <div className="relative rounded-3xl border-2 border-ink/20 bg-paper-deep p-6 sm:p-8 shadow-xl overflow-hidden">
+            <div className="mb-4 flex items-center justify-between border-b border-mint/15 pb-4">
+              <span className="font-mono text-xs font-bold uppercase text-mint tracking-widest">
+                BOARD #01 · NOTEBOOK COVER
+              </span>
+              <span className="rounded-full bg-cinema-red px-2 py-0.5 font-mono text-[10px] font-bold text-white uppercase">
+                STICKER MANIFESTO
+              </span>
+            </div>
+
+            <div className="relative my-4 grid grid-cols-3 gap-3 place-items-center py-4">
+              <div className="transition-transform hover:scale-110 hover:rotate-3 cursor-pointer" style={{ transform: 'rotate(-8deg)' }}>
+                <StickerSvg design={d.doItScared} className="size-20 sm:size-24 drop-shadow-[0_8px_14px_rgba(0,0,0,0.4)]" />
+              </div>
+              <div className="transition-transform hover:scale-110 hover:rotate-3 cursor-pointer" style={{ transform: 'rotate(6deg)' }}>
+                <StickerSvg design={d.controller} className="size-20 sm:size-24 drop-shadow-[0_8px_14px_rgba(0,0,0,0.4)]" />
+              </div>
+              <div className="transition-transform hover:scale-110 hover:rotate-3 cursor-pointer" style={{ transform: 'rotate(-10deg)' }}>
+                <StickerSvg design={d.samosa} className="size-20 sm:size-24 drop-shadow-[0_8px_14px_rgba(0,0,0,0.4)]" />
+              </div>
+              <div className="transition-transform hover:scale-110 hover:rotate-3 cursor-pointer" style={{ transform: 'rotate(12deg)' }}>
+                <StickerSvg design={d.redline} className="size-20 sm:size-24 drop-shadow-[0_8px_14px_rgba(0,0,0,0.4)]" />
+              </div>
+              <div className="transition-transform hover:scale-110 hover:rotate-3 cursor-pointer" style={{ transform: 'rotate(-4deg)' }}>
+                <StickerSvg design={d.cat} className="size-20 sm:size-24 drop-shadow-[0_8px_14px_rgba(0,0,0,0.4)]" />
+              </div>
+              <div className="transition-transform hover:scale-110 hover:rotate-3 cursor-pointer" style={{ transform: 'rotate(9deg)' }}>
+                <StickerSvg design={d.sleepyCloud} className="size-20 sm:size-24 drop-shadow-[0_8px_14px_rgba(0,0,0,0.4)]" />
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-mint/20 bg-paper/60 p-3.5 text-center text-xs font-bold text-ink-soft">
+              "Slap them on your laptop, water bottle, phone case, desk or bike helmet."
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Narrative */}
         <div>
-          <h2 className="font-display text-5xl font-extrabold leading-none sm:text-7xl">SMALL STICKERS. BIG PERSONALITY.</h2>
-          <p className="mt-7 max-w-lg text-lg leading-relaxed text-ink-soft">A plain laptop is fine. A wall with nothing on it is fine. But why settle for fine? Sticker Club is about making your everyday space unmistakably yours—with small designs, bold ideas and plenty of character.</p>
-          <p className="mt-4 max-w-lg text-sm text-ink-soft">We're starting as a student-run brand in {brand.city}. Original stickers, custom cuts, and posters crafted for students and creators.</p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-mint">01 / What we believe</p>
+          <h2 className="mt-3 font-display text-4xl font-extrabold leading-none sm:text-6xl text-ink uppercase">
+            SMALL STICKERS. BIG PERSONALITY.
+          </h2>
+          <p className="mt-6 text-lg leading-relaxed text-ink-soft">
+            A plain laptop is fine. A wall with nothing on it is fine. But why settle for fine? Sticker Club is about making your everyday space unmistakably yours—with small designs, bold ideas and plenty of character.
+          </p>
+          <p className="mt-4 text-base leading-relaxed text-ink-soft">
+            We started as a student-run brand in {brand.city} with a simple observation: everyone carries the exact same laptops, bottles, and notebooks. Stickers are the cheapest, most expressive way to claim your things back.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link to="/shop?category=stickers" className="btn-accent text-sm">
+              Shop sticker packs →
+            </Link>
+          </div>
         </div>
       </section>
-      <section className="bg-paper px-4 py-24 text-ink sm:px-6 border-y border-mint/15">
+
+      {/* SECTION 02 / FIND YOUR THING (COLLECTION TILES WITH POPPING STICKERS) */}
+      <section className="bg-paper px-4 py-20 text-ink sm:px-6 md:py-28 border-y border-mint/15">
         <div className="mx-auto max-w-7xl">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-mint">02 / Find your thing</p>
-          <h2 className="mt-3 max-w-3xl font-display text-5xl font-extrabold leading-none sm:text-7xl">YOUR WORLD, YOUR COLLECTION.</h2>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-mint">02 / Find your thing</p>
+              <h2 className="mt-2 max-w-3xl font-display text-4xl font-extrabold leading-none sm:text-6xl uppercase">
+                YOUR WORLD, YOUR COLLECTION.
+              </h2>
+            </div>
+            <Link to="/vibes" className="flex items-center gap-1.5 text-sm font-bold text-mint hover:underline">
+              View all vibes <LuArrowRight aria-hidden className="size-4" />
+            </Link>
+          </div>
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {collections.map((c) => (
-              <Link key={c.title} to={c.to} className="on-light group flex min-h-64 flex-col justify-between rounded-3xl border-2 border-[#121212] p-7 transition duration-200 hover:-translate-y-1 hover:shadow-[8px_8px_0_rgba(0,0,0,0.5)]" style={{ backgroundColor: c.color }}>
-                <span className="self-end text-2xl transition group-hover:translate-x-1 text-[#121212]" aria-hidden>↗</span>
-                <span><span className="block font-display text-4xl font-extrabold sm:text-5xl text-[#121212]">{c.title}</span><span className="mt-2 block max-w-xs text-base text-[#121212]/80">{c.copy}</span></span>
+              <Link
+                key={c.title}
+                to={c.to}
+                className="on-light group relative flex min-h-[300px] flex-col justify-between overflow-hidden rounded-3xl border-2 border-[#121212] p-6 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_16px_30px_rgba(0,0,0,0.35)]"
+                style={{ backgroundColor: c.color }}
+              >
+                {/* Popping corner sticker illustration */}
+                <div
+                  className="absolute -top-3 -right-3 z-10 transition-transform duration-300 group-hover:scale-120 group-hover:rotate-12"
+                  style={{ transform: 'rotate(6deg)' }}
+                >
+                  <StickerSvg design={c.sticker} className="size-20 sm:size-22 drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]" />
+                </div>
+
+                <div className="relative z-10">
+                  <span className="inline-block rounded-full bg-[#121212] px-2.5 py-0.5 font-mono text-[10px] font-black tracking-wider text-white uppercase">
+                    {c.tag}
+                  </span>
+                </div>
+
+                <div className="relative z-10 mt-auto">
+                  <h3 className="font-display text-3xl font-extrabold text-[#121212] leading-tight">
+                    {c.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-snug text-[#121212]/85">
+                    {c.copy}
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-1 text-xs font-black tracking-wider text-[#121212] uppercase">
+                    EXPLORE <LuArrowRight aria-hidden className="size-3.5 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </div>
               </Link>
             ))}
           </div>
         </div>
       </section>
-      <section className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-24 sm:px-6 md:grid-cols-2">
-        <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-mint">03 / Make it yours</p><h2 className="mt-4 font-display text-5xl font-extrabold leading-none sm:text-7xl">YOUR IDEAS. YOUR RULES.</h2></div>
-        <div><p className="text-lg leading-relaxed text-ink-soft">Your sketches, your photos, your ideas. Upload a design, adjust the crop, pick a shape and create a sticker that could only belong to you.</p><Link to="/create-your-stickers" className="btn-accent mt-6">Create your own sticker →</Link></div>
+
+      {/* SECTION 03 / MAKE IT YOURS */}
+      <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 sm:px-6 md:grid-cols-2 md:gap-16 md:py-28">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-mint">03 / Make it yours</p>
+          <h2 className="mt-3 font-display text-4xl font-extrabold leading-none sm:text-6xl text-ink uppercase">
+            YOUR IDEAS. YOUR RULES.
+          </h2>
+          <p className="mt-6 text-lg leading-relaxed text-ink-soft">
+            Your sketches, your photos, your memes, your friend group inside jokes. Upload any image, frame it with our crop tool, select exact dimensions from 5cm × 5cm to custom sizes, and we'll cut it on premium waterproof vinyl.
+          </p>
+          <p className="mt-4 text-sm text-ink-soft">
+            Every custom sticker is inspected for print resolution and laminated with protective matte coating before dispatch.
+          </p>
+          <Link to="/create-your-stickers" className="btn-accent mt-8 text-base px-8 py-3.5 inline-flex items-center gap-2">
+            Create your own sticker <LuArrowRight aria-hidden className="size-4" />
+          </Link>
+        </div>
+
+        {/* Custom Sticker Preview Box */}
+        <div className="relative mx-auto w-full max-w-md">
+          <div className="rounded-3xl border-2 border-dashed border-mint/40 bg-paper-deep p-8 text-center relative overflow-hidden shadow-xl">
+            <span className="inline-block rounded-full bg-mint/20 px-3 py-1 text-xs font-bold text-mint mb-4 uppercase tracking-wider">
+              ★ CUSTOM DIE-CUT SIMULATOR
+            </span>
+            <div className="my-6 relative inline-block p-4 rounded-2xl border border-dashed border-mint/60 bg-paper/50">
+              <StickerSvg design={d.jugaad} className="size-36 mx-auto drop-shadow-[0_16px_28px_rgba(0,0,0,0.6)]" />
+              <span className="absolute -bottom-2 right-2 rounded-md bg-lime px-2 py-0.5 text-[10px] font-mono font-bold text-paper">
+                CUSTOM DIE-CUT
+              </span>
+            </div>
+            <div className="flex justify-center gap-3 text-xs font-bold text-ink-soft">
+              <span>✓ 5cm × 5cm (₹20)</span>
+              <span>✓ 6cm × 6cm (₹25)</span>
+              <span>✓ Custom cm²</span>
+            </div>
+          </div>
+        </div>
       </section>
-      <section className="bg-paper-deep px-4 py-24 text-center sm:px-6 border-t border-mint/15">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-mint">This is your sign</p>
-        <h2 className="mx-auto mt-5 max-w-5xl font-display text-[clamp(3.5rem,9vw,8rem)] font-extrabold leading-[0.9]">THE WORLD IS YOUR CANVAS.</h2>
-        <p className="mt-6 text-lg text-ink-soft">Find something that feels like you.</p>
-        <Link to="/shop" className="btn-primary mt-8">FIND YOUR VIBE →</Link>
+
+      {/* FINAL CALL TO ACTION / THE WORLD IS YOUR CANVAS */}
+      <section className="relative overflow-hidden bg-paper-deep px-4 py-24 text-center sm:px-6 md:py-32 border-t border-mint/15">
+        {/* Floating stickers framing the CTA */}
+        <div className="pointer-events-none absolute top-10 left-[5%] hidden md:block" style={{ transform: 'rotate(-15deg)' }}>
+          <StickerSvg design={d.pixelHeart} className="size-24 opacity-80 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]" />
+        </div>
+        <div className="pointer-events-none absolute top-10 right-[5%] hidden md:block" style={{ transform: 'rotate(18deg)' }}>
+          <StickerSvg design={d.controller} className="size-24 opacity-80 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]" />
+        </div>
+        <div className="pointer-events-none absolute bottom-10 left-[8%] hidden md:block" style={{ transform: 'rotate(12deg)' }}>
+          <StickerSvg design={d.samosa} className="size-20 opacity-80 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]" />
+        </div>
+        <div className="pointer-events-none absolute bottom-10 right-[8%] hidden md:block" style={{ transform: 'rotate(-10deg)' }}>
+          <StickerSvg design={d.sleepyCloud} className="size-22 opacity-80 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]" />
+        </div>
+
+        <div className="relative mx-auto max-w-4xl">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-mint">This is your sign</p>
+          <h2 className="mx-auto mt-5 max-w-5xl font-display text-[clamp(3.5rem,9vw,8rem)] font-extrabold leading-[0.88] text-ink uppercase">
+            THE WORLD IS YOUR CANVAS.
+          </h2>
+          <p className="mt-6 text-lg text-ink-soft sm:text-xl">
+            Pick what speaks to you, slap it wherever you want, and make your stuff yours.
+          </p>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Link to="/shop" className="btn-primary text-base px-9 py-4 shadow-[0_12px_30px_rgba(255,16,38,0.8)]">
+              FIND YOUR VIBE →
+            </Link>
+            <Link to="/create-your-stickers" className="btn-ghost text-base px-8 py-4">
+              MAKE YOUR OWN STICKER
+            </Link>
+          </div>
+        </div>
       </section>
     </div>
   );

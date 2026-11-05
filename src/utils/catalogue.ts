@@ -83,23 +83,30 @@ export function getContents(product: Product): string[] {
   return [];
 }
 
-/** Text a search query is matched against. */
+const searchableTextCache = new WeakMap<Product, string>();
+
+/** Text a search query is matched against (memoized with WeakMap to avoid repeated allocations on live typing/facet counts). */
 function searchableText(p: Product): string {
-  const collectionNames = p.collections.map((c) => getCollection(c)?.name ?? '');
-  return [
-    p.name,
-    p.shortDescription,
-    p.description,
-    productTypeLabels[p.productType].singular,
-    ...p.tags,
-    ...collectionNames,
-    ...getContents(p),
-    ...(p.variants ?? []).map((v) => v.label),
-    getRarity(p.rarity)?.label ?? '',
-    getSeries(p.seriesId)?.name ?? '',
-  ]
-    .join(' ')
-    .toLowerCase();
+  let cached = searchableTextCache.get(p);
+  if (cached === undefined) {
+    const collectionNames = p.collections.map((c) => getCollection(c)?.name ?? '');
+    cached = [
+      p.name,
+      p.shortDescription,
+      p.description,
+      productTypeLabels[p.productType]?.singular ?? '',
+      ...p.tags,
+      ...collectionNames,
+      ...getContents(p),
+      ...(p.variants ?? []).map((v) => v.label),
+      getRarity(p.rarity)?.label ?? '',
+      getSeries(p.seriesId)?.name ?? '',
+    ]
+      .join(' ')
+      .toLowerCase();
+    searchableTextCache.set(p, cached);
+  }
+  return cached;
 }
 
 export function matchesFilters(p: Product, f: CatalogueFilters): boolean {
