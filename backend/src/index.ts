@@ -823,6 +823,67 @@ app.get('/api/payment/config', (_req, res) => {
   });
 });
 
+// Analytics & Popularity Ranking endpoints
+app.post(
+  '/api/analytics/activity',
+  wrap(async (req, res) => {
+    const { productId, type, sessionId, orderId } = z
+      .object({
+        productId: z.string().min(1),
+        type: z.enum(['VIEW', 'CART', 'PURCHASE']),
+        sessionId: z.string().optional(),
+        orderId: z.string().optional(),
+      })
+      .parse(req.body);
+
+    if (type === 'PURCHASE' && !orderId) {
+      res.status(400).json({ error: 'orderId is required for PURCHASE' });
+      return;
+    }
+
+    try {
+      if (type === 'PURCHASE') {
+        await db.productActivity.upsert({
+          where: { productId_orderId: { productId, orderId: orderId! } },
+          update: {},
+          create: { productId, type, orderId: orderId!, sessionId: sessionId || null },
+        });
+      } else {
+        const sId = sessionId || 'anonymous';
+        await db.productActivity.upsert({
+          where: { productId_type_sessionId: { productId, type, sessionId: sId } },
+          update: {},
+          create: { productId, type, sessionId: sId },
+        });
+      }
+      res.json({ ok: true });
+    } catch {
+      res.json({ ok: true, notice: 'Event already recorded' });
+    }
+  })
+);
+
+app.get(
+  '/api/analytics/popularity',
+  wrap(async (_req, res) => {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const activities = await db.productActivity.findMany({
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      select: { productId: true, type: true },
+    });
+
+    const scores: Record<string, number> = {};
+    for (const a of activities) {
+      if (!scores[a.productId]) scores[a.productId] = 0;
+      if (a.type === 'VIEW') scores[a.productId] += 1;
+      else if (a.type === 'CART') scores[a.productId] += 3;
+      else if (a.type === 'PURCHASE') scores[a.productId] += 10;
+    }
+
+    res.json({ scores });
+  })
+);
+
 // Artwork upload configuration & helpers
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -1541,6 +1602,24 @@ app.post(
               data: { phone },
             });
           }
+
+          // Record confirmed purchase activity for each distinct product in the order
+          const distinctPurchasedProductIds = Array.from(
+            new Set(created.items.map((item) => item.productId).filter((id): id is string => Boolean(id)))
+          );
+          for (const pId of distinctPurchasedProductIds) {
+            await tx.productActivity.upsert({
+              where: { productId_orderId: { productId: pId, orderId: created.id } },
+              update: {},
+              create: {
+                productId: pId,
+                type: 'PURCHASE',
+                orderId: created.id,
+                sessionId: null,
+              },
+            });
+          }
+
           return { order: created, isReplay: false };
         },
         { isolationLevel: 'Serializable' }

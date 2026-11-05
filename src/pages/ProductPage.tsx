@@ -19,6 +19,7 @@ import { Notice } from '../components/ui/Placeholder';
 import { BonusGiftNote } from '../components/collectible/BonusGift';
 import { CollectibleRows, DuoDetails, MysteryPackDetails, SecretMessageDetails } from '../components/collectible/ProductExtras';
 import { RarityBadge } from '../components/collectible/RarityBadge';
+import { recordProductView } from '../utils/popularity';
 
 const viewNames: Record<ArtView, string> = { main: 'Product', detail: 'Close-up', context: 'In use' };
 
@@ -27,6 +28,12 @@ export function ProductPage() {
   const { getProductBySlug, isPurchasable, loading, products } = useCatalogue();
   const product = getProductBySlug(slug ?? '');
   const { addItem, items, setQuantity: setCartQuantity, removeItem, openCart } = useCart();
+
+  useEffect(() => {
+    if (product?.id) {
+      recordProductView(product.id);
+    }
+  }, [product?.id]);
   const [quantity, setQuantity] = useState(1);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [viewIndex, setViewIndex] = useState(0);

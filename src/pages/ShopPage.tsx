@@ -176,10 +176,13 @@ const formatRepresentatives: Partial<Record<ProductType, string>> = {
   'poster-set': 'desk-wall-pack',
 };
 
+const EXCLUDED_SHOP_VIBES = new Set(['study', 'gaming', 'secret']);
+
 function ShopByVibe({ f }: { f: CatalogueFilters }) {
   const { products, isPurchasable } = useCatalogue();
   const category = f.category ?? 'stickers';
   const vibes = collections
+    .filter((c) => !EXCLUDED_SHOP_VIBES.has(c.id))
     .map((c) => ({
       c,
       count: products.filter((p) => p.category === category && isPurchasable(p) && p.collections.includes(c.id)).length,

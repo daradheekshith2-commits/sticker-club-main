@@ -5,6 +5,7 @@ import { useCatalogue } from '../../context/CatalogueContext';
 import { Link } from '../../router/router';
 import type { ProductCartLine } from '../../utils/cart';
 import { getProductById } from '../../utils/catalogue';
+import { recordConfirmedPurchase } from '../../utils/popularity';
 
 type Address = { id: string; recipient: string; line1: string; city: string; state: string; postalCode: string; isDefault: boolean };
 type ServerCart = {
@@ -30,6 +31,7 @@ export type OrderReceipt = {
   paymentMethod: 'UPI' | 'COD';
   paymentStatus: string;
   status: string;
+  items?: Array<{ id: string; productId?: string | null }>;
   payment?: {
     id: string;
     status: string;
@@ -82,6 +84,16 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
   const [utrInput, setUtrInput] = useState('');
   const [submittingUtr, setSubmittingUtr] = useState(false);
   const [utrSuccess, setUtrSuccess] = useState('');
+
+  // Record purchase once per confirmed order (reloading confirmation page never double counts)
+  useEffect(() => {
+    if (order?.id && order.items && order.items.length > 0) {
+      const productIds = order.items.map((i) => i.productId).filter((id): id is string => Boolean(id));
+      if (productIds.length > 0) {
+        recordConfirmedPurchase(order.id, productIds);
+      }
+    }
+  }, [order?.id, order?.items]);
   const [utrError, setUtrError] = useState('');
 
   const standard = lines.filter((l): l is ProductCartLine => l.type === 'product');
@@ -261,6 +273,9 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
       });
       setOrder(placed);
       onCreated?.(placed);
+      if (placed?.id && standard.length > 0) {
+        recordConfirmedPurchase(placed.id, standard.map((s) => s.product.id));
+      }
       for (const line of lines) {
         removeItem(line.key);
       }

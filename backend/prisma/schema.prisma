@@ -145,6 +145,7 @@ model Product {
   variants     ProductVariant[]
   movements    InventoryMovement[]
   stockChanges StockChange[]
+  activities   ProductActivity[]
 
   @@index([status, active, displayOrder])
   @@index([category, status])
@@ -525,4 +526,19 @@ model PasswordResetToken {
   usedAt    DateTime?
 
   @@index([userId])
+}
+
+model ProductActivity {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      String   // 'VIEW' | 'CART' | 'PURCHASE'
+  sessionId String?
+  orderId   String?
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+  @@index([type, createdAt])
+  @@unique([productId, type, sessionId])
+  @@unique([productId, orderId])
 }

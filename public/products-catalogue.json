@@ -151421,5 +151421,3365 @@
         "collectionId": "marvel"
       }
     ]
+  },
+  {
+    "id": "stk-cute-001",
+    "slug": "cute-blushing-emoji-with-pink-lily",
+    "name": "Blushing Emoji with Pink Lily",
+    "description": "Original Cute & Aesthetic vinyl sticker: Blushing Emoji with Pink Lily. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Blushing Emoji with Pink Lily.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": true,
+    "isNew": true,
+    "displayOrder": 200,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.486Z",
+    "updatedAt": "2026-11-05T19:08:38.486Z",
+    "images": [
+      {
+        "url": "/cute/01 - Blushing Emoji with Pink Lily.webp",
+        "alt": "Blushing Emoji with Pink Lily - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-001",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-001",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-001",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-002",
+    "slug": "cute-shy-kiss-emoji-with-pink-bow",
+    "name": "Shy Kiss Emoji with Pink Bow",
+    "description": "Original Cute & Aesthetic vinyl sticker: Shy Kiss Emoji with Pink Bow. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Shy Kiss Emoji with Pink Bow.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": true,
+    "isNew": true,
+    "displayOrder": 201,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/02 - Shy Kiss Emoji with Pink Bow.webp",
+        "alt": "Shy Kiss Emoji with Pink Bow - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-002",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-002",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-002",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-003",
+    "slug": "cute-side-eye-lily-emoji-with-crossed-arms",
+    "name": "Side-Eye Lily Emoji with Crossed Arms",
+    "description": "Original Cute & Aesthetic vinyl sticker: Side-Eye Lily Emoji with Crossed Arms. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Side-Eye Lily Emoji with Crossed Arms.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": true,
+    "isNew": true,
+    "displayOrder": 202,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/03 - Side-Eye Lily Emoji with Crossed Arms.webp",
+        "alt": "Side-Eye Lily Emoji with Crossed Arms - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-003",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-003",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-003",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-004",
+    "slug": "cute-self-obsessed-leopard-lips-and-star",
+    "name": "Self Obsessed - Leopard Lips and Star",
+    "description": "Original Cute & Aesthetic vinyl sticker: Self Obsessed - Leopard Lips and Star. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Self Obsessed - Leopard Lips and Star.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": true,
+    "isNew": true,
+    "displayOrder": 203,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/04 - Self Obsessed - Leopard Lips and Star.webp",
+        "alt": "Self Obsessed - Leopard Lips and Star - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-004",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-004",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-004",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-005",
+    "slug": "cute-eww-people-side-eye-portrait",
+    "name": "Eww People - Side-Eye Portrait",
+    "description": "Original Cute & Aesthetic vinyl sticker: Eww People - Side-Eye Portrait. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Eww People - Side-Eye Portrait.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": true,
+    "isNew": true,
+    "displayOrder": 204,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/05 - Eww People - Side-Eye Portrait.webp",
+        "alt": "Eww People - Side-Eye Portrait - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-005",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-005",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-005",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-006",
+    "slug": "cute-they-will-judge-you-anyway-so-keep-going",
+    "name": "They Will Judge You Anyway So Keep Going",
+    "description": "Original Cute & Aesthetic vinyl sticker: They Will Judge You Anyway So Keep Going. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: They Will Judge You Anyway So Keep Going.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": true,
+    "isNew": true,
+    "displayOrder": 205,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/06 - They Will Judge You Anyway So Keep Going.webp",
+        "alt": "They Will Judge You Anyway So Keep Going - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-006",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-006",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-006",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-007",
+    "slug": "cute-suno-sabki-karo-khudki-block-letters",
+    "name": "Suno Sabki Karo Khudki - Block Letters",
+    "description": "Original Cute & Aesthetic vinyl sticker: Suno Sabki Karo Khudki - Block Letters. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Suno Sabki Karo Khudki - Block Letters.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 206,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/07 - Suno Sabki Karo Khudki - Block Letters.webp",
+        "alt": "Suno Sabki Karo Khudki - Block Letters - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-007",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-007",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-007",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-008",
+    "slug": "cute-suno-sabki-karo-khudki-spiral-stars",
+    "name": "Suno Sabki Karo Khudki - Spiral Stars",
+    "description": "Original Cute & Aesthetic vinyl sticker: Suno Sabki Karo Khudki - Spiral Stars. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Suno Sabki Karo Khudki - Spiral Stars.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 207,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/08 - Suno Sabki Karo Khudki - Spiral Stars.webp",
+        "alt": "Suno Sabki Karo Khudki - Spiral Stars - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-008",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-008",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-008",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-009",
+    "slug": "cute-vinyl-record-with-pink-lilies",
+    "name": "Vinyl Record with Pink Lilies",
+    "description": "Original Cute & Aesthetic vinyl sticker: Vinyl Record with Pink Lilies. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Vinyl Record with Pink Lilies.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 208,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/09 - Vinyl Record with Pink Lilies.webp",
+        "alt": "Vinyl Record with Pink Lilies - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-009",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-009",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-009",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-010",
+    "slug": "cute-kaleshi-aurat-red-lipstick-kiss",
+    "name": "Kaleshi Aurat - Red Lipstick Kiss",
+    "description": "Original Cute & Aesthetic vinyl sticker: Kaleshi Aurat - Red Lipstick Kiss. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Kaleshi Aurat - Red Lipstick Kiss.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 209,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/10 - Kaleshi Aurat - Red Lipstick Kiss.webp",
+        "alt": "Kaleshi Aurat - Red Lipstick Kiss - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-010",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-010",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-010",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-011",
+    "slug": "cute-dramebaaz-since-birth",
+    "name": "Dramebaaz Since Birth",
+    "description": "Original Cute & Aesthetic vinyl sticker: Dramebaaz Since Birth. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Dramebaaz Since Birth.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 210,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/11 - Dramebaaz Since Birth.webp",
+        "alt": "Dramebaaz Since Birth - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-011",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-011",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-011",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-012",
+    "slug": "cute-kaleshi-aurat-purple-lightning-bubble",
+    "name": "Kaleshi Aurat - Purple Lightning Bubble",
+    "description": "Original Cute & Aesthetic vinyl sticker: Kaleshi Aurat - Purple Lightning Bubble. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Kaleshi Aurat - Purple Lightning Bubble.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 211,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/12 - Kaleshi Aurat - Purple Lightning Bubble.webp",
+        "alt": "Kaleshi Aurat - Purple Lightning Bubble - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-012",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-012",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-012",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-013",
+    "slug": "cute-mard-ka-chakkar-maut-se-takkar-glam-emoji",
+    "name": "Mard Ka Chakkar Maut Se Takkar - Glam Emoji",
+    "description": "Original Cute & Aesthetic vinyl sticker: Mard Ka Chakkar Maut Se Takkar - Glam Emoji. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Mard Ka Chakkar Maut Se Takkar - Glam Emoji.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 212,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/13 - Mard Ka Chakkar Maut Se Takkar - Glam Emoji.webp",
+        "alt": "Mard Ka Chakkar Maut Se Takkar - Glam Emoji - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-013",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-013",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-013",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-014",
+    "slug": "cute-bhaiyaaa-vasteganehoyein-sunglasses-emoji",
+    "name": "Bhaiyaaa Vasteganehoyein - Sunglasses Emoji",
+    "description": "Original Cute & Aesthetic vinyl sticker: Bhaiyaaa Vasteganehoyein - Sunglasses Emoji. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Bhaiyaaa Vasteganehoyein - Sunglasses Emoji.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 213,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/14 - Bhaiyaaa Vasteganehoyein - Sunglasses Emoji.webp",
+        "alt": "Bhaiyaaa Vasteganehoyein - Sunglasses Emoji - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-014",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-014",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-014",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-015",
+    "slug": "cute-kaleshi-aurat-i-dont-care-sunglasses",
+    "name": "Kaleshi Aurat - I Dont Care Sunglasses",
+    "description": "Original Cute & Aesthetic vinyl sticker: Kaleshi Aurat - I Dont Care Sunglasses. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Kaleshi Aurat - I Dont Care Sunglasses.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 214,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/15 - Kaleshi Aurat - I Dont Care Sunglasses.webp",
+        "alt": "Kaleshi Aurat - I Dont Care Sunglasses - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-015",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-015",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-015",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-016",
+    "slug": "cute-cherries-with-pink-bow",
+    "name": "Cherries with Pink Bow",
+    "description": "Original Cute & Aesthetic vinyl sticker: Cherries with Pink Bow. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Cherries with Pink Bow.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 215,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/16 - Cherries with Pink Bow.webp",
+        "alt": "Cherries with Pink Bow - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-016",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-016",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-016",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-017",
+    "slug": "cute-glossy-cherries-with-heart-ribbon",
+    "name": "Glossy Cherries with Heart Ribbon",
+    "description": "Original Cute & Aesthetic vinyl sticker: Glossy Cherries with Heart Ribbon. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Glossy Cherries with Heart Ribbon.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 216,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/17 - Glossy Cherries with Heart Ribbon.webp",
+        "alt": "Glossy Cherries with Heart Ribbon - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-017",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-017",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-017",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-018",
+    "slug": "cute-happy-birthday-strawberries-and-bows",
+    "name": "Happy Birthday - Strawberries and Bows",
+    "description": "Original Cute & Aesthetic vinyl sticker: Happy Birthday - Strawberries and Bows. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Happy Birthday - Strawberries and Bows.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 217,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/18 - Happy Birthday - Strawberries and Bows.webp",
+        "alt": "Happy Birthday - Strawberries and Bows - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-018",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-018",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-018",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-019",
+    "slug": "cute-slay-pink-bubble-letters",
+    "name": "Slay - Pink Bubble Letters",
+    "description": "Original Cute & Aesthetic vinyl sticker: Slay - Pink Bubble Letters. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Slay - Pink Bubble Letters.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 218,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/19 - Slay - Pink Bubble Letters.webp",
+        "alt": "Slay - Pink Bubble Letters - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-019",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-019",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-019",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-020",
+    "slug": "cute-dollar-bills-with-pink-bow",
+    "name": "Dollar Bills with Pink Bow",
+    "description": "Original Cute & Aesthetic vinyl sticker: Dollar Bills with Pink Bow. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Dollar Bills with Pink Bow.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 219,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/20 - Dollar Bills with Pink Bow.webp",
+        "alt": "Dollar Bills with Pink Bow - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-020",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-020",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-020",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-021",
+    "slug": "cute-not-your-babe-dripping-knife",
+    "name": "Not Your Babe - Dripping Knife",
+    "description": "Original Cute & Aesthetic vinyl sticker: Not Your Babe - Dripping Knife. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Not Your Babe - Dripping Knife.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 220,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/21 - Not Your Babe - Dripping Knife.webp",
+        "alt": "Not Your Babe - Dripping Knife - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-021",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-021",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-021",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-022",
+    "slug": "cute-hanging-black-spider-and-web",
+    "name": "Hanging Black Spider and Web",
+    "description": "Original Cute & Aesthetic vinyl sticker: Hanging Black Spider and Web. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Hanging Black Spider and Web.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 221,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/22 - Hanging Black Spider and Web.webp",
+        "alt": "Hanging Black Spider and Web - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-022",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-022",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-022",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-023",
+    "slug": "cute-headphones-with-red-bows-and-hearts",
+    "name": "Headphones with Red Bows and Hearts",
+    "description": "Original Cute & Aesthetic vinyl sticker: Headphones with Red Bows and Hearts. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Headphones with Red Bows and Hearts.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 222,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/23 - Headphones with Red Bows and Hearts.webp",
+        "alt": "Headphones with Red Bows and Hearts - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-023",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-023",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-023",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-024",
+    "slug": "cute-main-character-pink-clapperboard",
+    "name": "Main Character - Pink Clapperboard",
+    "description": "Original Cute & Aesthetic vinyl sticker: Main Character - Pink Clapperboard. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Main Character - Pink Clapperboard.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 223,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/24 - Main Character - Pink Clapperboard.webp",
+        "alt": "Main Character - Pink Clapperboard - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-024",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-024",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-024",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-025",
+    "slug": "cute-iced-coffee-girly-pink-bow-straw",
+    "name": "Iced Coffee Girly - Pink Bow Straw",
+    "description": "Original Cute & Aesthetic vinyl sticker: Iced Coffee Girly - Pink Bow Straw. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Iced Coffee Girly - Pink Bow Straw.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 224,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/25 - Iced Coffee Girly - Pink Bow Straw.webp",
+        "alt": "Iced Coffee Girly - Pink Bow Straw - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-025",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-025",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-025",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-026",
+    "slug": "cute-why-not-red-and-pink-lettering",
+    "name": "Why Not - Red and Pink Lettering",
+    "description": "Original Cute & Aesthetic vinyl sticker: Why Not - Red and Pink Lettering. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Why Not - Red and Pink Lettering.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 225,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/26 - Why Not - Red and Pink Lettering.webp",
+        "alt": "Why Not - Red and Pink Lettering - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-026",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-026",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-026",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-027",
+    "slug": "cute-cherry-girl-red-hearts",
+    "name": "Cherry Girl - Red Hearts",
+    "description": "Original Cute & Aesthetic vinyl sticker: Cherry Girl - Red Hearts. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Cherry Girl - Red Hearts.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 226,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/27 - Cherry Girl - Red Hearts.webp",
+        "alt": "Cherry Girl - Red Hearts - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-027",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-027",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-027",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-028",
+    "slug": "cute-shut-up-pink-pixel-button",
+    "name": "Shut Up - Pink Pixel Button",
+    "description": "Original Cute & Aesthetic vinyl sticker: Shut Up - Pink Pixel Button. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Shut Up - Pink Pixel Button.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 227,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/28 - Shut Up - Pink Pixel Button.webp",
+        "alt": "Shut Up - Pink Pixel Button - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-028",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-028",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-028",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-029",
+    "slug": "cute-bitch-pixel-speech-bubble",
+    "name": "Bitch - Pixel Speech Bubble",
+    "description": "Original Cute & Aesthetic vinyl sticker: Bitch - Pixel Speech Bubble. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Bitch - Pixel Speech Bubble.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 228,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/29 - Bitch - Pixel Speech Bubble.webp",
+        "alt": "Bitch - Pixel Speech Bubble - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-029",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-029",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-029",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-030",
+    "slug": "cute-limited-edition-barcode",
+    "name": "Limited Edition - Barcode",
+    "description": "Original Cute & Aesthetic vinyl sticker: Limited Edition - Barcode. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Limited Edition - Barcode.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 229,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/30 - Limited Edition - Barcode.webp",
+        "alt": "Limited Edition - Barcode - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-030",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-030",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-030",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-031",
+    "slug": "cute-who-cares-red-embroidered-patch",
+    "name": "Who Cares - Red Embroidered Patch",
+    "description": "Original Cute & Aesthetic vinyl sticker: Who Cares - Red Embroidered Patch. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Who Cares - Red Embroidered Patch.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 230,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/31 - Who Cares - Red Embroidered Patch.webp",
+        "alt": "Who Cares - Red Embroidered Patch - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-031",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-031",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-031",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-032",
+    "slug": "cute-hopeless-romantic-red-stars",
+    "name": "Hopeless Romantic - Red Stars",
+    "description": "Original Cute & Aesthetic vinyl sticker: Hopeless Romantic - Red Stars. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Hopeless Romantic - Red Stars.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 231,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/32 - Hopeless Romantic - Red Stars.webp",
+        "alt": "Hopeless Romantic - Red Stars - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-032",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-032",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-032",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-033",
+    "slug": "cute-idgaf-pink-bubble-letters",
+    "name": "IDGAF - Pink Bubble Letters",
+    "description": "Original Cute & Aesthetic vinyl sticker: IDGAF - Pink Bubble Letters. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: IDGAF - Pink Bubble Letters.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 232,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/33 - IDGAF - Pink Bubble Letters.webp",
+        "alt": "IDGAF - Pink Bubble Letters - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-033",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-033",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-033",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-034",
+    "slug": "cute-you-got-it-dude-thumbs-up",
+    "name": "You Got It Dude - Thumbs Up",
+    "description": "Original Cute & Aesthetic vinyl sticker: You Got It Dude - Thumbs Up. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: You Got It Dude - Thumbs Up.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 233,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/34 - You Got It Dude - Thumbs Up.webp",
+        "alt": "You Got It Dude - Thumbs Up - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-034",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-034",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-034",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-035",
+    "slug": "cute-not-in-the-mood-pink-caution-sign",
+    "name": "Not in the Mood - Pink Caution Sign",
+    "description": "Original Cute & Aesthetic vinyl sticker: Not in the Mood - Pink Caution Sign. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Not in the Mood - Pink Caution Sign.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 234,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/35 - Not in the Mood - Pink Caution Sign.webp",
+        "alt": "Not in the Mood - Pink Caution Sign - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-035",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-035",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-035",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-036",
+    "slug": "cute-woman-adjusting-black-sunglasses",
+    "name": "Woman Adjusting Black Sunglasses",
+    "description": "Original Cute & Aesthetic vinyl sticker: Woman Adjusting Black Sunglasses. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Woman Adjusting Black Sunglasses.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 235,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/36 - Woman Adjusting Black Sunglasses.webp",
+        "alt": "Woman Adjusting Black Sunglasses - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-036",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-036",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-036",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-037",
+    "slug": "cute-whatever-cartoon-woman-with-phone",
+    "name": "Whatever - Cartoon Woman with Phone",
+    "description": "Original Cute & Aesthetic vinyl sticker: Whatever - Cartoon Woman with Phone. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Whatever - Cartoon Woman with Phone.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 236,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/37 - Whatever - Cartoon Woman with Phone.webp",
+        "alt": "Whatever - Cartoon Woman with Phone - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-037",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-037",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-037",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-038",
+    "slug": "cute-ewww-cartoon-side-eye",
+    "name": "Ewww - Cartoon Side-Eye",
+    "description": "Original Cute & Aesthetic vinyl sticker: Ewww - Cartoon Side-Eye. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Ewww - Cartoon Side-Eye.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 237,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/38 - Ewww - Cartoon Side-Eye.webp",
+        "alt": "Ewww - Cartoon Side-Eye - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-038",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-038",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-038",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-039",
+    "slug": "cute-nonchalant-mixed-script-mandala",
+    "name": "Nonchalant - Mixed Script Mandala",
+    "description": "Original Cute & Aesthetic vinyl sticker: Nonchalant - Mixed Script Mandala. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Nonchalant - Mixed Script Mandala.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 238,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/39 - Nonchalant - Mixed Script Mandala.webp",
+        "alt": "Nonchalant - Mixed Script Mandala - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-039",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-039",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-039",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-040",
+    "slug": "cute-pretty-chalant-mandala",
+    "name": "Pretty Chalant - Mandala",
+    "description": "Original Cute & Aesthetic vinyl sticker: Pretty Chalant - Mandala. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Pretty Chalant - Mandala.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 239,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/40 - Pretty Chalant - Mandala.webp",
+        "alt": "Pretty Chalant - Mandala - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-040",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-040",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-040",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-041",
+    "slug": "cute-burgundy-five-petal-flower",
+    "name": "Burgundy Five-Petal Flower",
+    "description": "Original Cute & Aesthetic vinyl sticker: Burgundy Five-Petal Flower. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Burgundy Five-Petal Flower.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 240,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/41 - Burgundy Five-Petal Flower.webp",
+        "alt": "Burgundy Five-Petal Flower - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-041",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-041",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-041",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-042",
+    "slug": "cute-vinyl-record-with-red-glitter-stars",
+    "name": "Vinyl Record with Red Glitter Stars",
+    "description": "Original Cute & Aesthetic vinyl sticker: Vinyl Record with Red Glitter Stars. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Vinyl Record with Red Glitter Stars.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 241,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/42 - Vinyl Record with Red Glitter Stars.webp",
+        "alt": "Vinyl Record with Red Glitter Stars - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-042",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-042",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-042",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-043",
+    "slug": "cute-leica-m6-burgundy-camera",
+    "name": "Leica M6 - Burgundy Camera",
+    "description": "Original Cute & Aesthetic vinyl sticker: Leica M6 - Burgundy Camera. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Leica M6 - Burgundy Camera.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 242,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/43 - Leica M6 - Burgundy Camera.webp",
+        "alt": "Leica M6 - Burgundy Camera - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-043",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-043",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-043",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-044",
+    "slug": "cute-do-not-disturb-vintage-red-sign",
+    "name": "Do Not Disturb - Vintage Red Sign",
+    "description": "Original Cute & Aesthetic vinyl sticker: Do Not Disturb - Vintage Red Sign. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Do Not Disturb - Vintage Red Sign.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 243,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/44 - Do Not Disturb - Vintage Red Sign.webp",
+        "alt": "Do Not Disturb - Vintage Red Sign - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-044",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-044",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-044",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-045",
+    "slug": "cute-warning-red-stamp",
+    "name": "Warning - Red Stamp",
+    "description": "Original Cute & Aesthetic vinyl sticker: Warning - Red Stamp. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Warning - Red Stamp.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 244,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/45 - Warning - Red Stamp.webp",
+        "alt": "Warning - Red Stamp - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-045",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-045",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-045",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-046",
+    "slug": "cute-eh-warped-black-letters",
+    "name": "Eh - Warped Black Letters",
+    "description": "Original Cute & Aesthetic vinyl sticker: Eh - Warped Black Letters. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Eh - Warped Black Letters.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 245,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/46 - Eh - Warped Black Letters.webp",
+        "alt": "Eh - Warped Black Letters - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-046",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-046",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-046",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-047",
+    "slug": "cute-black-pixel-dinosaur",
+    "name": "Black Pixel Dinosaur",
+    "description": "Original Cute & Aesthetic vinyl sticker: Black Pixel Dinosaur. Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Black Pixel Dinosaur.",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 246,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/47 - Black Pixel Dinosaur.webp",
+        "alt": "Black Pixel Dinosaur - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-047",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-047",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-047",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
+  },
+  {
+    "id": "stk-cute-048",
+    "slug": "cute-self-obsessed-leopard-lips-and-star-alt",
+    "name": "Self Obsessed - Leopard Lips and Star (Alt)",
+    "description": "Original Cute & Aesthetic vinyl sticker: Self Obsessed - Leopard Lips and Star (Alt). Printed on waterproof matte vinyl with precision die-cut edge.",
+    "shortDescription": "Cute & Aesthetic die-cut sticker: Self Obsessed - Leopard Lips and Star (Alt).",
+    "price": "20",
+    "active": true,
+    "status": "PUBLISHED",
+    "productType": "single",
+    "category": "stickers",
+    "featured": false,
+    "isNew": true,
+    "displayOrder": 247,
+    "packQuantity": null,
+    "dimensions": "6cm x 6cm",
+    "material": "Waterproof Vinyl",
+    "finish": "Matte Laminated",
+    "note": null,
+    "rarity": "common",
+    "seriesId": "S03",
+    "metadata": null,
+    "createdAt": "2026-11-05T19:08:38.487Z",
+    "updatedAt": "2026-11-05T19:08:38.487Z",
+    "images": [
+      {
+        "url": "/cute/48 - Self Obsessed - Leopard Lips and Star - Second Copy.webp",
+        "alt": "Self Obsessed - Leopard Lips and Star (Alt) - Cute & Aesthetic Sticker",
+        "position": 0,
+        "isPrimary": true
+      }
+    ],
+    "inventory": {
+      "productId": "stk-cute-048",
+      "quantity": 100
+    },
+    "categories": [
+      {
+        "productId": "stk-cute-048",
+        "categoryId": "stickers"
+      },
+      {
+        "productId": "stk-cute-048",
+        "categoryId": "cute"
+      }
+    ],
+    "variants": [],
+    "collections": [
+      {
+        "collectionId": "stickers"
+      },
+      {
+        "collectionId": "cute"
+      }
+    ],
+    "tags": [
+      {
+        "tag": "cute"
+      },
+      {
+        "tag": "aesthetic"
+      },
+      {
+        "tag": "sticker"
+      },
+      {
+        "tag": "vinyl"
+      }
+    ]
   }
 ]

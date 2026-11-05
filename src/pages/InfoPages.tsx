@@ -126,9 +126,6 @@ export function AboutPage() {
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/20 bg-paper/80 px-3 py-1 text-mint">
                   <LuCheck aria-hidden className="size-3.5" /> Precision Die-Cut
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/20 bg-paper/80 px-3 py-1 text-mint">
-                  <LuCheck aria-hidden className="size-3.5" /> Student-run in {brand.city}
-                </span>
               </div>
             </div>
 

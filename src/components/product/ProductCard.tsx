@@ -9,6 +9,7 @@ import { getPackQuantity, isPurchasable } from '../../utils/catalogue';
 import { keyOf, MAX_QUANTITY_PER_ITEM, type ProductCartItem } from '../../utils/cart';
 import { ProductImage, viewsFor } from '../art/ProductArt';
 import { RarityBadge } from '../collectible/RarityBadge';
+import { rankBlock } from '../../utils/popularity';
 
 /**
  * Plain-language "what you get" line, e.g. "Sticker sheet · 8 stickers".
@@ -238,10 +239,11 @@ export function ProductGrid({
   headingLevel?: 'h2' | 'h3';
   layout?: 'wide' | 'beside-filters';
 }) {
+  const rankedProducts = rankBlock(products);
   const cols = layout === 'wide' ? 'lg:grid-cols-4' : 'md:grid-cols-3 xl:grid-cols-4';
   return (
     <ul className={`grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 ${cols}`}>
-      {products.map((p) => (
+      {rankedProducts.map((p) => (
         <li key={p.id}>
           <ProductCard product={p} headingLevel={headingLevel} />
         </li>

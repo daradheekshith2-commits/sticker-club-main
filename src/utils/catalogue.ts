@@ -2,6 +2,7 @@ import { products as allProducts } from '../data/products';
 import { getCollection, productTypeLabels, resolveCollectionId } from '../data/collections';
 import { getRarity, getSeries } from '../data/rarity';
 import type { Category, CollectionId, Product, ProductType } from '../types/product';
+import { getPopularityScores } from './popularity';
 
 /**
  * CATALOGUE HELPERS
@@ -137,14 +138,23 @@ export function sortProducts(list: Product[], sort: SortKey): Product[] {
     case 'name':
       return copy.sort((a, b) => a.name.localeCompare(b.name));
     case 'featured':
-    default:
-      // Featured first, then purchasable before coming-soon, then display order.
-      return copy.sort(
-        (a, b) =>
+    default: {
+      // 30-day popularity score ranking (highest score first)
+      const scores = getPopularityScores();
+      return copy.sort((a, b) => {
+        const scoreA = scores[a.id] ?? 0;
+        const scoreB = scores[b.id] ?? 0;
+        if (scoreB !== scoreA) {
+          return scoreB - scoreA;
+        }
+        // For tied scores, preserve the store's existing display order
+        return (
           Number(b.featured) - Number(a.featured) ||
           Number(isPurchasable(b)) - Number(isPurchasable(a)) ||
-          a.displayOrder - b.displayOrder,
-      );
+          a.displayOrder - b.displayOrder
+        );
+      });
+    }
   }
 }
 

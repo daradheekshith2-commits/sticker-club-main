@@ -54,7 +54,6 @@ export function Footer() {
     { label: 'FAQ', to: '/faq' },
     { label: 'Contact', to: '/contact' },
     { label: 'Shipping & pickup', to: '/policies/shipping' },
-    { label: 'Returns & cancellations', to: '/policies/returns' },
     { label: 'Privacy', to: '/policies/privacy' },
     { label: 'Terms', to: '/policies/terms' },
   ];

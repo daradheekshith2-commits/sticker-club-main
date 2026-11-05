@@ -28,6 +28,7 @@ import type { CustomWallConfig } from '../types/wall';
 import type { CustomStickerConfig } from '../utils/customSticker';
 import { isValidPackConfig, packFingerprint, packLabel, type CustomPackConfig } from '../utils/customPack';
 import { packEligibleProducts } from '../utils/collectibles';
+import { recordCartSelection } from '../utils/popularity';
 
 interface CartContextValue extends CartSummary {
   items: CartItem[];
@@ -112,6 +113,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback((productId: string, quantity = 1, variantId?: string, secretNote?: string) => {
     if (!canAddProduct(productId, variantId)) return; // coming-soon product or missing/invalid size
+    recordCartSelection(productId);
     dispatch({ type: 'add', productId, variantId, secretNote, quantity });
     const product = findProduct(productId);
     const size = product ? findVariant(product, variantId)?.label : undefined;

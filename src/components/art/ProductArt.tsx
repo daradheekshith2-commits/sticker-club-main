@@ -536,7 +536,7 @@ export function ProductImage({ product, view = 'main', index = 0, className }: {
 
     // Fast-loading WebP alternative
     const webpSrc = src.replace(/\.(png|jpe?g)$/i, '.webp');
-    const isStaticAsset = src.startsWith('/PNG/') || src.startsWith('/Stickers/') || src.startsWith('/Poster/') || src.startsWith('/hero-stickers/');
+    const isStaticAsset = src.startsWith('/PNG/') || src.startsWith('/Stickers/') || src.startsWith('/Poster/') || src.startsWith('/hero-stickers/') || src.startsWith('/cute/');
 
     return (
       <picture className="contents">

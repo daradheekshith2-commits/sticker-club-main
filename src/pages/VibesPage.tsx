@@ -8,15 +8,19 @@ import { motifs } from '../components/art/motifs';
 import { Breadcrumbs } from '../components/ui/Breadcrumbs';
 import { pluralise } from '../utils/format';
 
+const EXCLUDED_VIBES = new Set(['study', 'gaming', 'secret']);
+
 /** Every "Shop by vibe" collection on one page. */
 export function VibesPage() {
-  usePageMeta('Shop by vibe', 'Find stickers by interest: anime, movies, life quotes, superheroes, cute, gaming-inspired and more.');
+  usePageMeta('Shop by vibe', 'Find stickers by interest: anime, movies, life quotes, superheroes, cute, and more.');
   const { products } = useCatalogue();
+
+  const visibleCollections = useMemo(() => collections.filter((c) => !EXCLUDED_VIBES.has(c.id)), []);
 
   // Pre-calculate design counts per collection in a single O(N) pass instead of O(collections * products) filters
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const c of collections) {
+    for (const c of visibleCollections) {
       map[c.id] = 0;
     }
     for (const p of products) {
@@ -29,7 +33,7 @@ export function VibesPage() {
       }
     }
     return map;
-  }, [products]);
+  }, [products, visibleCollections]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
@@ -37,7 +41,7 @@ export function VibesPage() {
       <h1 className="mt-4 text-5xl font-extrabold md:text-7xl">Shop by vibe</h1>
       <p className="mt-3 max-w-xl text-lg text-ink-soft">Pick what you’re into and we’ll show you the stickers that match.</p>
       <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {collections.map((c) => {
+        {visibleCollections.map((c) => {
           const Motif = motifs[c.motif];
           const count = counts[c.id] ?? 0;
           return (

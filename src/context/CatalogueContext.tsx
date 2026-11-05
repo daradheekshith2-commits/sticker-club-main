@@ -3,6 +3,7 @@ import { products as seedProducts } from '../data/products';
 import type { Category, CollectionId, Product, ProductArt, ProductType, Variant } from '../types/product';
 import { apiUrl } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { subscribeToPopularityChanges } from '../utils/popularity';
 
 export type BackendProduct = {
   id: string;
@@ -255,6 +256,11 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
     }
   });
   const [error, setError] = useState<string | null>(null);
+  const [, setPopularityTick] = useState(0);
+
+  useEffect(() => {
+    return subscribeToPopularityChanges(() => setPopularityTick((t) => t + 1));
+  }, []);
 
   // Background fetch from Supabase with a strict timeout so network stalls never freeze the UI
   async function fetchSupabaseLive(timeoutMs = 6000): Promise<{ products: BackendProduct[]; categories: CategoryItem[] } | null> {
