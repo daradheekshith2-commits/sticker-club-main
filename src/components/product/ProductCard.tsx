@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { LuArrowRight, LuCheck, LuPlus } from 'react-icons/lu';
+import { useState } from 'react';
+import { LuArrowRight, LuMinus, LuPlus } from 'react-icons/lu';
 import type { Product } from '../../types/product';
 import { Link } from '../../router/router';
 import { useCart } from '../../context/CartContext';
 import { productTypeLabels } from '../../data/collections';
 import { formatPrice } from '../../utils/format';
 import { getPackQuantity, isPurchasable } from '../../utils/catalogue';
+import { keyOf, MAX_QUANTITY_PER_ITEM, type ProductCartItem } from '../../utils/cart';
 import { ProductImage, viewsFor } from '../art/ProductArt';
 import { RarityBadge } from '../collectible/RarityBadge';
 
@@ -23,8 +24,7 @@ export function describeContents(product: Product): string {
 
 /** Product tile used on the homepage, shop and related-products rows. */
 export function ProductCard({ product, headingLevel = 'h3' }: { product: Product; headingLevel?: 'h2' | 'h3' }) {
-  const { addItem } = useCart();
-  const [justAdded, setJustAdded] = useState(false);
+  const { addItem, items, setQuantity, removeItem } = useCart();
   const [isHovered, setIsHovered] = useState(false);
   const purchasable = isPurchasable(product);
   const hasSizes = Boolean(product.variants?.length);
@@ -34,11 +34,12 @@ export function ProductCard({ product, headingLevel = 'h3' }: { product: Product
   // Second picture shown on hover (desktop only): a real photo #2, or the "in use" drawing.
   const hasHover = (product.images?.length ?? 0) > 1 || (!product.images?.length && viewsFor(product).includes('context'));
 
-  useEffect(() => {
-    if (!justAdded) return;
-    const t = window.setTimeout(() => setJustAdded(false), 1600);
-    return () => window.clearTimeout(t);
-  }, [justAdded]);
+  const matchingItems = items.filter(
+    (i) => (i.kind === undefined || i.kind === 'product') && i.productId === product.id
+  ) as ProductCartItem[];
+
+  const inCartItem = matchingItems.length === 1 ? matchingItems[0] : undefined;
+  const inCartQty = inCartItem ? inCartItem.quantity : 0;
 
   const actionBase =
     'relative z-10 inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border-2 border-ink px-3.5 text-sm font-bold transition-colors';
@@ -106,22 +107,115 @@ export function ProductCard({ product, headingLevel = 'h3' }: { product: Product
           </p>
           {purchasable &&
             (hasSizes ? (
-              // Products with sizes need a choice first, so this goes to the product page.
-              <Link to={url} className={`${actionBase} bg-white hover:bg-ink hover:text-paper`} aria-label={`Choose a ${isTheme ? 'theme' : 'size'} for ${product.name}`}>
-                {isTheme ? 'Theme' : 'Size'} <LuArrowRight aria-hidden className="size-4" />
-              </Link>
+              inCartItem && inCartQty > 0 ? (
+                <div
+                  role="group"
+                  aria-label={`Quantity of ${product.name}`}
+                  className="relative z-10 inline-flex h-10 shrink-0 items-center rounded-full border border-mint/25 bg-[#08241E] px-1 text-ink shadow-sm"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const cartKey = keyOf(inCartItem);
+                      if (inCartQty <= 1) {
+                        removeItem(cartKey);
+                      } else {
+                        setQuantity(cartKey, inCartQty - 1);
+                      }
+                    }}
+                    className="grid size-8 place-items-center rounded-full text-ink hover:bg-paper-deep hover:text-mint transition-colors"
+                    aria-label={inCartQty === 1 ? `Remove ${product.name} from cart` : `Decrease quantity of ${product.name}`}
+                  >
+                    <LuMinus aria-hidden className="size-3.5" />
+                  </button>
+                  <span aria-live="polite" className="w-6 text-center text-sm font-bold tabular-nums text-ink">
+                    {inCartQty}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setQuantity(keyOf(inCartItem), Math.min(MAX_QUANTITY_PER_ITEM, inCartQty + 1));
+                    }}
+                    disabled={inCartQty >= MAX_QUANTITY_PER_ITEM}
+                    className="grid size-8 place-items-center rounded-full text-ink hover:bg-paper-deep hover:text-mint transition-colors disabled:opacity-30"
+                    aria-label={`Increase quantity of ${product.name}`}
+                  >
+                    <LuPlus aria-hidden className="size-3.5" />
+                  </button>
+                </div>
+              ) : matchingItems.length > 1 ? (
+                <Link to={url} className={`${actionBase} bg-white hover:bg-ink hover:text-paper`} aria-label={`View chosen sizes for ${product.name}`}>
+                  {isTheme ? 'Themes' : 'Sizes'} ({matchingItems.reduce((acc, cur) => acc + cur.quantity, 0)}) <LuArrowRight aria-hidden className="size-4" />
+                </Link>
+              ) : (
+                <Link to={url} className={`${actionBase} bg-white hover:bg-ink hover:text-paper`} aria-label={`Choose a ${isTheme ? 'theme' : 'size'} for ${product.name}`}>
+                  {isTheme ? 'Theme' : 'Size'} <LuArrowRight aria-hidden className="size-4" />
+                </Link>
+              )
+            ) : inCartQty > 0 && inCartItem ? (
+              <div
+                role="group"
+                aria-label={`Quantity of ${product.name}`}
+                className="relative z-10 inline-flex h-10 shrink-0 items-center rounded-full border border-mint/25 bg-[#08241E] px-1 text-ink shadow-sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const cartKey = keyOf(inCartItem);
+                    if (inCartQty <= 1) {
+                      removeItem(cartKey);
+                    } else {
+                      setQuantity(cartKey, inCartQty - 1);
+                    }
+                  }}
+                  className="grid size-8 place-items-center rounded-full text-ink hover:bg-paper-deep hover:text-mint transition-colors"
+                  aria-label={inCartQty === 1 ? `Remove ${product.name} from cart` : `Decrease quantity of ${product.name}`}
+                >
+                  <LuMinus aria-hidden className="size-3.5" />
+                </button>
+                <span aria-live="polite" className="w-6 text-center text-sm font-bold tabular-nums text-ink">
+                  {inCartQty}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setQuantity(keyOf(inCartItem), Math.min(MAX_QUANTITY_PER_ITEM, inCartQty + 1));
+                  }}
+                  disabled={inCartQty >= MAX_QUANTITY_PER_ITEM}
+                  className="grid size-8 place-items-center rounded-full text-ink hover:bg-paper-deep hover:text-mint transition-colors disabled:opacity-30"
+                  aria-label={`Increase quantity of ${product.name}`}
+                >
+                  <LuPlus aria-hidden className="size-3.5" />
+                </button>
+              </div>
             ) : (
               <button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   addItem(product.id, 1);
-                  setJustAdded(true);
                 }}
-                className={`${actionBase} ${justAdded ? 'bg-ink text-lime' : 'bg-lime hover:bg-ink hover:text-lime'}`}
-                aria-label={justAdded ? `${product.name} added to cart` : `Add ${product.name} to cart`}
+                className={`${actionBase} bg-lime hover:bg-ink hover:text-lime`}
+                aria-label={`Add ${product.name} to cart`}
               >
-                {justAdded ? <LuCheck aria-hidden className="size-4" /> : <LuPlus aria-hidden className="size-4" />}
-                {justAdded ? 'Added' : 'Add'}
+                <LuPlus aria-hidden className="size-4" /> Add
               </button>
             ))}
         </div>

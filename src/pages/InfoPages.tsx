@@ -34,13 +34,13 @@ export function AboutPage() {
   ];
   return (
     <div>
-      <section className="relative overflow-hidden bg-[#F5F0E6] px-4 py-20 text-[#03110f] sm:px-6 md:py-28">
+      <section className="relative overflow-hidden bg-paper-deep px-4 py-20 text-ink sm:px-6 md:py-28 border-b border-mint/15">
         <div className="mx-auto max-w-7xl">
           <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'About' }]} />
-          <p className="mt-14 text-xs font-extrabold uppercase tracking-[0.2em]">A little rebellion against boring things</p>
+          <p className="mt-14 text-xs font-extrabold uppercase tracking-[0.2em] text-mint">A little rebellion against boring things</p>
           <h1 className="mt-5 max-w-5xl font-display text-[clamp(3.5rem,10vw,9rem)] font-extrabold leading-[0.87] tracking-tight">BORING WAS NEVER OUR THING.</h1>
-          <p className="mt-8 max-w-xl text-xl leading-relaxed sm:text-2xl">Your laptop, your walls, your world. Make every little corner feel a little more like you.</p>
-          <Link to="/shop" className="mt-8 inline-flex rounded-full bg-[#03110f] px-7 py-4 text-sm font-bold text-[#F5F0E6] transition hover:-translate-y-1">Explore the club →</Link>
+          <p className="mt-8 max-w-xl text-xl leading-relaxed sm:text-2xl text-ink-soft">Your laptop, your walls, your world. Make every little corner feel a little more like you.</p>
+          <Link to="/shop" className="btn-primary mt-8">Explore the club →</Link>
         </div>
       </section>
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-24 sm:px-6 md:grid-cols-2 md:gap-16">
@@ -51,15 +51,15 @@ export function AboutPage() {
           <p className="mt-4 max-w-lg text-sm text-ink-soft">We're starting as a student-run brand in {brand.city}. Original stickers, custom cuts, and posters crafted for students and creators.</p>
         </div>
       </section>
-      <section className="bg-[#F5F0E6] px-4 py-24 text-[#03110f] sm:px-6">
+      <section className="bg-paper px-4 py-24 text-ink sm:px-6 border-y border-mint/15">
         <div className="mx-auto max-w-7xl">
-          <p className="text-xs font-bold uppercase tracking-[0.2em]">02 / Find your thing</p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-mint">02 / Find your thing</p>
           <h2 className="mt-3 max-w-3xl font-display text-5xl font-extrabold leading-none sm:text-7xl">YOUR WORLD, YOUR COLLECTION.</h2>
           <div className="mt-12 grid gap-4 sm:grid-cols-2">
             {collections.map((c) => (
-              <Link key={c.title} to={c.to} className="group flex min-h-64 flex-col justify-between rounded-3xl border-2 border-[#03110f] p-7 transition duration-200 hover:-translate-y-1 hover:shadow-[8px_8px_0_#03110f]" style={{ backgroundColor: c.color }}>
-                <span className="self-end text-2xl transition group-hover:translate-x-1" aria-hidden>↗</span>
-                <span><span className="block font-display text-4xl font-extrabold sm:text-5xl">{c.title}</span><span className="mt-2 block max-w-xs text-base">{c.copy}</span></span>
+              <Link key={c.title} to={c.to} className="on-light group flex min-h-64 flex-col justify-between rounded-3xl border-2 border-[#121212] p-7 transition duration-200 hover:-translate-y-1 hover:shadow-[8px_8px_0_rgba(0,0,0,0.5)]" style={{ backgroundColor: c.color }}>
+                <span className="self-end text-2xl transition group-hover:translate-x-1 text-[#121212]" aria-hidden>↗</span>
+                <span><span className="block font-display text-4xl font-extrabold sm:text-5xl text-[#121212]">{c.title}</span><span className="mt-2 block max-w-xs text-base text-[#121212]/80">{c.copy}</span></span>
               </Link>
             ))}
           </div>
@@ -69,11 +69,11 @@ export function AboutPage() {
         <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-mint">03 / Make it yours</p><h2 className="mt-4 font-display text-5xl font-extrabold leading-none sm:text-7xl">YOUR IDEAS. YOUR RULES.</h2></div>
         <div><p className="text-lg leading-relaxed text-ink-soft">Your sketches, your photos, your ideas. Upload a design, adjust the crop, pick a shape and create a sticker that could only belong to you.</p><Link to="/create-your-stickers" className="btn-accent mt-6">Create your own sticker →</Link></div>
       </section>
-      <section className="bg-[#06483D] px-4 py-24 text-center sm:px-6">
+      <section className="bg-paper-deep px-4 py-24 text-center sm:px-6 border-t border-mint/15">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-mint">This is your sign</p>
         <h2 className="mx-auto mt-5 max-w-5xl font-display text-[clamp(3.5rem,9vw,8rem)] font-extrabold leading-[0.9]">THE WORLD IS YOUR CANVAS.</h2>
-        <p className="mt-6 text-lg">Find something that feels like you.</p>
-        <Link to="/shop" className="mt-8 inline-flex rounded-full bg-[#F5F0E6] px-8 py-4 text-sm font-extrabold text-[#03110f] transition hover:-translate-y-1">FIND YOUR VIBE →</Link>
+        <p className="mt-6 text-lg text-ink-soft">Find something that feels like you.</p>
+        <Link to="/shop" className="btn-primary mt-8">FIND YOUR VIBE →</Link>
       </section>
     </div>
   );

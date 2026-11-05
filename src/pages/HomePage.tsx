@@ -80,9 +80,9 @@ function CategoryDoors() {
   ];
 
   return (
-    <section className="category-showcase relative isolate overflow-hidden bg-[#06483D] py-8 sm:py-10" aria-label="Shop categories">
-      <div aria-hidden="true" className="cinema-grain pointer-events-none absolute inset-0 opacity-[0.07]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_12%_25%,rgba(25,115,96,0.42),transparent_55%),radial-gradient(ellipse_at_85%_85%,rgba(0,23,20,0.5),transparent_48%)]" />
+    <section className="category-showcase relative isolate overflow-hidden bg-paper py-8 sm:py-10" aria-label="Shop categories">
+      <div aria-hidden="true" className="cinema-grain pointer-events-none absolute inset-0 opacity-[0.05]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_12%_25%,rgba(7,27,24,0.6),transparent_55%),radial-gradient(ellipse_at_85%_85%,rgba(3,17,15,0.6),transparent_48%)]" />
       <ul className="relative mx-auto grid max-w-[1040px] grid-cols-1 gap-6 px-4 sm:px-7 md:grid-cols-3 md:gap-6">
         {cards.map((card) => {
           return (

@@ -4,8 +4,8 @@
  * ready-made wall packs, the wall-builder promo, a split-poster concept and
  * the buying guide. All content comes from the catalogue and layout data.
  */
-import { useEffect, useMemo, useState } from 'react';
-import { LuArrowRight, LuCheck, LuPlus } from 'react-icons/lu';
+import { useMemo } from 'react';
+import { LuArrowRight, LuMinus, LuPlus } from 'react-icons/lu';
 import { collections } from '../../data/collections';
 import { posterSizes, products } from '../../data/products';
 import { getLayout, paperSizes, sizeSummary, type PaperSizeId } from '../../data/wallLayouts';
@@ -15,6 +15,7 @@ import { Link } from '../../router/router';
 import type { PosterDesign, Product } from '../../types/product';
 import type { DisplayFill } from '../../types/wall';
 import { isPurchasable, shopUrl } from '../../utils/catalogue';
+import { keyOf, MAX_QUANTITY_PER_ITEM, type ProductCartItem } from '../../utils/cart';
 import { packSavings } from '../../utils/customWall';
 import { formatPrice, pluralise } from '../../utils/format';
 import { PosterFaceSvg } from '../art/ProductArt';
@@ -193,16 +194,16 @@ export function PosterShoppingPaths() {
 
 /** One ready-made pack: the arrangement is the hero image. */
 export function WallPackCard({ product }: { product: Product }) {
-  const { addItem } = useCart();
-  const [added, setAdded] = useState(false);
+  const { addItem, items, setQuantity, removeItem } = useCart();
   const layout = product.wallLayoutId ? getLayout(product.wallLayoutId) : undefined;
   const savings = packSavings(product);
   const url = `/product/${product.slug}`;
-  useEffect(() => {
-    if (!added) return;
-    const t = window.setTimeout(() => setAdded(false), 1600);
-    return () => window.clearTimeout(t);
-  }, [added]);
+
+  const matchingItem = items.find(
+    (i) => (i.kind === undefined || i.kind === 'product') && i.productId === product.id
+  ) as ProductCartItem | undefined;
+  const inCartQty = matchingItem ? matchingItem.quantity : 0;
+
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border-2 border-ink bg-white">
       <WallPackPreview product={product} className="aspect-[4/3]" />
@@ -228,17 +229,64 @@ export function WallPackCard({ product }: { product: Product }) {
             )}
           </div>
           {isPurchasable(product) && (
-            <button
-              type="button"
-              onClick={() => {
-                addItem(product.id, 1);
-                setAdded(true);
-              }}
-              className={`relative z-10 inline-flex h-11 items-center gap-1.5 rounded-full border-2 border-ink px-4 text-sm font-bold ${added ? 'bg-ink text-lime' : 'bg-lime hover:bg-ink hover:text-lime'}`}
-              aria-label={added ? `${product.name} added to cart` : `Add ${product.name} to cart`}
-            >
-              {added ? <LuCheck aria-hidden /> : <LuPlus aria-hidden />} {added ? 'Added' : 'Add pack'}
-            </button>
+            inCartQty > 0 && matchingItem ? (
+              <div
+                role="group"
+                aria-label={`Quantity of ${product.name}`}
+                className="relative z-10 inline-flex h-11 shrink-0 items-center rounded-full border border-mint/25 bg-[#08241E] px-1 text-ink shadow-sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const cartKey = keyOf(matchingItem);
+                    if (inCartQty <= 1) {
+                      removeItem(cartKey);
+                    } else {
+                      setQuantity(cartKey, inCartQty - 1);
+                    }
+                  }}
+                  className="grid size-9 place-items-center rounded-full text-ink hover:bg-paper-deep hover:text-mint transition-colors"
+                  aria-label={inCartQty === 1 ? `Remove ${product.name} from cart` : `Decrease quantity of ${product.name}`}
+                >
+                  <LuMinus aria-hidden className="size-4" />
+                </button>
+                <span aria-live="polite" className="w-7 text-center text-sm font-bold tabular-nums text-ink">
+                  {inCartQty}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setQuantity(keyOf(matchingItem), Math.min(MAX_QUANTITY_PER_ITEM, inCartQty + 1));
+                  }}
+                  disabled={inCartQty >= MAX_QUANTITY_PER_ITEM}
+                  className="grid size-9 place-items-center rounded-full text-ink hover:bg-paper-deep hover:text-mint transition-colors disabled:opacity-30"
+                  aria-label={`Increase quantity of ${product.name}`}
+                >
+                  <LuPlus aria-hidden className="size-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addItem(product.id, 1);
+                }}
+                className="relative z-10 inline-flex h-11 items-center gap-1.5 rounded-full border-2 border-ink bg-lime px-4 text-sm font-bold hover:bg-ink hover:text-lime transition-colors"
+                aria-label={`Add ${product.name} to cart`}
+              >
+                <LuPlus aria-hidden /> Add pack
+              </button>
+            )
           )}
         </div>
       </div>

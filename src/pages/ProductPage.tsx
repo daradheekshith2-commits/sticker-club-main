@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { LuArrowRight, LuShoppingBag, LuX } from 'react-icons/lu';
+import { LuArrowRight, LuCheck, LuChevronDown, LuChevronUp, LuShoppingBag, LuX } from 'react-icons/lu';
 import { whatsappLink } from '../config/brand';
 import { useCart } from '../context/CartContext';
 import { useCatalogue } from '../context/CatalogueContext';
@@ -9,7 +9,7 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import { Link, useParams, useSearchParams } from '../router/router';
 import { getContents, getPackQuantity, getRelatedProducts, shopUrl } from '../utils/catalogue';
 import { formatPrice } from '../utils/format';
-import { unitPrice } from '../utils/cart';
+import { keyOf, unitPrice, type ProductCartItem } from '../utils/cart';
 import { ProductImage, viewsFor, type ArtView } from '../components/art/ProductArt';
 import { ProductGrid } from '../components/product/ProductCard';
 import { QuantitySelector } from '../components/product/QuantitySelector';
@@ -26,8 +26,9 @@ export function ProductPage() {
   const { slug } = useParams();
   const { getProductBySlug, isPurchasable, loading, products } = useCatalogue();
   const product = getProductBySlug(slug ?? '');
-  const { addItem, openCart } = useCart();
+  const { addItem, items, setQuantity: setCartQuantity, removeItem, openCart } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [viewIndex, setViewIndex] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [searchParams] = useSearchParams();
@@ -54,11 +55,32 @@ export function ProductPage() {
 
   useEffect(() => {
     if (product?.variants && product.variants.length > 0) {
+      // 1. URL parameter takes precedence
+      try {
+        const sp = new URLSearchParams(window.location.search);
+        const urlVariant = sp.get('size') || sp.get('variant');
+        if (urlVariant && product.variants.some((v) => v.id === urlVariant)) {
+          setVariantId(urlVariant);
+          return;
+        }
+      } catch {}
+
+      // 2. Check if this product has an item in the cart, restore that variant
+      const cartItemForProduct = items.find(
+        (i) => (i.kind === undefined || i.kind === 'product') && i.productId === product.id && i.variantId
+      ) as ProductCartItem | undefined;
+
+      if (cartItemForProduct?.variantId && product.variants.some((v) => v.id === cartItemForProduct.variantId)) {
+        setVariantId(cartItemForProduct.variantId);
+        return;
+      }
+
+      // 3. Fallback to existing default if current variantId is invalid
       if (!variantId || !product.variants.some((v) => v.id === variantId)) {
         setVariantId(product.variants.find((v) => v.id === 'a4')?.id ?? product.variants[0].id);
       }
     }
-  }, [product, variantId]);
+  }, [product, items, variantId]);
 
   const [customPosterWidth, setCustomPosterWidth] = useState(30);
   const [customPosterHeight, setCustomPosterHeight] = useState(40);
@@ -179,6 +201,22 @@ export function ProductPage() {
   const price = (product.category === 'posters' && variantId === 'custom')
     ? customPosterPrice
     : unitPrice(product, variantId);
+
+  const effectiveVariant = (product.variants && product.variants.length > 0)
+    ? ((product.category === 'posters' && variantId === 'custom')
+        ? `custom:${customPosterWidth}×${customPosterHeight}cm:${customPosterPrice}`
+        : (variantId || product.variants[0].id))
+    : undefined;
+
+  const cartLine = items.find(
+    (i) =>
+      (i.kind === undefined || i.kind === 'product') &&
+      i.productId === product.id &&
+      (i.variantId ?? undefined) === effectiveVariant
+  ) as ProductCartItem | undefined;
+
+  const inCartQty = cartLine ? cartLine.quantity : 0;
+  const cartKey = cartLine ? keyOf(cartLine) : null;
 
   const sizeValue = product.category === 'posters'
     ? (variantId === 'custom'
@@ -504,23 +542,44 @@ export function ProductPage() {
                 )}
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <QuantitySelector label="Quantity" value={quantity} onChange={setQuantity} />
-                  <button
-                    type="button"
-                    className="btn-primary flex-1 py-4 text-base"
-                    onClick={() => {
-                      const effectiveVariant = (product.variants && product.variants.length > 0)
-                        ? ((product.category === 'posters' && variantId === 'custom')
-                            ? `custom:${customPosterWidth}×${customPosterHeight}cm:${customPosterPrice}`
-                            : (variantId || product.variants[0].id))
-                        : undefined;
-                      addItem(product.id, quantity, effectiveVariant, customSecretMsg.trim() || undefined);
-                      setQuantity(1);
-                      openCart();
+                  <QuantitySelector
+                    label={`Quantity of ${product.name}`}
+                    value={inCartQty > 0 ? inCartQty : quantity}
+                    allowZero={inCartQty > 0}
+                    onChange={(nextQty) => {
+                      if (inCartQty > 0 && cartKey) {
+                        if (nextQty <= 0) {
+                          removeItem(cartKey);
+                        } else {
+                          setCartQuantity(cartKey, nextQty);
+                        }
+                      } else {
+                        setQuantity(nextQty);
+                      }
                     }}
-                  >
-                    <LuShoppingBag aria-hidden /> Add to cart · {formatPrice(price * quantity)}
-                  </button>
+                  />
+                  {inCartQty > 0 ? (
+                    <button
+                      type="button"
+                      className="btn-primary flex-1 py-4 text-base"
+                      onClick={() => openCart()}
+                      aria-label={`View ${product.name} in cart`}
+                    >
+                      <LuCheck aria-hidden className="size-5" /> In cart · {formatPrice(price * inCartQty)}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn-primary flex-1 py-4 text-base"
+                      onClick={() => {
+                        addItem(product.id, quantity, effectiveVariant, customSecretMsg.trim() || undefined);
+                        setQuantity(1);
+                        openCart();
+                      }}
+                    >
+                      <LuShoppingBag aria-hidden className="size-5" /> Add to cart · {formatPrice(price * quantity)}
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
@@ -564,40 +623,64 @@ export function ProductPage() {
             </div>
           )}
 
-          <dl className="mt-8 divide-y-2 divide-ink/10 border-y-2 border-ink/10">
-            {product.collections.length > 0 && (
-            <div className="flex justify-between gap-4 py-3">
-              <dt className="font-bold">Vibes</dt>
-              <dd className="flex flex-wrap justify-end gap-1.5">
-                {product.collections.map((c) => (
-                  <Link key={c} to={shopUrl({ collections: [c] })} className="chip py-1 text-xs">
-                    {getCollection(c)?.name}
-                  </Link>
-                ))}
-              </dd>
-            </div>
-            )}
-            <CollectibleRows product={product} />
-            {hasSpecs ? (
-              specs.map((s) =>
-                s.value ? (
-                  <div key={s.label} className="flex justify-between gap-4 py-3">
-                    <dt className="font-bold">{s.label}</dt>
-                    <dd className="text-right text-ink-soft">{s.value}</dd>
+          <div className="mt-8 border-t-2 border-ink/10">
+            <button
+              type="button"
+              aria-expanded={detailsExpanded}
+              aria-controls="product-specifications-panel"
+              onClick={() => setDetailsExpanded((prev) => !prev)}
+              className="group flex w-full items-center justify-between py-4 text-left font-display text-lg font-bold sm:text-xl text-ink hover:text-mint transition-colors focus-visible:outline-none"
+            >
+              <span>Product details</span>
+              {detailsExpanded ? (
+                <LuChevronUp aria-hidden className="size-5 transition-transform duration-200" />
+              ) : (
+                <LuChevronDown aria-hidden className="size-5 transition-transform duration-200" />
+              )}
+            </button>
+
+            <div
+              id="product-specifications-panel"
+              className={`overflow-hidden transition-all duration-300 ease-in-out motion-reduce:transition-none ${
+                detailsExpanded ? 'max-h-[1000px] opacity-100 pb-2' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <dl className="divide-y-2 divide-ink/10 border-b-2 border-ink/10">
+                {product.collections.length > 0 && (
+                  <div className="flex justify-between gap-4 py-3">
+                    <dt className="font-bold">Vibes</dt>
+                    <dd className="flex flex-wrap justify-end gap-1.5">
+                      {product.collections.map((c) => (
+                        <Link key={c} to={shopUrl({ collections: [c] })} className="chip py-1 text-xs">
+                          {getCollection(c)?.name}
+                        </Link>
+                      ))}
+                    </dd>
                   </div>
-                ) : null,
-              )
-            ) : (
-              <div className="flex justify-between gap-4 py-3">
-                <dt className="font-bold">{product.category === 'posters' ? 'Paper & finish' : 'Size, material & finish'}</dt>
-                <dd className="text-right text-ink-soft">To be confirmed after supplier samples</dd>
-              </div>
-            )}
-            <div className="flex justify-between gap-4 py-3">
-              <dt className="font-bold">Tags</dt>
-              <dd className="text-right text-ink-soft">{product.tags.join(', ')}</dd>
+                )}
+                <CollectibleRows product={product} />
+                {hasSpecs ? (
+                  specs.map((s) =>
+                    s.value ? (
+                      <div key={s.label} className="flex justify-between gap-4 py-3">
+                        <dt className="font-bold">{s.label}</dt>
+                        <dd className="text-right text-ink-soft">{s.value}</dd>
+                      </div>
+                    ) : null,
+                  )
+                ) : (
+                  <div className="flex justify-between gap-4 py-3">
+                    <dt className="font-bold">{product.category === 'posters' ? 'Paper & finish' : 'Size, material & finish'}</dt>
+                    <dd className="text-right text-ink-soft">To be confirmed after supplier samples</dd>
+                  </div>
+                )}
+                <div className="flex justify-between gap-4 py-3">
+                  <dt className="font-bold">Tags</dt>
+                  <dd className="text-right text-ink-soft">{product.tags.join(', ')}</dd>
+                </div>
+              </dl>
             </div>
-          </dl>
+          </div>
         </div>
       </div>
 
