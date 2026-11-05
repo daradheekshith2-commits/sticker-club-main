@@ -9,7 +9,7 @@
   "accounts": {
     "10": {
       "email": "qa.20261102.10@example.test",
-      "password": "QaTest!acaeff054a11f015A9#",
+      "password": "[REDACTED_TEST_SECRET]",
       "name": "QA Persona 10",
       "role": "ADMIN",
       "userId": "5dfd018d-ec8f-41cb-a30b-b7c8443f8b12",
@@ -17,7 +17,7 @@
     },
     "01": {
       "email": "qa.20261102.01@example.test",
-      "password": "QaTest!e79a5e63be74b03aA9#",
+      "password": "[REDACTED_TEST_SECRET]",
       "name": "QA Persona 01",
       "role": "CUSTOMER",
       "userId": null,
@@ -25,7 +25,7 @@
     },
     "02": {
       "email": "qa.20261102.02@example.test",
-      "password": "QaTest!3e016e38d4018e3eA9#",
+      "password": "[REDACTED_TEST_SECRET]",
       "name": "QA Persona 02",
       "role": "CUSTOMER",
       "userId": "acbf3d34-0ea9-4c6a-b7be-d2bee00eba3a",
@@ -33,7 +33,7 @@
     },
     "03": {
       "email": "qa.20261102.03@example.test",
-      "password": "QaTest!332a283a91b1aca0A9#",
+      "password": "[REDACTED_TEST_SECRET]",
       "name": "QA Persona 03",
       "role": "CUSTOMER",
       "userId": "e75b0728-344c-4fa3-87c6-db5cb90c4d5e",
@@ -41,7 +41,7 @@
     },
     "04": {
       "email": "qa.20261102.04@example.test",
-      "password": "QaTest!0772ceb3c3e45996A9#",
+      "password": "[REDACTED_TEST_SECRET]",
       "name": "QA Persona 04",
       "role": "CUSTOMER",
       "userId": "34e26dae-9375-4660-aa5b-ee9e44a0bb70",
@@ -49,7 +49,7 @@
     },
     "05": {
       "email": "qa.20261102.05@example.test",
-      "password": "QaTest!8c6b540caa954521A9#",
+      "password": "[REDACTED_TEST_SECRET]",
       "name": "QA Persona 05",
       "role": "CUSTOMER",
       "userId": "051e1e55-c55f-4ab9-bd51-9791bacd7dc2",
@@ -57,7 +57,7 @@
     },
     "06": {
       "email": "qa.20261102.06@example.test",
-      "password": "QaTest!38d35f5fd8a1e2a2A9#",
+      "password": "[REDACTED_TEST_SECRET]",
       "name": "QA Persona 06",
       "role": "CUSTOMER",
       "userId": "6afae28c-13c3-485d-92c6-f11e46ee0cd8",
@@ -65,7 +65,7 @@
     },
     "07": {
       "email": "qa.20261102.07@example.test",
-      "password": "QaTest!b8516cf210f7e300A9#",
+      "password": "[REDACTED_TEST_SECRET]",
       "name": "QA Persona 07",
       "role": "CUSTOMER",
       "userId": "41cb431f-c76a-4851-80b2-9a06d3013bce",
@@ -73,7 +73,7 @@
     },
     "08": {
       "email": "qa.20261102.08@example.test",
-      "password": "QaTest!c33b348f19ea6812A9#",
+      "password": "[REDACTED_TEST_SECRET]",
       "name": "QA Persona 08",
       "role": "CUSTOMER",
       "userId": "fb64b96a-c6ab-4d22-bc8f-5261b5153d5f",
@@ -81,7 +81,7 @@
     },
     "09": {
       "email": "qa.20261102.09@example.test",
-      "password": "QaTest!1aa7dbd0ed33e7beA9#",
+      "password": "[REDACTED_TEST_SECRET]",
       "name": "QA Persona 09",
       "role": "ADMIN",
       "userId": "d5a92017-8603-4575-9eeb-8f10cc5fc179",

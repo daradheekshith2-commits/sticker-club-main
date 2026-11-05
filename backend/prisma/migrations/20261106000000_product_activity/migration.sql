@@ -31,3 +31,4 @@ BEGIN
     ALTER TABLE "ProductActivity" ADD CONSTRAINT "ProductActivity_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
   END IF;
 END $$;
+

@@ -48,10 +48,13 @@ async function diagnose() {
   console.log('Client environment check:', envTest);
 
   // 2. Test Admin Login
-  console.log('2. Navigating to https://sticker-club-main.vercel.app/admin/login ...');
-  await page.goto('https://sticker-club-main.vercel.app/admin/login', { waitUntil: 'networkidle' });
-  await page.fill('input[type="email"]', 'stickitup@gmail.com');
-  await page.fill('input[type="password"]', 'Iloveyou3000');
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@test.local';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'TestAdminSecret!123';
+  const siteUrl = process.env.SITE_URL || 'https://sticker-club-main.vercel.app';
+  console.log(`2. Navigating to ${siteUrl}/admin/login ...`);
+  await page.goto(`${siteUrl}/admin/login`, { waitUntil: 'networkidle' });
+  await page.fill('input[type="email"]', adminEmail);
+  await page.fill('input[type="password"]', adminPassword);
   await page.click('button[type="submit"]');
 
   await page.waitForTimeout(4000);

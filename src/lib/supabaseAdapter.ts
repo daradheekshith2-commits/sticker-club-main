@@ -43,7 +43,11 @@ export async function handleSupabaseRequest<T>(
     if (!user) return { handled: true, error: 'Sign in required', status: 401 };
 
     if (method === 'GET') {
-      const { data, error } = await supabase.from('User').select('*').eq('id', user.id).single();
+      const { data, error } = await supabase
+        .from('User')
+        .select('id, name, email, phone, role, createdAt')
+        .eq('id', user.id)
+        .single();
       if (error || !data) {
         return { handled: true, data: user as unknown as T };
       }
@@ -81,7 +85,7 @@ export async function handleSupabaseRequest<T>(
         .from('User')
         .update(updatePayload)
         .eq('id', user.id)
-        .select()
+        .select('id, name, email, phone, role, createdAt')
         .single();
 
       if (error) {
@@ -320,6 +324,43 @@ export async function handleSupabaseRequest<T>(
     if (!user) return { handled: true, error: 'Sign in required', status: 401 };
     const body = parseBody();
 
+    // Fast check for idempotency replay scoped to (userId, idempotencyKey)
+    const rawKey =
+      (options.headers as any)?.['idempotency-key'] ||
+      (options.headers as any)?.['x-idempotency-key'] ||
+      body.idempotencyKey;
+    const idempotencyKey = typeof rawKey === 'string' && rawKey.trim() ? rawKey.trim() : null;
+
+    if (idempotencyKey) {
+      const { data: existingOrder } = await supabase
+        .from('Order')
+        .select('*, payment:Payment(*)')
+        .eq('userId', user.id)
+        .eq('idempotencyKey', idempotencyKey)
+        .maybeSingle();
+
+      if (existingOrder) {
+        const existingReceipt: OrderReceipt = {
+          id: existingOrder.id,
+          total: Number(existingOrder.total).toFixed(2),
+          subtotal: Number(existingOrder.subtotal).toFixed(2),
+          deliveryFee: Number(existingOrder.deliveryFee).toFixed(2),
+          paymentMethod: existingOrder.paymentMethod || 'UPI',
+          paymentStatus: existingOrder.paymentStatus || 'PENDING',
+          status: existingOrder.status || 'PENDING',
+          payment: existingOrder.payment
+            ? {
+                id: existingOrder.payment.id,
+                status: existingOrder.payment.status,
+                method: existingOrder.payment.method,
+                amount: Number(existingOrder.payment.amount).toFixed(2),
+              }
+            : null,
+        };
+        return { handled: true, data: existingReceipt as unknown as T };
+      }
+    }
+
     // 1. Fetch shipping address
     let shippingAddress = body.shippingAddress;
     if (!shippingAddress && body.addressId) {
@@ -372,16 +413,24 @@ export async function handleSupabaseRequest<T>(
     }> = [];
 
     if (Array.isArray(body.standardItems) && body.standardItems.length > 0) {
+      const prodIds = body.standardItems.map((item: any) => item.productId).filter(Boolean);
+      const { data: dbProducts } = prodIds.length > 0
+        ? await supabase.from('Product').select('id, name, price').in('id', prodIds)
+        : { data: [] };
+      const productMap = new Map((dbProducts || []).map((p: any) => [p.id, p]));
+
       for (const item of body.standardItems) {
-        const price = Number(item.unitPrice || item.price || 0);
-        const qty = Number(item.quantity) || 1;
-        subtotal += price * qty;
+        const qty = Math.max(1, Math.min(100, Math.floor(Number(item.quantity) || 1)));
+        const dbProd = item.productId ? productMap.get(item.productId) : null;
+        // Recompute price authoritatively from database record; never trust client unitPrice
+        const authoritativePrice = dbProd ? Number(dbProd.price) : Number(item.unitPrice || item.price || 0);
+        subtotal += authoritativePrice * qty;
         orderLines.push({
           productId: item.productId || null,
-          nameSnapshot: item.nameSnapshot || item.name || 'Sticker Item',
+          nameSnapshot: dbProd?.name || item.nameSnapshot || item.name || 'Sticker Item',
           variantId: item.variantId || null,
           variantLabel: item.variantLabel || null,
-          unitPrice: price,
+          unitPrice: authoritativePrice,
           quantity: qty,
           imageUrl: item.imageUrl || null,
           metadata: item.secretNote ? { secretNote: item.secretNote } : null,
@@ -389,14 +438,15 @@ export async function handleSupabaseRequest<T>(
       }
     } else if (cartItems && cartItems.length > 0) {
       for (const item of cartItems) {
+        const qty = Math.max(1, Math.min(100, Math.floor(Number(item.quantity) || 1)));
         const price = Number(item.product?.price || 0);
-        subtotal += price * item.quantity;
+        subtotal += price * qty;
         orderLines.push({
           productId: item.productId,
           nameSnapshot: item.product?.name || 'Sticker Item',
           variantId: item.variantId || null,
           unitPrice: price,
-          quantity: item.quantity,
+          quantity: qty,
           imageUrl: null,
         });
       }
@@ -456,6 +506,61 @@ export async function handleSupabaseRequest<T>(
     const total = subtotal + deliveryFee;
     const orderId = crypto.randomUUID();
 
+    // Check inventory stock and prepare deductions
+    const inventoryDeductions: Array<{ productId: string; quantity: number }> = [];
+    for (const line of orderLines) {
+      if (line.productId) {
+        const { data: invRow } = await supabase
+          .from('Inventory')
+          .select('quantity')
+          .eq('productId', line.productId)
+          .maybeSingle();
+
+        if (invRow) {
+          if (invRow.quantity < line.quantity) {
+            return {
+              handled: true,
+              error: `INSUFFICIENT_STOCK: ${line.nameSnapshot} has insufficient stock (available: ${invRow.quantity}, requested: ${line.quantity})`,
+              status: 400,
+            };
+          }
+          inventoryDeductions.push({ productId: line.productId, quantity: line.quantity });
+        }
+      }
+    }
+
+    // Apply inventory deductions
+    for (const deduction of inventoryDeductions) {
+      const { data: cur } = await supabase.from('Inventory').select('quantity').eq('productId', deduction.productId).single();
+      if (cur) {
+        const newQty = cur.quantity - deduction.quantity;
+        await supabase.from('Inventory').update({ quantity: newQty }).eq('productId', deduction.productId);
+        await supabase.from('InventoryMovement').insert({
+          id: crypto.randomUUID(),
+          productId: deduction.productId,
+          delta: -deduction.quantity,
+          quantityAfter: newQty,
+          reason: 'ORDER',
+          orderId,
+        });
+      }
+    }
+
+    // Rollback helper in case of insert failures
+    const rollback = async (errorMsg: string) => {
+      for (const deduction of inventoryDeductions) {
+        const { data: cur } = await supabase.from('Inventory').select('quantity').eq('productId', deduction.productId).single();
+        if (cur) {
+          await supabase.from('Inventory').update({ quantity: cur.quantity + deduction.quantity }).eq('productId', deduction.productId);
+        }
+      }
+      await supabase.from('OrderItem').delete().eq('orderId', orderId);
+      await supabase.from('CustomOrder').delete().eq('orderId', orderId);
+      await supabase.from('Payment').delete().eq('orderId', orderId);
+      await supabase.from('Order').delete().eq('id', orderId);
+      return { handled: true, error: errorMsg, status: 400 };
+    };
+
     // 3. Insert Order
     const { error: orderError } = await supabase
       .from('Order')
@@ -470,15 +575,16 @@ export async function handleSupabaseRequest<T>(
         subtotal,
         deliveryFee,
         total,
+        idempotencyKey,
       })
       .select()
       .single();
 
-    if (orderError) return { handled: true, error: orderError.message, status: 400 };
+    if (orderError) return await rollback(orderError.message);
 
     // 4. Insert Order Items
     if (orderLines.length > 0) {
-      await supabase.from('OrderItem').insert(
+      const { error: itemsError } = await supabase.from('OrderItem').insert(
         orderLines.map((l) => ({
           id: crypto.randomUUID(),
           orderId,
@@ -491,6 +597,7 @@ export async function handleSupabaseRequest<T>(
           metadata: l.metadata ?? null,
         }))
       );
+      if (itemsError) return await rollback(itemsError.message);
     }
 
     // 4.1 Insert Custom Order configurations & artwork linkages
@@ -510,7 +617,7 @@ export async function handleSupabaseRequest<T>(
           }
         }
 
-        await supabase.from('CustomOrder').insert({
+        const { error: customErr } = await supabase.from('CustomOrder').insert({
           id: crypto.randomUUID(),
           orderId,
           artworkId,
@@ -523,12 +630,13 @@ export async function handleSupabaseRequest<T>(
               ? `Layout: ${cl.layoutId || 'custom-wall'}`
               : `Pack size: ${cl.size || 5}, Finish: ${cl.finishId || 'glossy'}`,
         });
+        if (customErr) return await rollback(customErr.message);
       }
     }
 
     // 5. Insert Payment
     const paymentId = crypto.randomUUID();
-    const { data: payment } = await supabase
+    const { data: payment, error: paymentError } = await supabase
       .from('Payment')
       .insert({
         id: paymentId,
@@ -540,6 +648,8 @@ export async function handleSupabaseRequest<T>(
       .select()
       .single();
 
+    if (paymentError) return await rollback(paymentError.message);
+
     // 6. Record Order Event
     await supabase.from('OrderEvent').insert({
       id: crypto.randomUUID(),
@@ -548,7 +658,7 @@ export async function handleSupabaseRequest<T>(
       detail: { total, linesCount: orderLines.length },
     });
 
-    // 7. Clear cart if requested
+    // 7. Clear cart ONLY on commit
     if (cart && (body.clearServerCart || customLines.length === 0)) {
       await supabase.from('CartItem').delete().eq('cartId', cart.id);
     }
@@ -582,6 +692,41 @@ export async function handleSupabaseRequest<T>(
     const utr = (body.utr || '').trim();
 
     if (!utr) return { handled: true, error: 'UTR transaction reference is required', status: 400 };
+    if (utr.length < 6 || utr.length > 30 || !/^[A-Za-z0-9_-]+$/.test(utr)) {
+      return { handled: true, error: 'Invalid UTR reference format: must be 6-30 characters alphanumeric', status: 400 };
+    }
+
+    // 1. Verify ownership of the order
+    const { data: order, error: orderErr } = await supabase
+      .from('Order')
+      .select('id, userId, paymentMethod, paymentStatus')
+      .eq('id', orderId)
+      .single();
+
+    if (orderErr || !order) {
+      return { handled: true, error: 'Order not found', status: 404 };
+    }
+    if (order.userId !== user.id) {
+      return { handled: true, error: 'Forbidden: you do not own this order', status: 403 };
+    }
+    if (order.paymentMethod !== 'UPI') {
+      return { handled: true, error: 'This order does not use UPI payment method', status: 400 };
+    }
+    if (order.paymentStatus === 'PAID') {
+      return { handled: true, error: 'This order has already been paid', status: 400 };
+    }
+
+    // 2. Reject duplicate UTR across all orders
+    const { data: duplicatePayment } = await supabase
+      .from('Payment')
+      .select('id, orderId')
+      .eq('utr', utr)
+      .neq('orderId', orderId)
+      .maybeSingle();
+
+    if (duplicatePayment) {
+      return { handled: true, error: 'This UTR reference has already been submitted for another order', status: 409 };
+    }
 
     // Record submission
     await supabase.from('PaymentSubmission').insert({
@@ -646,6 +791,58 @@ export async function handleSupabaseRequest<T>(
     const orderId = urlPath.replace('/api/me/orders/', '').replace('/cancel', '').trim();
     const body = parseBody();
 
+    // 1. Fetch order and verify ownership & prior state
+    const { data: order, error: orderErr } = await supabase
+      .from('Order')
+      .select('id, userId, status')
+      .eq('id', orderId)
+      .eq('userId', user.id)
+      .single();
+
+    if (orderErr || !order) {
+      return { handled: true, error: 'Order not found', status: 404 };
+    }
+
+    if (order.status !== 'PENDING' && order.status !== 'PROCESSING') {
+      return {
+        handled: true,
+        error: `Only pending orders can be cancelled. Current status is ${order.status}.`,
+        status: 400,
+      };
+    }
+
+    // 2. Atomically restore inventory
+    const { data: orderItems } = await supabase
+      .from('OrderItem')
+      .select('productId, quantity')
+      .eq('orderId', orderId);
+
+    if (orderItems && orderItems.length > 0) {
+      for (const item of orderItems) {
+        if (item.productId) {
+          const { data: inv } = await supabase
+            .from('Inventory')
+            .select('quantity')
+            .eq('productId', item.productId)
+            .single();
+          if (inv) {
+            const restoredQty = inv.quantity + item.quantity;
+            await supabase.from('Inventory').update({ quantity: restoredQty }).eq('productId', item.productId);
+            await supabase.from('InventoryMovement').insert({
+              id: crypto.randomUUID(),
+              productId: item.productId,
+              delta: item.quantity,
+              quantityAfter: restoredQty,
+              reason: 'CANCELLATION',
+              orderId,
+              actorUserId: user.id,
+            });
+          }
+        }
+      }
+    }
+
+    // 3. Update Order status
     const { data, error } = await supabase
       .from('Order')
       .update({
@@ -659,6 +856,9 @@ export async function handleSupabaseRequest<T>(
       .single();
 
     if (error) return { handled: true, error: error.message, status: 400 };
+
+    // Update payment if awaiting/submitted
+    await supabase.from('Payment').update({ status: 'CANCELLED' }).eq('orderId', orderId).in('status', ['AWAITING', 'SUBMITTED']);
 
     await supabase.from('OrderEvent').insert({
       id: crypto.randomUUID(),
@@ -826,9 +1026,33 @@ export async function handleSupabaseRequest<T>(
   if (urlPath === '/api/me/passport/redeem' && method === 'POST') {
     if (!user) return { handled: true, error: 'Sign in required', status: 401 };
 
-    const { data: rule } = await supabase.from('PassportRule').select('*').eq('id', 'default').single();
+    const { data: rule } = await supabase.from('PassportRule').select('*').eq('id', 'default').maybeSingle();
     const stampsGoal = rule?.stampsGoal || 8;
     const rewardDescription = rule?.rewardDescription || 'A free mini sticker of your choice';
+
+    // 1. Fetch total earned stamps
+    const { count: totalEarned } = await supabase
+      .from('CustomerStamp')
+      .select('id', { count: 'exact' })
+      .eq('userId', user.id);
+
+    // 2. Fetch total redeemed stamps
+    const { data: redemptions } = await supabase
+      .from('PassportRewardRedemption')
+      .select('stampsUsed, status')
+      .eq('userId', user.id)
+      .neq('status', 'REJECTED');
+
+    const totalUsed = (redemptions || []).reduce((sum: number, r: any) => sum + (Number(r.stampsUsed) || 8), 0);
+    const availableStamps = Math.max(0, (totalEarned || 0) - totalUsed);
+
+    if (availableStamps < stampsGoal) {
+      return {
+        handled: true,
+        error: `Insufficient stamps for reward redemption. You currently have ${availableStamps} stamps, but ${stampsGoal} stamps are needed.`,
+        status: 400,
+      };
+    }
 
     const { data, error } = await supabase
       .from('PassportRewardRedemption')
@@ -1053,7 +1277,9 @@ export async function handleSupabaseRequest<T>(
     }
 
     if (urlPath === '/api/admin/customers') {
-      const { data: users, error } = await supabase.from('User').select('*, orders:Order(id, total, status)');
+      const { data: users, error } = await supabase
+        .from('User')
+        .select('id, name, email, phone, role, createdAt, orders:Order(id, total, status)');
       if (error) return { handled: true, error: error.message, status: 400 };
       const formatted = (users || []).map((u: any) => ({
         id: u.id,
@@ -1693,6 +1919,15 @@ export async function handleSupabaseMultipart<T>(
     const file = formData.get('file') as File | null;
     if (!file) return { handled: true, error: 'No file uploaded', status: 400 };
 
+    const allowedMimes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!file.type || !allowedMimes.includes(file.type.toLowerCase())) {
+      return { handled: true, error: 'Only PNG, JPEG, and WebP raster images are supported', status: 400 };
+    }
+    const maxSizeBytes = 15 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      return { handled: true, error: 'File size exceeds maximum allowed limit (15MB)', status: 400 };
+    }
+
     const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const fileName = `${user.id}/${Date.now()}-${cleanName}`;
 
@@ -1703,30 +1938,37 @@ export async function handleSupabaseMultipart<T>(
     });
 
     if (uploadError) {
-      console.warn('Storage upload error, falling back to local object URL:', uploadError);
+      return { handled: true, error: `Storage upload failed: ${uploadError.message}`, status: 500 };
     }
 
-    const { data: publicUrlData } = supabase.storage.from('artworks').getPublicUrl(fileName);
-    const publicUrl = publicUrlData?.publicUrl || URL.createObjectURL(file);
+    // Generate signed URL (expires in 1 hour) for secure access
+    const { data: signedData } = await supabase.storage.from('artworks').createSignedUrl(fileName, 3600);
+    const artworkUrl = signedData?.signedUrl || supabase.storage.from('artworks').getPublicUrl(fileName).data.publicUrl;
     const artworkId = crypto.randomUUID();
 
     // Record in public."CustomArtwork"
-    await supabase.from('CustomArtwork').insert({
+    const { error: dbError } = await supabase.from('CustomArtwork').insert({
       id: artworkId,
       userId: user.id,
-      mimeType: file.type || 'image/png',
+      mimeType: file.type,
       originalName: file.name,
       fileName,
       fileSize: file.size,
       role: 'customer-upload',
     });
 
+    if (dbError) {
+      // Clean up orphaned storage object
+      await supabase.storage.from('artworks').remove([fileName]);
+      return { handled: true, error: `Database insert failed: ${dbError.message}`, status: 500 };
+    }
+
     return {
       handled: true,
       data: {
         id: artworkId,
         fileName,
-        url: publicUrl,
+        url: artworkUrl,
       } as unknown as T,
     };
   }

@@ -12,9 +12,10 @@ async function testCheckout(account, paymentMethod, utr) {
   console.log(`Starting Checkout flow for ${account.name} (${account.email}) with ${paymentMethod}...`);
 
   // 1. Sign in
+  const password = process.env.QA_PASSWORD || (account.password && !account.password.includes('REDACTED') ? account.password : 'QaTest!defaultSecret123#');
   await page.goto('http://localhost:5173/login');
   await page.fill('input[type="email"]', account.email);
-  await page.fill('input[type="password"]', account.password);
+  await page.fill('input[type="password"]', password);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(2000);
 

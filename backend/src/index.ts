@@ -57,6 +57,8 @@ const configSchema = z.object({
   MAX_UPLOAD_SIZE_MB: z.coerce.number().default(15),
   STORAGE_DRIVER: z.string().default('local'),
   STORAGE_LOCAL_DIR: z.string().optional(),
+  SUPABASE_JWT_SECRET: z.string().optional(),
+  SUPABASE_URL: z.string().optional(),
 });
 
 const envResult = configSchema.safeParse(process.env);
@@ -132,15 +134,15 @@ app.use(
   })
 );
 
-// Structured HTTP Request Logger
+// Structured HTTP Request Logger (Sanitized: never logs query strings or credentials)
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
     if (req.path !== '/api/health') {
-      logger('info', `${req.method} ${req.originalUrl} ${res.statusCode} (${duration}ms)`, {
+      logger('info', `${req.method} ${req.path} ${res.statusCode} (${duration}ms)`, {
         method: req.method,
-        path: req.originalUrl,
+        path: req.path,
         statusCode: res.statusCode,
         durationMs: duration,
       });
@@ -174,7 +176,15 @@ const cookieOptions = {
 type Session = { id: string; role: 'CUSTOMER' | 'ADMIN' };
 type Authed = Request & { session?: Session };
 
-const access = (s: Session) => jwt.sign({ sub: s.id, role: s.role }, config.JWT_SECRET, { algorithm: 'HS256', expiresIn: '15m' });
+const access = (s: Session) =>
+  jwt.sign(
+    { sub: s.id, role: s.role, purpose: 'access', iss: 'sticker-club', aud: 'sticker-club-storefront' },
+    config.JWT_SECRET,
+    {
+      algorithm: 'HS256',
+      expiresIn: '15m',
+    }
+  );
 const safeUser = (u: { id: string; name: string; email: string; role: string; phone?: string | null }) => ({
   id: u.id,
   name: u.name,
@@ -190,64 +200,131 @@ const issue = async (res: Response, u: Session) => {
   return access(u);
 };
 
+// Explicit verifier for local legacy/Express JWTs
+function verifyLocalSessionToken(rawToken: string): { userId: string; role: 'CUSTOMER' | 'ADMIN' } | null {
+  try {
+    const p = jwt.verify(rawToken, config.JWT_SECRET, { algorithms: ['HS256'] }) as any;
+    if (typeof p === 'object' && p !== null && p.sub) {
+      // Reject artwork-scoped tokens or wrong-purpose tokens on general endpoints
+      if (p.purpose && p.purpose !== 'access') {
+        return null;
+      }
+      if (p.scope && p.scope !== 'access') {
+        return null;
+      }
+      // Validate audience and issuer if present
+      if (p.aud && p.aud !== 'sticker-club-storefront') {
+        return null;
+      }
+      if (p.iss && p.iss !== 'sticker-club') {
+        return null;
+      }
+      const role: 'CUSTOMER' | 'ADMIN' = p.role === 'ADMIN' ? 'ADMIN' : 'CUSTOMER';
+      return { userId: String(p.sub), role };
+    }
+  } catch {
+    // Cryptographic signature check failed or expired
+  }
+  return null;
+}
+
+// Explicit verifier for genuine Supabase session JWTs
+function verifySupabaseSessionToken(rawToken: string): { userId: string; email?: string; name?: string } | null {
+  const secret = config.SUPABASE_JWT_SECRET || process.env.SUPABASE_JWT_SECRET;
+  if (!secret) {
+    // Fail closed: if signing secret for Supabase is not configured, cannot verify cryptographic signature
+    return null;
+  }
+  try {
+    const p = jwt.verify(rawToken, secret, { algorithms: ['HS256'] }) as any;
+    if (typeof p === 'object' && p !== null && p.sub) {
+      // Validate audience
+      if (p.aud !== 'authenticated') {
+        return null;
+      }
+      // Validate issuer matches configured Supabase URL or project
+      const expectedUrl = config.SUPABASE_URL || process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+      if (expectedUrl) {
+        try {
+          const expectedHost = new URL(expectedUrl).host;
+          const tokenIss = p.iss ? new URL(p.iss).host : '';
+          if (expectedHost && tokenIss && expectedHost !== tokenIss) {
+            return null;
+          }
+        } catch {
+          if (p.iss && !p.iss.includes('supabase')) return null;
+        }
+      } else if (p.iss && !p.iss.includes('supabase')) {
+        return null;
+      }
+
+      const email = typeof p.email === 'string' ? p.email : undefined;
+      const name = typeof p.user_metadata?.name === 'string'
+        ? p.user_metadata.name
+        : typeof p.user_metadata?.full_name === 'string'
+        ? p.user_metadata.full_name
+        : (email ? email.split('@')[0] : 'Customer');
+
+      return { userId: String(p.sub), email, name };
+    }
+  } catch {
+    // Cryptographic signature check failed or expired: fail closed
+  }
+  return null;
+}
+
 const requireAuth = async (req: Authed, res: Response, next: NextFunction) => {
   const b = req.headers.authorization;
   if (!b?.startsWith('Bearer ')) {
     res.status(401).json({ error: 'Login required' });
     return;
   }
-  const rawToken = b.slice(7);
-  try {
-    let userId: string | null = null;
-    let userRole = 'CUSTOMER';
-    try {
-      const p = jwt.verify(rawToken, config.JWT_SECRET, { algorithms: ['HS256'] });
-      if (typeof p !== 'string' && p.sub) {
-        userId = String(p.sub);
-      }
-    } catch {
-      // Check if it's a Supabase JWT
-      const decoded = jwt.decode(rawToken) as any;
-      if (decoded && decoded.sub && (decoded.iss?.includes('supabase') || decoded.role === 'authenticated' || decoded.aud === 'authenticated')) {
-        userId = String(decoded.sub);
-        const roleClaim = decoded.app_metadata?.role || decoded.user_metadata?.role || 'CUSTOMER';
-        userRole = String(roleClaim).toUpperCase() === 'ADMIN' ? 'ADMIN' : 'CUSTOMER';
-      }
-    }
+  const rawToken = b.slice(7).trim();
+  if (!rawToken) {
+    res.status(401).json({ error: 'Login required' });
+    return;
+  }
 
-    if (!userId) {
-      res.status(401).json({ error: 'Invalid or expired session' });
+  try {
+    // Explicit verifiers only. NO unverified jwt.decode fallback!
+    const local = verifyLocalSessionToken(rawToken);
+    if (local) {
+      const u = await db.user.findUnique({ where: { id: local.userId }, select: { id: true, role: true } });
+      if (!u) {
+        res.status(401).json({ error: 'Account unavailable' });
+        return;
+      }
+      req.session = { id: u.id, role: u.role };
+      next();
       return;
     }
 
-    let u = await db.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
-    if (!u) {
-      // Auto-mirror Supabase user into database
-      const decoded = jwt.decode(rawToken) as any;
-      if (decoded && decoded.sub) {
-        const email = decoded.email || `${userId}@supabase.user`;
-        const name = decoded.user_metadata?.name || decoded.user_metadata?.full_name || email.split('@')[0];
-        u = await db.user.upsert({
-          where: { id: userId },
-          update: {},
-          create: {
-            id: userId,
+    const supa = verifySupabaseSessionToken(rawToken);
+    if (supa) {
+      let u = await db.user.findUnique({ where: { id: supa.userId }, select: { id: true, role: true } });
+      if (!u) {
+        // Auto-mirror new Supabase user into database strictly with role: 'CUSTOMER'
+        // Never trust editable user metadata for ADMIN role.
+        const email = supa.email || `${supa.userId}@supabase.user`;
+        const name = supa.name || email.split('@')[0];
+        u = await db.user.create({
+          data: {
+            id: supa.userId,
             email,
             name,
             passwordHash: '',
-            role: userRole as any,
+            role: 'CUSTOMER',
           },
           select: { id: true, role: true },
         });
       }
-    }
-
-    if (!u) {
-      res.status(401).json({ error: 'Account unavailable' });
+      req.session = { id: u.id, role: u.role };
+      next();
       return;
     }
-    req.session = { id: u.id, role: u.role };
-    next();
+
+    // Both verifiers rejected the token (invalid signature, expired, wrong purpose, wrong audience/issuer)
+    res.status(401).json({ error: 'Invalid or expired session' });
   } catch {
     res.status(401).json({ error: 'Invalid or expired session' });
   }
@@ -261,55 +338,104 @@ const admin = (req: Authed, res: Response, next: NextFunction) => {
   next();
 };
 
+function createArtworkViewToken(userId: string, role: string, artworkId: string): string {
+  return jwt.sign(
+    {
+      sub: userId,
+      role: role === 'ADMIN' ? 'ADMIN' : 'CUSTOMER',
+      artworkId,
+      purpose: 'artwork:read',
+    },
+    config.JWT_SECRET,
+    {
+      algorithm: 'HS256',
+      expiresIn: '15m',
+    }
+  );
+}
+
 const requireArtworkAuth = async (req: Authed, res: Response, next: NextFunction) => {
   let token: string | undefined;
   const b = req.headers.authorization;
   if (b?.startsWith('Bearer ')) {
-    token = b.slice(7);
+    token = b.slice(7).trim();
   } else if (typeof req.query.token === 'string') {
-    token = req.query.token;
+    // Query tokens are accepted ONLY on artwork file/download routes!
+    const isArtworkRoute = req.path.includes('/api/uploads/artwork/') || req.path.includes('/api/artwork/');
+    if (!isArtworkRoute) {
+      res.status(401).json({ error: 'Query token not permitted on general endpoints' });
+      return;
+    }
+    token = req.query.token.trim();
   }
+
   if (!token) {
     res.status(401).json({ error: 'Login or token required' });
     return;
   }
+
   try {
-    let userId: string | null = null;
+    const targetArtworkId = String(req.params.id);
+
+    // 1. Check artwork-specific token (purpose: 'artwork:read')
     try {
       const p = jwt.verify(token, config.JWT_SECRET, { algorithms: ['HS256'] }) as any;
-      if (typeof p !== 'string' && p.sub) {
-        userId = String(p.sub);
+      if (typeof p === 'object' && p !== null) {
+        if (p.purpose === 'artwork:read' || p.scope === 'artwork-view') {
+          // Bind to requested artwork: reject cross-file replay!
+          if (p.artworkId !== targetArtworkId) {
+            res.status(403).json({ error: 'Forbidden: token not valid for requested artwork' });
+            return;
+          }
+          req.session = { id: String(p.sub), role: p.role === 'ADMIN' ? 'ADMIN' : 'CUSTOMER' };
+          next();
+          return;
+        }
       }
     } catch {
-      const decoded = jwt.decode(token) as any;
-      if (decoded && decoded.sub) {
-        userId = String(decoded.sub);
+      // Not a valid artwork token; continue to standard session check
+    }
+
+    // 2. Check general user session token (Bearer header only; never accept query token for general sessions)
+    if (b?.startsWith('Bearer ')) {
+      const local = verifyLocalSessionToken(token);
+      if (local) {
+        const u = await db.user.findUnique({ where: { id: local.userId }, select: { id: true, role: true } });
+        if (u) {
+          req.session = { id: u.id, role: u.role };
+          next();
+          return;
+        }
+      }
+
+      const supa = verifySupabaseSessionToken(token);
+      if (supa) {
+        let u = await db.user.findUnique({ where: { id: supa.userId }, select: { id: true, role: true } });
+        if (!u) {
+          u = await db.user.create({
+            data: {
+              id: supa.userId,
+              email: supa.email || `${supa.userId}@supabase.user`,
+              name: supa.name || 'Customer',
+              passwordHash: '',
+              role: 'CUSTOMER',
+            },
+            select: { id: true, role: true },
+          });
+        }
+        if (u) {
+          req.session = { id: u.id, role: u.role };
+          next();
+          return;
+        }
       }
     }
 
-    if (!userId) {
-      res.status(401).json({ error: 'Invalid or expired session or token' });
-      return;
-    }
-
-    const u = await db.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
-    if (!u) {
-      res.status(401).json({ error: 'Account unavailable' });
-      return;
-    }
-    req.session = { id: u.id, role: u.role };
-    next();
+    res.status(401).json({ error: 'Invalid or expired session or token' });
   } catch {
     res.status(401).json({ error: 'Invalid or expired session or token' });
   }
 };
-
-function createArtworkViewToken(userId: string, role: string, artworkId: string): string {
-  return jwt.sign({ sub: userId, role, artworkId, scope: 'artwork-view' }, config.JWT_SECRET, {
-    algorithm: 'HS256',
-    expiresIn: '15m',
-  });
-}
 
 const sameOrigin = (req: Request, res: Response, next: NextFunction) => {
   const origin = req.headers.origin;
@@ -824,38 +950,45 @@ app.get('/api/payment/config', (_req, res) => {
 });
 
 // Analytics & Popularity Ranking endpoints
+const analyticsLimit = rateLimit({ windowMs: 1 * 60 * 1000, limit: 120, standardHeaders: 'draft-8', legacyHeaders: false });
+
 app.post(
   '/api/analytics/activity',
+  analyticsLimit,
   wrap(async (req, res) => {
-    const { productId, type, sessionId, orderId } = z
+    // Reject public PURCHASE submissions: purchases must be recorded authoritatively from server transactions
+    if (req.body?.type === 'PURCHASE') {
+      res.status(400).json({
+        error: 'Public purchase submission is not permitted. Purchases are derived authoritatively from confirmed orders.',
+      });
+      return;
+    }
+
+    const { productId, type, sessionId } = z
       .object({
-        productId: z.string().min(1),
-        type: z.enum(['VIEW', 'CART', 'PURCHASE']),
-        sessionId: z.string().optional(),
-        orderId: z.string().optional(),
+        productId: z.string().min(1).max(100),
+        type: z.enum(['VIEW', 'CART']),
+        sessionId: z.string().regex(/^[a-zA-Z0-9_-]{1,128}$/).optional(),
       })
       .parse(req.body);
 
-    if (type === 'PURCHASE' && !orderId) {
-      res.status(400).json({ error: 'orderId is required for PURCHASE' });
+    // Verify product exists to prevent garbage / resource exhaustion
+    const product = await db.product.findUnique({
+      where: { id: productId },
+      select: { id: true },
+    });
+    if (!product) {
+      res.status(404).json({ error: 'Product not found' });
       return;
     }
 
     try {
-      if (type === 'PURCHASE') {
-        await db.productActivity.upsert({
-          where: { productId_orderId: { productId, orderId: orderId! } },
-          update: {},
-          create: { productId, type, orderId: orderId!, sessionId: sessionId || null },
-        });
-      } else {
-        const sId = sessionId || 'anonymous';
-        await db.productActivity.upsert({
-          where: { productId_type_sessionId: { productId, type, sessionId: sId } },
-          update: {},
-          create: { productId, type, sessionId: sId },
-        });
-      }
+      const sId = sessionId || 'anonymous';
+      await db.productActivity.upsert({
+        where: { productId_type_sessionId: { productId, type, sessionId: sId } },
+        update: {},
+        create: { productId, type, sessionId: sId },
+      });
       res.json({ ok: true });
     } catch {
       res.json({ ok: true, notice: 'Event already recorded' });
@@ -976,23 +1109,29 @@ app.post(
 
     const validated = await validateImageBuffer(req.file.buffer, req.file.originalname, req.file.mimetype, false);
     const storage = getStorageDriver();
-    await storage.save(req.file.buffer, validated.fileName, validated.mimeType, false);
+    await storage.save(validated.sanitizedBuffer, validated.fileName, validated.mimeType, false);
 
     const rawName = path.basename(req.file.originalname || 'artwork');
     const safeOriginalName = rawName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100);
 
-    const artwork = await db.customArtwork.create({
-      data: {
-        userId: req.session!.id,
-        mimeType: validated.mimeType,
-        originalName: safeOriginalName,
-        fileName: validated.fileName,
-        fileSize: req.file.buffer.length,
-        width: validated.width ?? null,
-        height: validated.height ?? null,
-        role: 'customer-upload',
-      },
-    });
+    let artwork;
+    try {
+      artwork = await db.customArtwork.create({
+        data: {
+          userId: req.session!.id,
+          mimeType: validated.mimeType,
+          originalName: safeOriginalName,
+          fileName: validated.fileName,
+          fileSize: validated.sanitizedBuffer.length,
+          width: validated.width ?? null,
+          height: validated.height ?? null,
+          role: 'customer-upload',
+        },
+      });
+    } catch (dbErr) {
+      await storage.delete(validated.fileName, false).catch(() => {});
+      throw dbErr;
+    }
 
     res.status(201).json({
       id: artwork.id,
@@ -1035,7 +1174,7 @@ app.post(
 
     const validated = await validateImageBuffer(req.file.buffer, req.file.originalname, req.file.mimetype, true);
     const storage = getStorageDriver();
-    await storage.save(req.file.buffer, validated.fileName, validated.mimeType, true);
+    await storage.save(validated.sanitizedBuffer, validated.fileName, validated.mimeType, true);
 
     const publicUrl = `/api/uploads/products/${validated.fileName}`;
     res.status(201).json({
@@ -1098,7 +1237,8 @@ app.get(
 
     res.setHeader('Content-Type', artwork.mimeType);
     res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(artwork.originalName)}"`);
-    res.setHeader('Cache-Control', 'private, no-cache');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'private, no-transform, no-cache');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     const stream = await storage.readStream(artwork.fileName, false);
@@ -1134,7 +1274,8 @@ app.get(
 
     res.setHeader('Content-Type', artwork.mimeType);
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(artwork.originalName)}"`);
-    res.setHeader('Cache-Control', 'private, no-cache');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'private, no-transform, no-cache');
 
     const stream = await storage.readStream(artwork.fileName, false);
     stream.pipe(res);

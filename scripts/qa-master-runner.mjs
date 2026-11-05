@@ -27,7 +27,19 @@ function log(msg, extra = '') {
 
 // Generate strong passwords
 function generatePassword() {
-  return 'QaTest!' + crypto.randomBytes(8).toString('hex') + 'A9#';
+  return process.env.QA_PASSWORD || ('QaTest!' + crypto.randomBytes(8).toString('hex') + 'A9#');
+}
+
+function saveSanitizedManifest(targetPath, data) {
+  const sanitized = JSON.parse(JSON.stringify(data));
+  if (sanitized.accounts) {
+    for (const key of Object.keys(sanitized.accounts)) {
+      if (sanitized.accounts[key]?.password) {
+        sanitized.accounts[key].password = '[REDACTED_TEST_SECRET]';
+      }
+    }
+  }
+  fs.writeFileSync(targetPath, JSON.stringify(sanitized, null, 2));
 }
 
 const manifest = {
@@ -66,7 +78,7 @@ for (let i = 1; i <= 10; i++) {
   };
 }
 
-fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
+saveSanitizedManifest(MANIFEST_PATH, manifest);
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -879,7 +891,7 @@ async function main() {
 
   } finally {
     await browser.close();
-    fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
+    saveSanitizedManifest(MANIFEST_PATH, manifest);
     log('QA Execution finished. Fixtures manifest written to ' + MANIFEST_PATH);
   }
 }

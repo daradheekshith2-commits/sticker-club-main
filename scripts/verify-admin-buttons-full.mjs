@@ -1,12 +1,15 @@
 import { chromium } from 'playwright';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://iarclkcnxpbbxxpfwamd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhcmNsa2NueHBiYnh4cGZ3YW1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMTI5ODcsImV4cCI6MjA2MTY4ODk4N30.rS1u4Zc1bE-L_Z3y7L5p-qfKzI8qE6nC0d0W6w6U6fA';
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'http://localhost:54321';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'test-anon-key';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function verify() {
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@test.local';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'TestAdminSecret!123';
+
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
 
@@ -15,10 +18,10 @@ async function verify() {
     await dialog.accept();
   });
 
-  console.log('1. Signing in as Store Admin (stickitup@gmail.com)...');
-  await page.goto('http://localhost:5173/admin/login');
-  await page.fill('input[type="email"]', 'stickitup@gmail.com');
-  await page.fill('input[type="password"]', 'Iloveyou3000');
+  console.log(`1. Signing in as Store Admin (${adminEmail})...`);
+  await page.goto(process.env.BASE_URL ? `${process.env.BASE_URL}/admin/login` : 'http://localhost:5173/admin/login');
+  await page.fill('input[type="email"]', adminEmail);
+  await page.fill('input[type="password"]', adminPassword);
   await page.click('button[type="submit"]');
 
   await page.waitForTimeout(3000);

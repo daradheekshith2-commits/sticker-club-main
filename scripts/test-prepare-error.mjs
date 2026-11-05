@@ -11,9 +11,10 @@ async function run() {
   page.on('console', msg => console.log('PAGE CONSOLE:', msg.type(), msg.text()));
   page.on('pageerror', err => console.log('PAGE ERROR:', err.stack));
 
+  const password = process.env.QA_PASSWORD || (p4.password && !p4.password.includes('REDACTED') ? p4.password : 'QaTest!defaultSecret123#');
   await page.goto('http://localhost:5173/login');
   await page.fill('input[type="email"]', p4.email);
-  await page.fill('input[type="password"]', p4.password);
+  await page.fill('input[type="password"]', password);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(2000);
 

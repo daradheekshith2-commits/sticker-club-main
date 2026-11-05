@@ -1,15 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 import fs from 'node:fs';
 
-const supabaseUrl = 'https://iarclkcnxpbbxxpfwamd.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhcmNsa2NueHBiYnh4cGZ3YW1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1ODM4NjIsImV4cCI6MjEwOTE1OTg2Mn0.AAY78nsRR2VwTjlPPawnTYX7vghcx2mkSdgOeSc7tNA';
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const adminEmail = process.env.ADMIN_EMAIL;
+const adminPassword = process.env.ADMIN_PASSWORD;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Error: SUPABASE_URL and SUPABASE_KEY environment variables must be provided.');
+  process.exit(1);
+}
+
+if (!adminEmail || !adminPassword) {
+  console.error('Error: ADMIN_EMAIL and ADMIN_PASSWORD environment variables must be provided.');
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-console.log('Authenticating as Store Administrator...');
+console.log(`Authenticating as Store Administrator (${adminEmail})...`);
 const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-  email: 'stickitup@gmail.com',
-  password: 'Iloveyou3000',
+  email: adminEmail,
+  password: adminPassword,
 });
 
 if (authError || !authData.session) {

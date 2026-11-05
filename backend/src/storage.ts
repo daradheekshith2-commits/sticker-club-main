@@ -253,12 +253,15 @@ export function setStorageDriver(driver: StorageDriver | null): void {
   activeDriver = driver;
 }
 
+const MAX_DIMENSION_PIXELS = 8000;
+const MAX_TOTAL_PIXELS = 40_000_000; // 40 Megapixels
+
 export async function validateImageBuffer(
   buffer: Buffer,
   originalName: string,
   declaredMimeType: string,
   allowSvg = false
-): Promise<{ width?: number; height?: number; mimeType: string; fileName: string }> {
+): Promise<{ width?: number; height?: number; mimeType: string; fileName: string; sanitizedBuffer: Buffer }> {
   if (!buffer || buffer.length === 0) {
     throw Object.assign(new Error('Uploaded file is empty'), { status: 400 });
   }
@@ -269,51 +272,126 @@ export async function validateImageBuffer(
     );
   }
 
-  const cleanName = path.basename(originalName).replace(/[^a-zA-Z0-9._-]/g, '_');
-  let ext = path.extname(cleanName).toLowerCase();
-  if (!ext || ext === '.') {
-    if (declaredMimeType === 'image/png') ext = '.png';
-    else if (declaredMimeType === 'image/jpeg') ext = '.jpg';
-    else if (declaredMimeType === 'image/webp') ext = '.webp';
-    else if (declaredMimeType === 'image/svg+xml') ext = '.svg';
-    else ext = '.png';
+  // Magic bytes check for raster formats:
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  const isPng =
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a;
+
+  // JPEG: FF D8 FF
+  const isJpeg = buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+
+  // WebP: 'RIFF' .... 'WEBP'
+  const isWebp =
+    buffer.length >= 12 &&
+    buffer.toString('ascii', 0, 4) === 'RIFF' &&
+    buffer.toString('ascii', 8, 12) === 'WEBP';
+
+  const isRaster = isPng || isJpeg || isWebp;
+
+  if (!allowSvg) {
+    // Customer artwork MUST be raster PNG, JPEG, or WebP.
+    // Reject SVG, HTML, or any non-raster payloads immediately before sharp parsing.
+    if (!isRaster) {
+      throw Object.assign(
+        new Error('Vector SVG, HTML, or non-image uploads are not allowed for custom artwork. Please upload PNG, JPG, or WebP.'),
+        { status: 400 }
+      );
+    }
   }
 
-  const safeFileName = `${crypto.randomUUID()}${ext}`;
-
-  if (declaredMimeType === 'image/svg+xml' || ext === '.svg') {
-    if (!allowSvg) {
-      throw Object.assign(new Error('Vector SVG uploads are not allowed for custom artwork. Please upload PNG, JPG, or WebP.'), { status: 400 });
-    }
-    const text = buffer.toString('utf8');
+  // Handle trusted product SVG uploads (only allowed when allowSvg === true)
+  if (allowSvg && !isRaster) {
+    const text = buffer.toString('utf8', 0, Math.min(buffer.length, 4096)).trim();
     if (!text.includes('<svg') && !text.includes('<?xml')) {
-      throw Object.assign(new Error('Invalid SVG content'), { status: 400 });
+      throw Object.assign(new Error('Invalid image format. Allowed: PNG, JPEG, WebP, SVG.'), { status: 400 });
     }
-    // Extract SVG dimensions if present
-    const widthMatch = text.match(/width=["'](\d+)/);
-    const heightMatch = text.match(/height=["'](\d+)/);
+    // Strict SVG active-script checking to prevent stored XSS
+    const fullText = buffer.toString('utf8').toLowerCase();
+    if (
+      fullText.includes('<script') ||
+      fullText.includes('javascript:') ||
+      fullText.includes('onload=') ||
+      fullText.includes('onerror=') ||
+      fullText.includes('onclick=') ||
+      fullText.includes('<foreignobject')
+    ) {
+      throw Object.assign(new Error('SVG contains disallowed script or active content'), { status: 400 });
+    }
+
+    const widthMatch = fullText.match(/width=["'](\d+)/);
+    const heightMatch = fullText.match(/height=["'](\d+)/);
+    const safeFileName = `${crypto.randomUUID()}.svg`;
+
     return {
       width: widthMatch ? parseInt(widthMatch[1], 10) : undefined,
       height: heightMatch ? parseInt(heightMatch[1], 10) : undefined,
       mimeType: 'image/svg+xml',
       fileName: safeFileName,
+      sanitizedBuffer: buffer,
     };
   }
 
+  // Decode raster image with sharp and enforce pixel/format constraints
   try {
     const meta = await sharp(buffer).metadata();
     if (!meta.format || !meta.width || !meta.height) {
       throw new Error('Unsupported image content');
     }
-    const mime = meta.format === 'png' ? 'image/png' : meta.format === 'jpeg' ? 'image/jpeg' : meta.format === 'webp' ? 'image/webp' : declaredMimeType;
+
+    if (meta.width > MAX_DIMENSION_PIXELS || meta.height > MAX_DIMENSION_PIXELS) {
+      throw Object.assign(
+        new Error(`Image dimensions (${meta.width}x${meta.height}) exceed maximum allowed of 8000x8000`),
+        { status: 400 }
+      );
+    }
+
+    if (meta.width * meta.height > MAX_TOTAL_PIXELS) {
+      throw Object.assign(
+        new Error(`Total image resolution exceeds maximum allowed limit of 40 megapixels`),
+        { status: 400 }
+      );
+    }
+
+    let sanitizedBuffer: Buffer;
+    let canonicalExt: string;
+    let canonicalMime: string;
+
+    if (meta.format === 'png') {
+      canonicalExt = '.png';
+      canonicalMime = 'image/png';
+      sanitizedBuffer = await sharp(buffer).png({ compressionLevel: 9 }).toBuffer();
+    } else if (meta.format === 'jpeg') {
+      canonicalExt = '.jpg';
+      canonicalMime = 'image/jpeg';
+      sanitizedBuffer = await sharp(buffer).jpeg({ quality: 90 }).toBuffer();
+    } else if (meta.format === 'webp') {
+      canonicalExt = '.webp';
+      canonicalMime = 'image/webp';
+      sanitizedBuffer = await sharp(buffer).webp({ quality: 90 }).toBuffer();
+    } else {
+      throw Object.assign(new Error('Invalid image format. Allowed: PNG, JPEG, WebP.'), { status: 400 });
+    }
+
+    const safeFileName = `${crypto.randomUUID()}${canonicalExt}`;
+
     return {
       width: meta.width,
       height: meta.height,
-      mimeType: mime,
+      mimeType: canonicalMime,
       fileName: safeFileName,
+      sanitizedBuffer,
     };
-  } catch (err) {
-    throw Object.assign(new Error('Invalid or corrupted image format. Allowed: PNG, JPEG, WebP, SVG.'), { status: 400 });
+  } catch (err: any) {
+    if (err?.status) throw err;
+    throw Object.assign(new Error('Invalid or corrupted image format. Allowed: PNG, JPEG, WebP.'), { status: 400 });
   }
 }
 

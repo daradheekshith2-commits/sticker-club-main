@@ -29,10 +29,12 @@ async function testButtons() {
     console.log('[DIALOG] Accepted.');
   });
 
-  console.log('1. Logging in as stickitup@gmail.com...');
-  await page.goto('http://localhost:5173/admin/login');
-  await page.fill('input[type="email"]', 'stickitup@gmail.com');
-  await page.fill('input[type="password"]', 'Iloveyou3000');
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@test.local';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'TestAdminSecret!123';
+  console.log(`1. Logging in as admin (${adminEmail})...`);
+  await page.goto(process.env.BASE_URL ? `${process.env.BASE_URL}/admin/login` : 'http://localhost:5173/admin/login');
+  await page.fill('input[type="email"]', adminEmail);
+  await page.fill('input[type="password"]', adminPassword);
   await page.click('button[type="submit"]');
 
   await page.waitForTimeout(3000);

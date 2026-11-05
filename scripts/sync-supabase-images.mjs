@@ -1,16 +1,28 @@
 import { createClient } from '@supabase/supabase-js';
 import fs from 'node:fs';
 
-const SUPABASE_URL = 'https://iarclkcnxpbbxxpfwamd.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_WoCLL6yGouN7AtxgjRgqHg_VzBi89Ab';
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('Error: SUPABASE_URL and SUPABASE_KEY environment variables must be provided.');
+  process.exit(1);
+}
+
+if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  console.error('Error: ADMIN_EMAIL and ADMIN_PASSWORD environment variables must be provided.');
+  process.exit(1);
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function syncImages() {
-  console.log('1. Signing in as store admin...');
+  console.log(`1. Signing in as store admin (${ADMIN_EMAIL})...`);
   const { data: auth, error: authErr } = await supabase.auth.signInWithPassword({
-    email: 'stickitup@gmail.com',
-    password: 'Iloveyou3000',
+    email: ADMIN_EMAIL,
+    password: ADMIN_PASSWORD,
   });
 
   if (authErr || !auth.session) {
