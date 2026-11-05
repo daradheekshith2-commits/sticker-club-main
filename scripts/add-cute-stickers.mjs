@@ -172,3 +172,4 @@ try {
 } catch (dbErr) {
   console.warn('Postgres DB sync warning (static files updated successfully):', dbErr.message);
 }
+

@@ -70,3 +70,4 @@ test('tied scores preserve the store’s existing display order and zero-activit
   const rankedPartial = rankBlock(block, { 'prod-1': 10, 'prod-2': 25, 'prod-3': 10 });
   assert.deepEqual(rankedPartial.map((p) => p.id), ['prod-2', 'prod-1', 'prod-3']);
 });
+

@@ -230,8 +230,8 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
   return result;
 }
 
-const CACHE_KEY_PRODUCTS = 'sc_catalogue_products_v1';
-const CACHE_KEY_CATEGORIES = 'sc_catalogue_categories_v1';
+const CACHE_KEY_PRODUCTS = 'sc_catalogue_products_v2';
+const CACHE_KEY_CATEGORIES = 'sc_catalogue_categories_v2';
 
 export function CatalogueProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(() => {
@@ -312,10 +312,10 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
 
       let loaded = false;
 
-      // 1. Fast path: load local static catalogue immediately if not already populated
+      // 1. Fast path: load local static catalogue immediately if not already populated or if forced
+      const baseUrl = typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL ? import.meta.env.BASE_URL.replace(/\/$/, '') + '/' : '/';
       if (products.length === 0 || forceRefresh) {
         try {
-          const baseUrl = typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL ? import.meta.env.BASE_URL.replace(/\/$/, '') + '/' : '/';
           const [staticRes, staticCatsRes] = await Promise.all([
             fetch(`${baseUrl}products-catalogue.json`).catch(() => null),
             fetch(`${baseUrl}categories-catalogue.json`).catch(() => null),
@@ -343,6 +343,20 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
         } catch {
           // ignore and proceed to live fetch
         }
+      } else {
+        // Background check: re-fetch static catalogue to update cache seamlessly if catalogue expanded
+        fetch(`${baseUrl}products-catalogue.json`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((staticProducts: BackendProduct[] | null) => {
+            if (staticProducts && staticProducts.length !== products.length) {
+              const processed = processDatabaseProducts(seedProducts, staticProducts);
+              setProducts(processed);
+              try {
+                window.sessionStorage?.setItem(CACHE_KEY_PRODUCTS, JSON.stringify(processed));
+              } catch {}
+            }
+          })
+          .catch(() => {});
       }
 
       // 2. If API configured (e.g. local backend), try background update
