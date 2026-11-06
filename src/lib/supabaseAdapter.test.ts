@@ -107,3 +107,18 @@ test('Security Area 5: Multipart artwork upload rejects non-raster formats (SVG,
   assert.equal(res.status, 400);
   assert.ok(res.error?.includes('Only PNG, JPEG, and WebP raster images are supported'));
 });
+
+test('Security Area 3: Payment receipt upload rejects non-raster images and missing files', async () => {
+  // Missing file
+  const formEmpty = new FormData();
+  const rEmpty = await handleSupabaseMultipart('/api/orders/ord-1/payment/receipt', formEmpty, customerUser);
+  assert.equal(rEmpty.status, 400);
+
+  // Non-raster image (SVG/HTML)
+  const formSvg = new FormData();
+  const fakeSvg = new Blob(['<svg></svg>'], { type: 'image/svg+xml' });
+  formSvg.append('receipt', fakeSvg, 'receipt.svg');
+  const rSvg = await handleSupabaseMultipart('/api/orders/ord-1/payment/receipt', formSvg, customerUser);
+  assert.equal(rSvg.status, 400);
+  assert.ok(rSvg.error?.includes('Only PNG, JPEG, and WebP'));
+});

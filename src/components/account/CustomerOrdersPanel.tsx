@@ -22,6 +22,7 @@ type Payment = {
   method: 'UPI' | 'COD';
   amount: string;
   utr?: string | null;
+  receiptUrl?: string | null;
   rejectionReason?: string | null;
   submittedAt?: string | null;
 };
@@ -99,14 +100,16 @@ const WALL_LAYOUT_NAMES: Record<string, string> = {
 };
 
 export function CustomerOrdersPanel() {
-  const { user, request, token } = useAuth();
+  const { user, request, requestMultipart, token } = useAuth();
   const { getProductById } = useCatalogue();
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // UTR submission state mapped by orderId
+  // UTR & receipt upload state mapped by orderId
   const [utrInputs, setUtrInputs] = useState<Record<string, string>>({});
+  const [receiptFiles, setReceiptFiles] = useState<Record<string, File>>({});
+  const [receiptPreviews, setReceiptPreviews] = useState<Record<string, string>>({});
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Record<string, { success?: string; error?: string }>>({});
 
@@ -224,31 +227,69 @@ export function CustomerOrdersPanel() {
     loadOrders();
   }, [user?.id]);
 
-  async function handleUtrSubmit(orderId: string, event: FormEvent) {
+  function handleReceiptChange(orderId: string, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!file.type || !allowed.includes(file.type.toLowerCase())) {
+      setFeedback((prev) => ({ ...prev, [orderId]: { error: 'Please choose a PNG, JPEG, or WebP image.' } }));
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setFeedback((prev) => ({ ...prev, [orderId]: { error: 'Receipt image must be under 15MB.' } }));
+      return;
+    }
+    setReceiptFiles((prev) => ({ ...prev, [orderId]: file }));
+    setReceiptPreviews((prev) => ({ ...prev, [orderId]: URL.createObjectURL(file) }));
+    setFeedback((prev) => ({ ...prev, [orderId]: {} }));
+  }
+
+  async function handleReceiptUpload(orderId: string, event: FormEvent) {
     event.preventDefault();
+    const file = receiptFiles[orderId];
     const utr = utrInputs[orderId]?.trim();
-    if (!utr) return;
+    if (!file && !utr) {
+      setFeedback((prev) => ({ ...prev, [orderId]: { error: 'Please choose a payment receipt screenshot or photo.' } }));
+      return;
+    }
 
     setSubmittingId(orderId);
     setFeedback((prev) => ({ ...prev, [orderId]: {} }));
 
     try {
-      const res = await request<{ orderId: string; payment: Payment }>(`/api/orders/${orderId}/payment/utr`, {
-        method: 'POST',
-        body: JSON.stringify({ utr }),
-      });
-      setFeedback((prev) => ({
-        ...prev,
-        [orderId]: { success: 'UTR submitted! Payment is under review by administrator.' },
-      }));
-      setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, payment: { ...o.payment, ...res.payment } } : o))
-      );
+      if (file) {
+        const formData = new FormData();
+        formData.append('receipt', file);
+        if (utr) formData.append('utr', utr);
+        const res = await requestMultipart<{ orderId: string; payment: Payment }>(
+          `/api/orders/${orderId}/payment/receipt`,
+          formData
+        );
+        setFeedback((prev) => ({
+          ...prev,
+          [orderId]: { success: 'Receipt uploaded! Payment is under review by administrator.' },
+        }));
+        setOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? { ...o, payment: { ...o.payment, ...res.payment } } : o))
+        );
+      } else {
+        const res = await request<{ orderId: string; payment: Payment }>(`/api/orders/${orderId}/payment/utr`, {
+          method: 'POST',
+          body: JSON.stringify({ utr }),
+        });
+        setFeedback((prev) => ({
+          ...prev,
+          [orderId]: { success: 'Payment details submitted! Payment is under review.' },
+        }));
+        setOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? { ...o, payment: { ...o.payment, ...res.payment } } : o))
+        );
+      }
       setUtrInputs((prev) => ({ ...prev, [orderId]: '' }));
     } catch (e) {
       setFeedback((prev) => ({
         ...prev,
-        [orderId]: { error: e instanceof Error ? e.message : 'Could not submit UTR' },
+        [orderId]: { error: e instanceof Error ? e.message : 'Could not submit payment receipt' },
       }));
     } finally {
       setSubmittingId(null);
@@ -393,17 +434,60 @@ export function CustomerOrdersPanel() {
                         <strong className="text-sun">Payment Verification in Progress</strong>
                       </div>
                       <p className="mt-1 text-xs text-ink-soft">
-                        Submitted Transaction ID: <span className="font-mono font-bold text-ink select-all">{o.payment.utr}</span>. An admin is
-                        reviewing your payment.
+                        Your payment receipt has been submitted and is being reviewed by the admin.
                       </p>
+                      {o.payment.receiptUrl ? (
+                        <div className="mt-2.5 flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setModalImgFailed(false);
+                              setEnlargedImage({
+                                url: o.payment!.receiptUrl!,
+                                title: `Uploaded Payment Receipt — Order #${o.id}`,
+                                subtitle: `Total: ₹${o.total}`,
+                              });
+                            }}
+                            className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-mint/30 bg-black/40 shadow transition hover:scale-105"
+                            title="Click to view full receipt"
+                          >
+                            <img
+                              src={o.payment.receiptUrl}
+                              alt="Submitted payment receipt"
+                              className="size-full object-cover"
+                            />
+                            <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-[10px] font-bold text-white opacity-0 transition group-hover:opacity-100">
+                              🔍
+                            </span>
+                          </button>
+                          <div className="text-xs space-y-0.5">
+                            <span className="font-bold text-mint">Receipt uploaded</span>
+                            <p className="text-ink-soft">
+                              {o.payment.utr ? `Ref ID: ${o.payment.utr}` : 'Screenshot attached'}
+                            </p>
+                            <a
+                              href={o.payment.receiptUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-block text-mint font-semibold hover:underline"
+                            >
+                              Open in new tab ↗
+                            </a>
+                          </div>
+                        </div>
+                      ) : o.payment.utr ? (
+                        <p className="mt-1 text-xs text-ink-soft">
+                          Submitted Transaction ID: <span className="font-mono font-bold text-ink select-all">{o.payment.utr}</span>
+                        </p>
+                      ) : null}
                     </div>
                   ) : (
                     <div>
                       {o.payment?.status === 'REJECTED' && (
                         <div className="mb-3 rounded-lg bg-danger/15 p-2.5 text-xs text-danger">
-                          <strong>Previous Transaction ID was rejected:</strong> {o.payment.rejectionReason}
+                          <strong>Previous Payment Receipt was rejected:</strong> {o.payment.rejectionReason}
                           <br />
-                          Please check your payment app and submit the correct Transaction ID / Ref No. below.
+                          Please check your payment app and upload the correct payment receipt screenshot below.
                         </div>
                       )}
                       <strong>Complete your UPI payment:</strong>
@@ -422,7 +506,7 @@ export function CustomerOrdersPanel() {
                         </div>
                       </div>
                       <p className="mt-2 text-xs text-ink-soft">
-                        Transfer ₹{o.total} and submit your Transaction ID / Ref No. below.
+                        Transfer ₹{o.total} and upload your payment receipt screenshot below.
                       </p>
 
                       {feedback[o.id]?.success && (
@@ -433,22 +517,68 @@ export function CustomerOrdersPanel() {
                       )}
 
                       {showUtrForm && (
-                        <form className="mt-3 flex gap-2" onSubmit={(e) => handleUtrSubmit(o.id, e)}>
+                        <form className="mt-3 space-y-2.5" onSubmit={(e) => handleReceiptUpload(o.id, e)}>
                           <input
-                            type="text"
-                            required
-                            placeholder="e.g. UPI Transaction ID / Ref No."
-                            className="field-input flex-1 text-xs"
-                            value={utrInputs[o.id] ?? ''}
-                            onChange={(e) => setUtrInputs((prev) => ({ ...prev, [o.id]: e.target.value }))}
+                            type="file"
+                            id={`receipt-input-${o.id}`}
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleReceiptChange(o.id, e)}
                           />
-                          <button
-                            type="submit"
-                            className="btn-primary text-xs"
-                            disabled={submittingId === o.id || !(utrInputs[o.id] ?? '').trim()}
-                          >
-                            {submittingId === o.id ? 'Submitting…' : 'Submit Transaction ID'}
-                          </button>
+
+                          {!receiptPreviews[o.id] ? (
+                            <label
+                              htmlFor={`receipt-input-${o.id}`}
+                              className="flex items-center justify-between gap-3 rounded-xl border-2 border-dashed border-mint/30 bg-paper/60 px-3.5 py-2.5 cursor-pointer hover:border-mint hover:bg-paper transition"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className="text-lg">📸</span>
+                                <div className="text-left">
+                                  <p className="text-xs font-bold text-ink">Choose Receipt Screenshot</p>
+                                  <p className="text-[10px] text-ink-soft">Access Photos, Gallery, Files, Camera</p>
+                                </div>
+                              </div>
+                              <span className="rounded-lg bg-white border border-ink/15 px-2.5 py-1 text-xs font-semibold text-mint">
+                                Browse
+                              </span>
+                            </label>
+                          ) : (
+                            <div className="flex items-center gap-2.5 rounded-xl border border-mint/40 bg-paper/70 p-2">
+                              <img
+                                src={receiptPreviews[o.id]}
+                                alt="Receipt preview"
+                                className="size-12 rounded-lg object-cover border border-mint/30"
+                              />
+                              <div className="min-w-0 flex-1 text-left">
+                                <p className="truncate text-xs font-bold text-ink">
+                                  {receiptFiles[o.id]?.name || 'receipt.png'}
+                                </p>
+                                <label
+                                  htmlFor={`receipt-input-${o.id}`}
+                                  className="cursor-pointer text-[11px] font-bold text-mint hover:underline"
+                                >
+                                  Change photo
+                                </label>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="UPI Ref No. (optional)"
+                              className="field-input flex-1 text-xs"
+                              value={utrInputs[o.id] ?? ''}
+                              onChange={(e) => setUtrInputs((prev) => ({ ...prev, [o.id]: e.target.value }))}
+                            />
+                            <button
+                              type="submit"
+                              className="btn-primary text-xs"
+                              disabled={submittingId === o.id || (!receiptFiles[o.id] && !(utrInputs[o.id] ?? '').trim())}
+                            >
+                              {submittingId === o.id ? 'Uploading…' : 'Upload Receipt'}
+                            </button>
+                          </div>
                         </form>
                       )}
                     </div>

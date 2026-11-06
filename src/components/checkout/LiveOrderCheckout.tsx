@@ -38,6 +38,7 @@ export type OrderReceipt = {
     method?: string;
     amount?: string;
     utr?: string | null;
+    receiptUrl?: string | null;
     rejectionReason?: string | null;
   } | null;
 };
@@ -80,10 +81,13 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
     setPurchaseAttemptKey(crypto.randomUUID());
   }, [selected, paymentMethod, lines.length, phone]);
 
-  // UTR submission state on receipt
+  // Receipt upload state on receipt
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [submittingReceipt, setSubmittingReceipt] = useState(false);
+  const [receiptSuccess, setReceiptSuccess] = useState('');
+  const [receiptError, setReceiptError] = useState('');
   const [utrInput, setUtrInput] = useState('');
-  const [submittingUtr, setSubmittingUtr] = useState(false);
-  const [utrSuccess, setUtrSuccess] = useState('');
 
   // Record purchase once per confirmed order (reloading confirmation page never double counts)
   useEffect(() => {
@@ -94,7 +98,6 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
       }
     }
   }, [order?.id, order?.items]);
-  const [utrError, setUtrError] = useState('');
 
   const standard = lines.filter((l): l is ProductCartLine => l.type === 'product');
   const customLinesInCart = lines.filter((l) => l.type !== 'product');
@@ -288,27 +291,61 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
     }
   }
 
-  async function submitUtr(event: FormEvent) {
+  function handleReceiptFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!file.type || !allowed.includes(file.type.toLowerCase())) {
+      setReceiptError('Please choose a valid PNG, JPEG, or WebP image screenshot.');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setReceiptError('Receipt image must be under 15MB.');
+      return;
+    }
+    setReceiptFile(file);
+    setReceiptError('');
+    setReceiptPreview(URL.createObjectURL(file));
+  }
+
+  async function submitReceipt(event: FormEvent) {
     event.preventDefault();
-    if (!order || !utrInput.trim()) return;
-    setSubmittingUtr(true);
-    setUtrError('');
-    setUtrSuccess('');
+    if (!order) return;
+    if (!receiptFile && !utrInput.trim()) {
+      setReceiptError('Please select a payment receipt photo or screenshot to upload.');
+      return;
+    }
+    setSubmittingReceipt(true);
+    setReceiptError('');
+    setReceiptSuccess('');
     try {
-      const res = await request<{ orderId: string; payment: { id: string; status: string; utr: string } }>(
-        `/api/orders/${order.id}/payment/utr`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ utr: utrInput.trim() }),
+      if (receiptFile) {
+        const formData = new FormData();
+        formData.append('receipt', receiptFile);
+        if (utrInput.trim()) {
+          formData.append('utr', utrInput.trim());
         }
-      );
-      setUtrSuccess('Transaction ID submitted successfully! Our team will verify your payment shortly.');
-      setOrder((prev) => (prev ? { ...prev, payment: { ...prev.payment, ...res.payment } } : prev));
-      setUtrInput('');
+        const res = await requestMultipart<{
+          orderId: string;
+          payment: { id: string; status: string; utr?: string | null; receiptUrl?: string | null };
+        }>(`/api/orders/${order.id}/payment/receipt`, formData);
+        setReceiptSuccess('Payment receipt uploaded successfully! Our team will verify your payment shortly.');
+        setOrder((prev) => (prev ? { ...prev, payment: { ...prev.payment, ...res.payment } } : prev));
+      } else {
+        const res = await request<{ orderId: string; payment: { id: string; status: string; utr: string } }>(
+          `/api/orders/${order.id}/payment/utr`,
+          {
+            method: 'POST',
+            body: JSON.stringify({ utr: utrInput.trim() }),
+          }
+        );
+        setReceiptSuccess('Payment details submitted successfully! Our team will verify your payment shortly.');
+        setOrder((prev) => (prev ? { ...prev, payment: { ...prev.payment, ...res.payment } } : prev));
+      }
     } catch (e) {
-      setUtrError(e instanceof Error ? e.message : 'Failed to submit Transaction ID');
+      setReceiptError(e instanceof Error ? e.message : 'Failed to upload payment receipt');
     } finally {
-      setSubmittingUtr(false);
+      setSubmittingReceipt(false);
     }
   }
 
@@ -327,7 +364,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
   if (order) {
     const isUpi = order.paymentMethod === 'UPI';
     const isPaid = order.paymentStatus === 'PAID';
-    const isUtrSubmitted = order.payment?.status === 'SUBMITTED' || Boolean(utrSuccess);
+    const isPaymentSubmitted = order.payment?.status === 'SUBMITTED' || Boolean(receiptSuccess) || Boolean(order.payment?.receiptUrl);
 
     return (
       <section className="rounded-2xl border border-ink/20 bg-white p-6" role="status">
@@ -340,12 +377,12 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
             className={`rounded-full px-3 py-1 text-xs font-bold ${
               isPaid
                 ? 'bg-mint/20 text-mint'
-                : isUtrSubmitted
+                : isPaymentSubmitted
                 ? 'bg-sun/20 text-sun'
                 : 'bg-bubble/20 text-bubble'
             }`}
           >
-            {isPaid ? 'PAID' : isUtrSubmitted ? 'UNDER REVIEW' : 'PAYMENT PENDING'}
+            {isPaid ? 'PAID' : isPaymentSubmitted ? 'UNDER REVIEW' : 'PAYMENT PENDING'}
           </span>
         </div>
 
@@ -441,32 +478,151 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
             )}
 
             <div className="mt-5 border-t border-ink/15 pt-4">
-              <h4 className="text-sm font-bold">Submit your UPI Transaction ID</h4>
-              <p className="mt-1 text-xs text-ink-soft">
-                After paying in your UPI app (GPay, PhonePe, Paytm, etc.), copy the Transaction ID / Ref No. and paste it below.
+              <div className="flex items-center gap-2">
+                <span className="text-base">📸</span>
+                <h4 className="text-sm font-bold text-ink">Upload UPI Payment Receipt</h4>
+              </div>
+              <p className="mt-1 text-xs text-ink-soft leading-relaxed">
+                After completing your payment on your UPI app (Google Pay, PhonePe, Paytm, etc.), upload a screenshot or photo of your payment receipt to verify your order.
               </p>
-              {utrSuccess && (
-                <p className="mt-3 rounded-lg bg-mint/20 p-2 text-sm text-mint font-medium" role="status">
-                  {utrSuccess}
-                </p>
+
+              {receiptSuccess && (
+                <div className="mt-3 rounded-xl bg-mint/15 border border-mint/30 p-3 text-sm text-mint">
+                  <p className="font-bold">✓ {receiptSuccess}</p>
+                </div>
               )}
-              {utrError && (
-                <p className="mt-3 rounded-lg bg-danger/20 p-2 text-sm text-danger" role="alert">
-                  {utrError}
-                </p>
+
+              {receiptError && (
+                <div className="mt-3 rounded-xl bg-danger/15 border border-danger/30 p-3 text-sm text-danger" role="alert">
+                  <p className="font-bold">⚠️ {receiptError}</p>
+                </div>
               )}
-              {!utrSuccess && (
-                <form className="mt-3 flex flex-col sm:flex-row gap-2" onSubmit={submitUtr}>
+
+              {(order.payment?.receiptUrl || receiptSuccess) ? (
+                <div className="mt-4 rounded-xl border border-mint/20 bg-mint/5 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-mint uppercase tracking-wider">
+                      ✓ Uploaded Payment Receipt
+                    </span>
+                    <span className="text-[11px] font-semibold text-ink-soft">
+                      Status: {order.payment?.status || 'SUBMITTED'}
+                    </span>
+                  </div>
+                  {(order.payment?.receiptUrl || receiptPreview) && (
+                    <div className="mt-3 flex items-center gap-3">
+                      <a
+                        href={order.payment?.receiptUrl || receiptPreview || '#'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 border-mint/40 bg-black/40 shadow"
+                        title="Click to view full receipt"
+                      >
+                        <img
+                          src={order.payment?.receiptUrl || receiptPreview || ''}
+                          alt="Uploaded payment receipt screenshot"
+                          className="size-full object-cover transition-transform group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-white">
+                          🔍 View
+                        </div>
+                      </a>
+                      <div className="text-xs space-y-1">
+                        <p className="font-semibold text-ink">Receipt received and linked to Order #{order.id}</p>
+                        <p className="text-ink-soft">Admin will verify your receipt and dispatch your order.</p>
+                        <a
+                          href={order.payment?.receiptUrl || receiptPreview || '#'}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-block text-mint font-bold hover:underline"
+                        >
+                          Open receipt in new tab ↗
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <form className="mt-4 space-y-3" onSubmit={submitReceipt}>
                   <input
-                    type="text"
-                    required
-                    placeholder="Enter UPI Transaction ID / Ref No."
-                    className="field-input flex-1 text-xs"
-                    value={utrInput}
-                    onChange={(e) => setUtrInput(e.target.value)}
+                    type="file"
+                    id="receipt-file-input"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleReceiptFileChange}
                   />
-                  <button className="btn-primary text-xs" type="submit" disabled={submittingUtr || !utrInput.trim()}>
-                    {submittingUtr ? 'Submitting…' : 'Submit Transaction ID'}
+
+                  {!receiptPreview ? (
+                    <label
+                      htmlFor="receipt-file-input"
+                      className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-mint/30 bg-paper/60 p-5 text-center cursor-pointer transition hover:border-mint hover:bg-paper"
+                    >
+                      <div className="flex size-11 items-center justify-center rounded-full bg-mint/15 text-xl text-mint">
+                        📂
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-ink">
+                          Choose Receipt Screenshot or Photo
+                        </p>
+                        <p className="mt-0.5 text-xs text-ink-soft">
+                          Access your Photos, Gallery, Files, or Camera (PNG, JPG, WebP)
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-white border border-ink/15 px-3 py-1 text-xs font-semibold text-mint hover:border-mint">
+                        Browse Photos & Files
+                      </span>
+                    </label>
+                  ) : (
+                    <div className="rounded-2xl border-2 border-mint/40 bg-paper/70 p-3.5">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={receiptPreview}
+                          alt="Receipt preview"
+                          className="size-16 shrink-0 rounded-xl object-cover border border-mint/30"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-bold text-ink">
+                            {receiptFile?.name || 'receipt-image.png'}
+                          </p>
+                          <p className="text-[11px] text-ink-soft">
+                            {receiptFile ? `${(receiptFile.size / (1024 * 1024)).toFixed(2)} MB` : ''} · Ready to upload
+                          </p>
+                          <label
+                            htmlFor="receipt-file-input"
+                            className="mt-1 inline-block cursor-pointer text-xs font-bold text-mint hover:underline"
+                          >
+                            Change screenshot
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-ink-soft">
+                      UPI Reference / Transaction ID <span className="font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 12-digit UPI Ref No. (optional)"
+                      className="field-input mt-1 w-full text-xs"
+                      value={utrInput}
+                      onChange={(e) => setUtrInput(e.target.value)}
+                    />
+                  </div>
+
+                  <button
+                    className="btn-primary w-full text-xs font-bold flex items-center justify-center gap-2 py-2.5"
+                    type="submit"
+                    disabled={submittingReceipt || (!receiptFile && !utrInput.trim())}
+                  >
+                    {submittingReceipt ? (
+                      <>
+                        <span className="inline-block size-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Uploading Receipt…
+                      </>
+                    ) : (
+                      'Upload Payment Receipt'
+                    )}
                   </button>
                 </form>
               )}

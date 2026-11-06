@@ -307,7 +307,8 @@ model PaymentSubmission {
   order        Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   userId       String
   user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  utr          String            @unique
+  utr          String?           @unique
+  receiptUrl   String?
   status       VerificationState @default(SUBMITTED)
   submittedAt  DateTime          @default(now())
   reviewedAt   DateTime?
@@ -325,6 +326,7 @@ model Payment {
   status          PaymentState  @default(AWAITING)
   amount          Decimal       @db.Decimal(12, 2)
   utr             String?       @unique
+  receiptUrl      String?
   submittedAt     DateTime?
   verifiedAt      DateTime?
   verifiedById    String?

@@ -1793,17 +1793,24 @@ app.post(
   '/api/orders/:id/payment/utr',
   requireAuth,
   wrap(async (req, res) => {
-    const { utr } = z
+    const body = z
       .object({
         utr: z
           .string()
           .trim()
           .min(6, 'UTR must be at least 6 characters')
           .max(30, 'UTR must be at most 30 characters')
-          .regex(/^[A-Za-z0-9_-]+$/, 'UTR contains invalid characters'),
+          .regex(/^[A-Za-z0-9_-]+$/, 'UTR contains invalid characters')
+          .optional(),
+        receiptUrl: z.string().trim().url().optional(),
+      })
+      .refine((data) => data.utr || data.receiptUrl, {
+        message: 'Payment receipt image or UTR transaction reference is required',
       })
       .parse(req.body);
 
+    const utr = body.utr ?? null;
+    const receiptUrl = body.receiptUrl ?? null;
     const orderId = String(req.params.id);
     const userId = req.session!.id;
 
@@ -1817,16 +1824,19 @@ app.post(
       if (order.paymentStatus === 'PAID') throw Object.assign(new Error('This order has already been paid'), { status: 400 });
 
       // Reject duplicate UTR across all orders
-      const existingPayment = await tx.payment.findUnique({ where: { utr } });
-      if (existingPayment && existingPayment.orderId !== order.id) {
-        throw Object.assign(new Error('This UTR reference has already been submitted for another order'), { status: 409 });
+      if (utr) {
+        const existingPayment = await tx.payment.findUnique({ where: { utr } });
+        if (existingPayment && existingPayment.orderId !== order.id) {
+          throw Object.assign(new Error('This UTR reference has already been submitted for another order'), { status: 409 });
+        }
       }
 
       // Update or create payment record
       const updatedPayment = await tx.payment.upsert({
         where: { orderId: order.id },
         update: {
-          utr,
+          ...(utr ? { utr } : {}),
+          ...(receiptUrl ? { receiptUrl } : {}),
           status: 'SUBMITTED',
           submittedAt: new Date(),
           rejectionReason: null,
@@ -1837,26 +1847,40 @@ app.post(
           method: 'UPI',
           amount: order.total,
           utr,
+          receiptUrl,
           status: 'SUBMITTED',
           submittedAt: new Date(),
         },
       });
 
       // Dual write to PaymentSubmission for backwards compatibility
-      await tx.paymentSubmission.upsert({
-        where: { utr },
-        update: {
-          status: 'SUBMITTED',
-          submittedAt: new Date(),
-          note: null,
-        },
-        create: {
-          orderId: order.id,
-          userId,
-          utr,
-          status: 'SUBMITTED',
-        },
-      });
+      if (utr) {
+        await tx.paymentSubmission.upsert({
+          where: { utr },
+          update: {
+            status: 'SUBMITTED',
+            submittedAt: new Date(),
+            receiptUrl: receiptUrl ?? null,
+            note: null,
+          },
+          create: {
+            orderId: order.id,
+            userId,
+            utr,
+            receiptUrl: receiptUrl ?? null,
+            status: 'SUBMITTED',
+          },
+        });
+      } else {
+        await tx.paymentSubmission.create({
+          data: {
+            orderId: order.id,
+            userId,
+            receiptUrl: receiptUrl ?? null,
+            status: 'SUBMITTED',
+          },
+        });
+      }
 
       // Add order event
       await tx.orderEvent.create({
@@ -1865,12 +1889,122 @@ app.post(
           orderId: order.id,
           actorId: userId,
           kind: 'PAYMENT_SUBMITTED',
-          detail: { utr, amount: order.total.toString() },
+          detail: { utr, receiptUrl, amount: order.total.toString() },
         },
       });
 
       // NEVER mark paymentStatus as PAID here! It must stay PENDING.
       return { orderId: order.id, payment: updatedPayment };
+    });
+
+    res.json(result);
+  })
+);
+
+app.post(
+  '/api/orders/:id/payment/receipt',
+  requireAuth,
+  (req, res, next) => {
+    upload.fields([{ name: 'receipt', maxCount: 1 }, { name: 'file', maxCount: 1 }])(req, res, (err) => {
+      if (err) {
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_FILE_SIZE') {
+            res.status(400).json({ error: `File size exceeds limit of ${config.MAX_UPLOAD_SIZE_MB}MB` });
+            return;
+          }
+          res.status(400).json({ error: err.message });
+          return;
+        }
+        res.status(400).json({ error: err.message || 'File upload error' });
+        return;
+      }
+      next();
+    });
+  },
+  wrap(async (req, res) => {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    const uploadedFile = files?.receipt?.[0] || files?.file?.[0] || (req.file as Express.Multer.File | undefined);
+    if (!uploadedFile || !uploadedFile.buffer) {
+      res.status(400).json({ error: 'No receipt image uploaded. Please choose a photo or screenshot.' });
+      return;
+    }
+
+    const validated = await validateImageBuffer(uploadedFile.buffer, uploadedFile.originalname, uploadedFile.mimetype, true);
+    const storage = getStorageDriver();
+    await storage.save(validated.sanitizedBuffer, validated.fileName, validated.mimeType, true);
+    const receiptUrl = await storage.getUrl(validated.fileName, true);
+
+    const orderId = String(req.params.id);
+    const userId = req.session!.id;
+    const utrRaw = typeof req.body?.utr === 'string' ? req.body.utr.trim() : null;
+    const utr = utrRaw && /^[A-Za-z0-9_-]{6,30}$/.test(utrRaw) ? utrRaw : null;
+
+    const result = await db.$transaction(async (tx) => {
+      const order = await tx.order.findFirst({
+        where: { id: orderId, userId },
+        include: { payment: true },
+      });
+      if (!order) throw Object.assign(new Error('Order not found'), { status: 404 });
+      if (order.paymentMethod !== 'UPI') throw Object.assign(new Error('This order does not use UPI payment method'), { status: 400 });
+      if (order.paymentStatus === 'PAID') throw Object.assign(new Error('This order has already been paid'), { status: 400 });
+
+      if (utr) {
+        const existingPayment = await tx.payment.findUnique({ where: { utr } });
+        if (existingPayment && existingPayment.orderId !== order.id) {
+          throw Object.assign(new Error('This UTR reference has already been submitted for another order'), { status: 409 });
+        }
+      }
+
+      const updatedPayment = await tx.payment.upsert({
+        where: { orderId: order.id },
+        update: {
+          ...(utr ? { utr } : {}),
+          receiptUrl,
+          status: 'SUBMITTED',
+          submittedAt: new Date(),
+          rejectionReason: null,
+          adminNote: null,
+        },
+        create: {
+          orderId: order.id,
+          method: 'UPI',
+          amount: order.total,
+          utr,
+          receiptUrl,
+          status: 'SUBMITTED',
+          submittedAt: new Date(),
+        },
+      });
+
+      await tx.paymentSubmission.create({
+        data: {
+          orderId: order.id,
+          userId,
+          utr,
+          receiptUrl,
+          status: 'SUBMITTED',
+        },
+      });
+
+      await tx.orderEvent.create({
+        data: {
+          id: randomUUID(),
+          orderId: order.id,
+          actorId: userId,
+          kind: 'PAYMENT_RECEIPT_SUBMITTED',
+          detail: { receiptUrl, utr, amount: order.total.toString() },
+        },
+      });
+
+      return {
+        orderId: order.id,
+        payment: {
+          id: updatedPayment.id,
+          status: updatedPayment.status,
+          utr: updatedPayment.utr,
+          receiptUrl: updatedPayment.receiptUrl,
+        },
+      };
     });
 
     res.json(result);

@@ -13,6 +13,7 @@ type Payment = {
   method: 'UPI' | 'COD';
   amount: string;
   utr?: string | null;
+  receiptUrl?: string | null;
   submittedAt?: string | null;
   verifiedAt?: string | null;
   rejectionReason?: string | null;
@@ -568,12 +569,73 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                         Customer: <strong className="text-ink">{p.order?.user?.name}</strong> ({p.order?.user?.email}
                         {p.order?.user?.phone ? ` · 📞 ${p.order.user.phone}` : ''})
                       </p>
-                      <p className="mt-1 text-sm">
-                        Submitted Transaction ID:{' '}
-                        <span className="rounded bg-paper px-2 py-1 font-mono text-sm font-bold text-ink select-all">
-                          {p.utr}
-                        </span>
-                      </p>
+                      {p.utr && (
+                        <p className="mt-1 text-sm">
+                          Submitted Transaction ID:{' '}
+                          <span className="rounded bg-paper px-2 py-1 font-mono text-sm font-bold text-ink select-all">
+                            {p.utr}
+                          </span>
+                        </p>
+                      )}
+                      {p.receiptUrl && (
+                        <div className="mt-3 flex items-center gap-3 rounded-xl border border-mint/25 bg-paper/60 p-2.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setModalImgFailed(false);
+                              setEnlargedImage({
+                                url: p.receiptUrl!,
+                                title: `UPI Payment Receipt — Order #${p.orderId}`,
+                                subtitle: `Customer: ${p.order?.user?.name || 'Customer'} · Amount: ₹${p.amount}`,
+                              });
+                            }}
+                            className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 border-mint/40 bg-black/40 shadow transition hover:scale-105"
+                            title="Click to view/enlarge receipt screenshot"
+                          >
+                            <img
+                              src={p.receiptUrl}
+                              alt={`Payment receipt for Order #${p.orderId}`}
+                              className="size-full object-cover"
+                            />
+                            <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-[10px] font-bold text-white opacity-0 transition group-hover:opacity-100">
+                              🔍 Zoom
+                            </span>
+                          </button>
+                          <div className="text-xs space-y-1">
+                            <span className="font-bold text-mint uppercase tracking-wider text-[10px] flex items-center gap-1">
+                              <span>📸</span> Uploaded UPI Payment Receipt
+                            </span>
+                            <p className="text-ink-soft">
+                              Inspect payee, amount ₹{p.amount}, timestamp, and ref number from customer's screenshot.
+                            </p>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setModalImgFailed(false);
+                                  setEnlargedImage({
+                                    url: p.receiptUrl!,
+                                    title: `UPI Payment Receipt — Order #${p.orderId}`,
+                                    subtitle: `Customer: ${p.order?.user?.name || 'Customer'} · Amount: ₹${p.amount}`,
+                                  });
+                                }}
+                                className="font-bold text-mint hover:underline"
+                              >
+                                View full screen
+                              </button>
+                              <span>·</span>
+                              <a
+                                href={p.receiptUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-bold text-ink-soft hover:underline"
+                              >
+                                Open in new tab ↗
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       {p.submittedAt && (
                         <p className="mt-1 text-xs text-ink-soft">
                           Submitted on {new Date(p.submittedAt).toLocaleString('en-IN')}
@@ -906,6 +968,23 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                         <span>
                           Transaction ID: <strong className="font-mono text-ink select-all">{order.payment.utr}</strong>
                         </span>
+                      )}
+                      {order.payment.receiptUrl && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setModalImgFailed(false);
+                            setEnlargedImage({
+                              url: order.payment!.receiptUrl!,
+                              title: `UPI Payment Receipt — Order #${order.id}`,
+                              subtitle: `Customer: ${customerName} · Total: ₹${order.total}`,
+                            });
+                          }}
+                          className="flex items-center gap-1.5 rounded-md border border-mint/40 bg-mint/15 px-2.5 py-1 text-xs font-bold text-mint hover:bg-mint/25 transition-colors"
+                        >
+                          <span>📸</span>
+                          <span>View Payment Receipt</span>
+                        </button>
                       )}
                       {order.payment.rejectionReason && (
                         <span className="text-danger font-medium">Rejection Reason: {order.payment.rejectionReason}</span>

@@ -689,10 +689,11 @@ export async function handleSupabaseRequest<T>(
     if (!user) return { handled: true, error: 'Sign in required', status: 401 };
     const orderId = urlPath.replace('/api/orders/', '').replace('/payment/utr', '').trim();
     const body = parseBody();
-    const utr = (body.utr || '').trim();
+    const utr = (body.utr || '').trim() || null;
+    const receiptUrl = (body.receiptUrl || '').trim() || null;
 
-    if (!utr) return { handled: true, error: 'UTR transaction reference is required', status: 400 };
-    if (utr.length < 6 || utr.length > 30 || !/^[A-Za-z0-9_-]+$/.test(utr)) {
+    if (!utr && !receiptUrl) return { handled: true, error: 'Payment receipt image or UTR transaction reference is required', status: 400 };
+    if (utr && (utr.length < 6 || utr.length > 30 || !/^[A-Za-z0-9_-]+$/.test(utr))) {
       return { handled: true, error: 'Invalid UTR reference format: must be 6-30 characters alphanumeric', status: 400 };
     }
 
@@ -706,7 +707,7 @@ export async function handleSupabaseRequest<T>(
     if (orderErr || !order) {
       return { handled: true, error: 'Order not found', status: 404 };
     }
-    if (order.userId !== user.id) {
+    if (order.userId !== user.id && user.role !== 'ADMIN') {
       return { handled: true, error: 'Forbidden: you do not own this order', status: 403 };
     }
     if (order.paymentMethod !== 'UPI') {
@@ -717,15 +718,17 @@ export async function handleSupabaseRequest<T>(
     }
 
     // 2. Reject duplicate UTR across all orders
-    const { data: duplicatePayment } = await supabase
-      .from('Payment')
-      .select('id, orderId')
-      .eq('utr', utr)
-      .neq('orderId', orderId)
-      .maybeSingle();
+    if (utr) {
+      const { data: duplicatePayment } = await supabase
+        .from('Payment')
+        .select('id, orderId')
+        .eq('utr', utr)
+        .neq('orderId', orderId)
+        .maybeSingle();
 
-    if (duplicatePayment) {
-      return { handled: true, error: 'This UTR reference has already been submitted for another order', status: 409 };
+      if (duplicatePayment) {
+        return { handled: true, error: 'This UTR reference has already been submitted for another order', status: 409 };
+      }
     }
 
     // Record submission
@@ -734,17 +737,21 @@ export async function handleSupabaseRequest<T>(
       orderId,
       userId: user.id,
       utr,
+      receiptUrl,
       status: 'SUBMITTED',
     });
 
     // Update payment
+    const updatePayload: Record<string, any> = {
+      status: 'SUBMITTED',
+      submittedAt: new Date().toISOString(),
+    };
+    if (utr) updatePayload.utr = utr;
+    if (receiptUrl) updatePayload.receiptUrl = receiptUrl;
+
     const { data: payment, error } = await supabase
       .from('Payment')
-      .update({
-        utr,
-        status: 'SUBMITTED',
-        submittedAt: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('orderId', orderId)
       .select()
       .single();
@@ -755,7 +762,7 @@ export async function handleSupabaseRequest<T>(
       id: crypto.randomUUID(),
       orderId,
       kind: 'PAYMENT_SUBMITTED',
-      detail: { utr },
+      detail: { utr, receiptUrl },
     });
 
     return {
@@ -766,6 +773,7 @@ export async function handleSupabaseRequest<T>(
           id: payment.id,
           status: payment.status,
           utr: payment.utr,
+          receiptUrl: payment.receiptUrl,
         },
       } as unknown as T,
     };
@@ -1994,6 +2002,116 @@ export async function handleSupabaseMultipart<T>(
       data: {
         url: publicUrl,
         fileName: cleanName,
+      } as unknown as T,
+    };
+  }
+
+  // Upload UPI payment receipt screenshot / photo
+  if (path.startsWith('/api/orders/') && path.endsWith('/payment/receipt')) {
+    if (!user) return { handled: true, error: 'Sign in required', status: 401 };
+    const orderId = path.replace('/api/orders/', '').replace('/payment/receipt', '').trim();
+    const file = (formData.get('receipt') || formData.get('file')) as File | null;
+    const utr = ((formData.get('utr') as string | null) || '').trim() || null;
+
+    if (!file) return { handled: true, error: 'No receipt image uploaded. Please choose a photo or screenshot.', status: 400 };
+
+    const allowedMimes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!file.type || !allowedMimes.includes(file.type.toLowerCase())) {
+      return { handled: true, error: 'Only PNG, JPEG, and WebP images are supported for payment receipts', status: 400 };
+    }
+    const maxSizeBytes = 15 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      return { handled: true, error: 'Receipt image size exceeds maximum limit of 15MB', status: 400 };
+    }
+
+    // Verify order ownership
+    const { data: order, error: orderErr } = await supabase
+      .from('Order')
+      .select('id, userId, paymentMethod, paymentStatus')
+      .eq('id', orderId)
+      .single();
+
+    if (orderErr || !order) {
+      return { handled: true, error: 'Order not found', status: 404 };
+    }
+    if (order.userId !== user.id && user.role !== 'ADMIN') {
+      return { handled: true, error: 'Forbidden: you do not own this order', status: 403 };
+    }
+    if (order.paymentMethod !== 'UPI') {
+      return { handled: true, error: 'This order does not use UPI payment method', status: 400 };
+    }
+    if (order.paymentStatus === 'PAID') {
+      return { handled: true, error: 'This order has already been marked as paid', status: 400 };
+    }
+
+    if (utr && (utr.length < 6 || utr.length > 30 || !/^[A-Za-z0-9_-]+$/.test(utr))) {
+      return { handled: true, error: 'Invalid UTR reference format: must be 6-30 characters alphanumeric', status: 400 };
+    }
+
+    const cleanName = (file.name || 'receipt.png').replace(/[^a-zA-Z0-9.-]/g, '_');
+    const storagePath = `receipts/${orderId}/${Date.now()}-${cleanName}`;
+
+    // Upload to Supabase Storage bucket 'artworks'
+    const { error: uploadError } = await supabase.storage.from('artworks').upload(storagePath, file, {
+      contentType: file.type || 'image/png',
+      upsert: true,
+    });
+
+    if (uploadError) {
+      return { handled: true, error: `Receipt upload failed: ${uploadError.message}`, status: 500 };
+    }
+
+    const { data: publicUrlData } = supabase.storage.from('artworks').getPublicUrl(storagePath);
+    const receiptUrl = publicUrlData?.publicUrl || '';
+
+    // Record submission
+    await supabase.from('PaymentSubmission').insert({
+      id: crypto.randomUUID(),
+      orderId,
+      userId: user.id,
+      utr,
+      receiptUrl,
+      status: 'SUBMITTED',
+    });
+
+    // Update Payment
+    const updatePayload: Record<string, any> = {
+      receiptUrl,
+      status: 'SUBMITTED',
+      submittedAt: new Date().toISOString(),
+    };
+    if (utr) {
+      updatePayload.utr = utr;
+    }
+
+    const { data: payment, error: payError } = await supabase
+      .from('Payment')
+      .update(updatePayload)
+      .eq('orderId', orderId)
+      .select()
+      .single();
+
+    if (payError) {
+      return { handled: true, error: payError.message, status: 400 };
+    }
+
+    await supabase.from('OrderEvent').insert({
+      id: crypto.randomUUID(),
+      orderId,
+      kind: 'PAYMENT_RECEIPT_SUBMITTED',
+      detail: { receiptUrl, utr },
+    });
+
+    return {
+      handled: true,
+      data: {
+        orderId,
+        payment: {
+          id: payment.id,
+          status: payment.status,
+          utr: payment.utr,
+          receiptUrl: payment.receiptUrl,
+        },
       } as unknown as T,
     };
   }
