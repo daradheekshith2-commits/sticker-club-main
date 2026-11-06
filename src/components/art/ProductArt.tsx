@@ -537,20 +537,22 @@ export function ProductImage({ product, view = 'main', index = 0, className }: {
     // Fast-loading WebP alternative
     const webpSrc = src.replace(/\.(png|jpe?g)$/i, '.webp');
     const isStaticAsset = src.startsWith('/PNG/') || src.startsWith('/Stickers/') || src.startsWith('/Poster/') || src.startsWith('/hero-stickers/') || src.startsWith('/cute/');
+    const safeWebpSrc = encodeURI(webpSrc);
+    const safeSrc = encodeURI(src);
 
     return (
       <picture className="contents">
-        {isStaticAsset && <source srcSet={webpSrc} type="image/webp" />}
+        {isStaticAsset && <source srcSet={safeWebpSrc} type="image/webp" />}
         <img
-          src={isStaticAsset ? webpSrc : src}
+          src={isStaticAsset ? safeWebpSrc : safeSrc}
           alt={photo.alt || product.name}
           className={`${className ?? ''} ${fitClass}`.trim()}
           loading="lazy"
           decoding="async"
           onError={(e) => {
             const target = e.currentTarget;
-            if (isStaticAsset && target.src.endsWith('.webp')) {
-              target.src = src;
+            if (isStaticAsset && target.src.endsWith('.webp') && !src.endsWith('.webp')) {
+              target.src = safeSrc;
             } else {
               setLoadError(true);
             }
