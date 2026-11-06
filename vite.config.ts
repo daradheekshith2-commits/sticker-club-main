@@ -22,7 +22,8 @@ export default defineConfig({
           if (
             id.includes('node_modules/react/') ||
             id.includes('node_modules/react-dom/') ||
-            id.includes('node_modules/@vercel/analytics/')
+            id.includes('node_modules/@vercel/analytics/') ||
+            id.includes('node_modules/@vercel/speed-insights/')
           ) {
             return 'vendor-react';
           }
