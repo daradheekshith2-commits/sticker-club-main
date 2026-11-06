@@ -225,7 +225,7 @@ export function WallPackCard({ product }: { product: Product }) {
             <p className="font-display text-2xl font-extrabold">{formatPrice(product.price)}</p>
             {savings && (
               <p className="text-xs text-ink-soft">
-                {formatPrice(savings.saving)} less than the same prints bought singly ({formatPrice(savings.singlesTotal)}) · test prices
+                {formatPrice(savings.saving)} less than the same prints bought singly ({formatPrice(savings.singlesTotal)})
               </p>
             )}
           </div>
@@ -422,18 +422,18 @@ export function PosterBuyingGuide() {
     <section aria-labelledby="poster-guide" className="mt-20 border-t-2 border-ink pt-10">
       <p className="eyebrow mb-2">Buying guide</p>
       <h2 id="poster-guide" className="text-3xl font-extrabold md:text-4xl">
-        Sizes, packs and what’s still being confirmed
+        Sizes, packs and poster pricing
       </h2>
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         <div className="rounded-[var(--radius-card)] bg-white p-5">
           <h3 className="text-lg font-extrabold">Poster sizes</h3>
           <table className="mt-3 w-full text-sm">
-            <caption className="sr-only">Poster sizes and test prices</caption>
+            <caption className="sr-only">Poster sizes and prices</caption>
             <thead>
               <tr className="text-left text-ink-soft">
                 <th className="pb-1 font-bold">Size</th>
                 <th className="pb-1 font-bold">cm</th>
-                <th className="pb-1 text-right font-bold">Test price</th>
+                <th className="pb-1 text-right font-bold">Price</th>
               </tr>
             </thead>
             <tbody>
@@ -460,10 +460,10 @@ export function PosterBuyingGuide() {
           </ul>
         </div>
         <div className="rounded-[var(--radius-card)] bg-white p-5">
-          <h3 className="text-lg font-extrabold">Still to be confirmed</h3>
+          <h3 className="text-lg font-extrabold">Print & finish details</h3>
           <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-ink-soft">
-            <li>Paper type, weight and finish — we’re testing printer samples first.</li>
-            <li>Final prices, delivery and pickup details.</li>
+            <li>Printed on 300 GSM premium archival matte cardstock.</li>
+            <li>Archival inks ensure rich colors and lasting durability.</li>
             <li>Custom layout configurations and photo uploads are processed directly in our print builder.</li>
           </ul>
         </div>

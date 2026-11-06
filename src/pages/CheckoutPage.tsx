@@ -43,6 +43,24 @@ export function CheckoutPage() {
   }
 
   const MIN_CHECKOUT_TOTAL = 99;
+  const hasUnresolvedPoster = lines.some((l) => l.type === 'product' && l.requiresSizeChoice);
+
+  if (hasUnresolvedPoster && !createdOrder) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+        <EmptyState
+          title="Poster size selection required"
+          body="One or more posters in your cart have custom dimensions. Please choose a standard size (A5, A4, or A3) before checkout."
+          action={
+            <button type="button" onClick={openCart} className="btn-primary">
+              Open cart &amp; select size
+            </button>
+          }
+        />
+      </div>
+    );
+  }
+
   if (subtotal < MIN_CHECKOUT_TOTAL && !createdOrder) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">

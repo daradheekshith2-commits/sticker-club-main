@@ -1415,14 +1415,28 @@ app.post(
             if (!item.product.inventory) {
               throw Object.assign(new Error('Inventory not configured for ' + item.product.name), { status: 409 });
             }
-            const option = item.variantId ? item.product.variants.find((v) => v.id === item.variantId) : undefined;
-            if (item.product.variants.length && !option) {
-              throw Object.assign(new Error('Selected product variant is no longer available'), { status: 409 });
+            const isPoster = item.product.category === 'posters' || item.product.productType === 'poster';
+            let price: Prisma.Decimal;
+            let option = item.variantId ? item.product.variants.find((v) => v.id === item.variantId) : undefined;
+
+            if (isPoster) {
+              if (item.variantId && item.variantId.startsWith('custom:')) {
+                throw Object.assign(new Error('Arbitrary poster sizing is not supported. Please choose A5 (₹90), A4 (₹120), or A3 (₹150).'), { status: 400 });
+              }
+              const validSizes = ['a5', 'a4', 'a3'];
+              const effectiveSize = (item.variantId && validSizes.includes(item.variantId)) ? item.variantId : 'a5';
+              const canonicalPrice = effectiveSize === 'a3' ? 150 : effectiveSize === 'a4' ? 120 : 90;
+              price = new Prisma.Decimal(canonicalPrice);
+              option = option || ({ id: effectiveSize, label: effectiveSize.toUpperCase(), price, productId: item.productId } as any);
+            } else {
+              if (item.product.variants.length && !option) {
+                throw Object.assign(new Error('Selected product variant is no longer available'), { status: 409 });
+              }
+              if (!item.product.variants.length && item.variantId) {
+                throw Object.assign(new Error('Invalid product variant'), { status: 409 });
+              }
+              price = option?.price ?? item.product.price;
             }
-            if (!item.product.variants.length && item.variantId) {
-              throw Object.assign(new Error('Invalid product variant'), { status: 409 });
-            }
-            const price = option?.price ?? item.product.price;
             subtotal = subtotal.add(price.mul(item.quantity));
 
             const primaryImg = item.product.images?.find((img) => img.isPrimary) || item.product.images?.[0];

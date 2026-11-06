@@ -24,7 +24,7 @@ export function wallPrice(layout: WallLayout): number {
   return layout.slots.reduce((sum, slot) => sum + sizePrice(slot.size), 0);
 }
 
-/** Price breakdown per size, e.g. [{ label: 'A5', count: 4, unit: 59, total: 236 }]. */
+/** Price breakdown per size, e.g. [{ label: 'A5', count: 4, unit: 90, total: 360 }]. */
 export function priceBreakdown(layout: WallLayout) {
   return (['a3', 'a4', 'a5'] as PaperSizeId[])
     .map((size) => {

@@ -138,7 +138,9 @@ export function CartDrawer() {
 
         {lines.length > 0 && (() => {
           const MIN_CHECKOUT_TOTAL = 99;
-          const canCheckout = subtotal >= MIN_CHECKOUT_TOTAL;
+          const hasUnresolvedPoster = lines.some((l) => l.type === 'product' && l.requiresSizeChoice);
+          const meetsMinimum = subtotal >= MIN_CHECKOUT_TOTAL;
+          const canCheckout = meetsMinimum && !hasUnresolvedPoster;
           const amountNeeded = Math.max(0, MIN_CHECKOUT_TOTAL - subtotal);
           return (
             <div className="receipt-edge border-t-2 border-dashed border-ink/20 bg-paper-deep px-5 pt-5 pb-7 shadow-2xl">
@@ -147,8 +149,18 @@ export function CartDrawer() {
                 <span className="font-display text-2xl font-extrabold tabular-nums text-ink">{formatPrice(subtotal)}</span>
               </div>
 
+              {/* Legacy poster size requirement warning */}
+              {hasUnresolvedPoster && (
+                <div className="mt-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
+                  <p className="font-bold text-amber-700">Size Selection Required</p>
+                  <p className="mt-1 text-[11px] text-ink-soft">
+                    One or more posters in your cart have custom dimensions. Please choose A5, A4, or A3 above to proceed.
+                  </p>
+                </div>
+              )}
+
               {/* Minimum checkout total progress requirement */}
-              {!canCheckout && (
+              {!meetsMinimum && (
                 <div className="mt-3 rounded-xl border border-tomato/30 bg-tomato/10 p-3 text-xs">
                   <div className="flex justify-between font-bold text-ink">
                     <span>Minimum order to checkout is ₹99</span>
@@ -181,6 +193,8 @@ export function CartDrawer() {
                   <>
                     Proceed to checkout <LuArrowRight aria-hidden />
                   </>
+                ) : hasUnresolvedPoster ? (
+                  <>Select poster size to checkout</>
                 ) : (
                   <>Add {formatPrice(amountNeeded)} more to checkout</>
                 )}
@@ -198,8 +212,8 @@ export function CartDrawer() {
 
 /** One ordinary product in the cart drawer. */
 function ProductLineItem({ line }: { line: ProductCartLine }) {
-  const { closeCart, setQuantity, removeItem } = useCart();
-  const { key, product, variant, secretNote, unitPrice, quantity, lineTotal } = line;
+  const { closeCart, setQuantity, updateVariant, removeItem } = useCart();
+  const { key, product, variant, secretNote, unitPrice, quantity, lineTotal, requiresSizeChoice } = line;
   return (
     <li className="flex gap-4 py-4">
       <Link to={`/product/${product.slug}`} onClick={closeCart} className="block size-20 shrink-0 overflow-hidden rounded-xl border-2 border-ink/10">
@@ -216,6 +230,36 @@ function ProductLineItem({ line }: { line: ProductCartLine }) {
           {variant && <span className="mr-1.5 rounded border border-ink/25 px-1 text-xs font-bold text-ink">{variant.label}</span>}
           {formatPrice(unitPrice)} each
         </p>
+
+        {requiresSizeChoice && (
+          <div className="mt-2 rounded-xl border border-amber-500/40 bg-amber-500/10 p-2.5 text-xs">
+            <p className="font-bold text-amber-700">Choose standard poster size:</p>
+            <div className="mt-1.5 flex gap-1.5">
+              <button
+                type="button"
+                onClick={() => updateVariant(key, 'a5')}
+                className="flex-1 rounded-lg border border-ink/20 bg-white py-1 text-center font-bold text-ink hover:bg-lime hover:border-ink transition-colors"
+              >
+                A5 (₹90)
+              </button>
+              <button
+                type="button"
+                onClick={() => updateVariant(key, 'a4')}
+                className="flex-1 rounded-lg border border-ink/20 bg-white py-1 text-center font-bold text-ink hover:bg-lime hover:border-ink transition-colors"
+              >
+                A4 (₹120)
+              </button>
+              <button
+                type="button"
+                onClick={() => updateVariant(key, 'a3')}
+                className="flex-1 rounded-lg border border-ink/20 bg-white py-1 text-center font-bold text-ink hover:bg-lime hover:border-ink transition-colors"
+              >
+                A3 (₹150)
+              </button>
+            </div>
+          </div>
+        )}
+
         {secretNote && (
           <div className="mt-1.5 rounded-lg border border-mint/40 bg-mint/10 p-2 text-xs">
             <span className="font-bold text-mint flex items-center gap-1">

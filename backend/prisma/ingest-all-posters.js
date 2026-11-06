@@ -125,7 +125,7 @@ async function main() {
 
       const title = formatTitle(file);
       const name = `${title} Poster`;
-      const description = `High-grade archival matte art poster print featuring ${title}. Available in A5 (₹59), A4 (₹89), and A3 (₹149). Printed on 300 GSM premium cardstock, perfect for framing, bedroom walls and creative desks.`;
+      const description = `High-grade archival matte art poster print featuring ${title}. Available in A5 (₹90), A4 (₹120), and A3 (₹150). Printed on 300 GSM premium cardstock, perfect for framing, bedroom walls and creative desks.`;
       const imageUrl = `/api/uploads/products/${file}`;
 
       const existing = await prisma.product.findFirst({
@@ -144,7 +144,7 @@ async function main() {
           data: {
             name,
             description,
-            price: 59.00,
+            price: 90.00,
             active: true,
             status: 'PUBLISHED',
             category: 'posters',
@@ -152,13 +152,13 @@ async function main() {
           }
         });
 
-        // Ensure variants exist: A5: 59, A4: 89, A3: 149
+        // Ensure variants exist: A5: 90, A4: 120, A3: 150
         await prisma.productVariant.deleteMany({ where: { productId: existing.id } });
         await prisma.productVariant.createMany({
           data: [
-            { productId: existing.id, id: 'a5', label: 'A5', price: 59.00 },
-            { productId: existing.id, id: 'a4', label: 'A4', price: 89.00 },
-            { productId: existing.id, id: 'a3', label: 'A3', price: 149.00 },
+            { productId: existing.id, id: 'a5', label: 'A5', price: 90.00 },
+            { productId: existing.id, id: 'a4', label: 'A4', price: 120.00 },
+            { productId: existing.id, id: 'a3', label: 'A3', price: 150.00 },
           ]
         });
 
@@ -180,7 +180,7 @@ async function main() {
             slug,
             name,
             description,
-            price: 59.00,
+            price: 90.00,
             active: true,
             status: 'PUBLISHED',
             category: 'posters',
@@ -193,9 +193,9 @@ async function main() {
             },
             variants: {
               create: [
-                { id: 'a5', label: 'A5', price: 59.00 },
-                { id: 'a4', label: 'A4', price: 89.00 },
-                { id: 'a3', label: 'A3', price: 149.00 },
+                { id: 'a5', label: 'A5', price: 90.00 },
+                { id: 'a4', label: 'A4', price: 120.00 },
+                { id: 'a3', label: 'A3', price: 150.00 },
               ]
             },
             images: {

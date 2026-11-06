@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LuArrowRight, LuCheck, LuChevronDown, LuChevronUp, LuShoppingBag, LuX } from 'react-icons/lu';
+import type { Variant } from '../types/product';
 import { whatsappLink } from '../config/brand';
 import { useCart } from '../context/CartContext';
 import { useCatalogue } from '../context/CatalogueContext';
@@ -89,8 +90,6 @@ export function ProductPage() {
     }
   }, [product, items, variantId]);
 
-  const [customPosterWidth, setCustomPosterWidth] = useState(30);
-  const [customPosterHeight, setCustomPosterHeight] = useState(40);
   usePageMeta(product ? product.name : 'Product not found', product?.shortDescription);
 
   if (loading && !product) {
@@ -200,19 +199,23 @@ export function ProductPage() {
   const packQty = getPackQuantity(product);
   const views = effectiveProduct.images?.length ? effectiveProduct.images.map((_, i) => i) : viewsFor(effectiveProduct);
   const related = getRelatedProducts(product, 4, products);
-  const selectedVariant = product.variants?.find((v) => v.id === variantId);
+  const getPosterVariantDetail = (v: Variant | undefined): string => {
+    if (!v) return '21 × 29.7 cm';
+    if (v.detail) return v.detail;
+    if (v.id === 'a5') return '14.8 × 21 cm';
+    if (v.id === 'a4') return '21 × 29.7 cm';
+    if (v.id === 'a3') return '29.7 × 42 cm';
+    return '';
+  };
+
+  const selectedVariant = product.variants?.find((v) => v.id === variantId) ?? (product.category === 'posters' ? product.variants?.find((v) => v.id === 'a4') : undefined);
   const a5Price = product.variants?.find((v) => v.id === 'a5')?.price ?? 90;
   const a4Price = product.variants?.find((v) => v.id === 'a4')?.price ?? 120;
   const a3Price = product.variants?.find((v) => v.id === 'a3')?.price ?? 150;
-  const customPosterPrice = Math.max(1, Math.round(customPosterWidth * customPosterHeight * 0.258));
-  const price = (product.category === 'posters' && variantId === 'custom')
-    ? customPosterPrice
-    : unitPrice(product, variantId);
+  const price = unitPrice(product, variantId);
 
   const effectiveVariant = (product.variants && product.variants.length > 0)
-    ? ((product.category === 'posters' && variantId === 'custom')
-        ? `custom:${customPosterWidth}×${customPosterHeight}cm:${customPosterPrice}`
-        : (variantId || product.variants[0].id))
+    ? (variantId || product.variants.find((v) => v.id === 'a4')?.id || product.variants[0].id)
     : undefined;
 
   const cartLine = items.find(
@@ -226,9 +229,7 @@ export function ProductPage() {
   const cartKey = cartLine ? keyOf(cartLine) : null;
 
   const sizeValue = product.category === 'posters'
-    ? (variantId === 'custom'
-        ? `Custom (${customPosterWidth} × ${customPosterHeight} cm)`
-        : (selectedVariant ? `${selectedVariant.label} (${selectedVariant.detail})` : (product.dimensions || 'A4 (21 × 29.7 cm)')))
+    ? (selectedVariant ? `${selectedVariant.label} (${getPosterVariantDetail(selectedVariant)})` : (product.dimensions || 'A4 (21 × 29.7 cm)'))
     : (product.dimensions || '5cm × 5cm');
 
   const specs = [
@@ -350,7 +351,7 @@ export function ProductPage() {
             </div>
           )}
 
-          {/* Poster Dimensions Guide (A5, A4, A3, Custom) */}
+          {/* Poster Dimensions Guide (A5, A4, A3) */}
           {product.category === 'posters' && (
             <div className="mt-6 rounded-2xl border-2 border-ink/15 bg-white p-4 sm:p-5 shadow-sm">
               <div className="flex items-center justify-between">
@@ -358,10 +359,10 @@ export function ProductPage() {
                   Poster Dimensions Guide
                 </h3>
                 <span className="text-xs font-mono font-bold text-mint bg-ink px-2.5 py-0.5 rounded-full">
-                  Selected: {variantId === 'custom' ? `${customPosterWidth} × ${customPosterHeight} cm` : (variantId?.toUpperCase() ?? 'A4')}
+                  Selected: {(selectedVariant?.label ?? variantId?.toUpperCase() ?? 'A4')} ({getPosterVariantDetail(selectedVariant)})
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <button
                   type="button"
                   onClick={() => setVariantId('a5')}
@@ -404,63 +405,7 @@ export function ProductPage() {
                   <p className="text-[11px] font-bold text-mint font-mono mt-1">₹{a3Price}</p>
                   <span className="mt-0.5 block text-[10px] text-ink-soft font-semibold">Wall size</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setVariantId('custom')}
-                  className={`rounded-xl border p-2.5 transition-all text-left sm:text-center ${
-                    variantId === 'custom'
-                      ? 'border-ink bg-lime/25 shadow-sm ring-2 ring-ink/20'
-                      : 'border-ink/10 bg-paper/40 hover:border-ink/30'
-                  }`}
-                >
-                  <p className="font-bold text-sm text-ink">Custom</p>
-                  <p className="text-xs font-extrabold text-ink mt-0.5">Any size (cm)</p>
-                  <p className="text-[11px] font-bold text-mint font-mono mt-1">₹0.258/cm²</p>
-                  <span className="mt-0.5 block text-[10px] text-ink-soft font-semibold">Enter dimensions</span>
-                </button>
               </div>
-
-              {/* Custom Poster Dimensions Inputs */}
-              {variantId === 'custom' && (
-                <div className="mt-4 rounded-xl border border-mint/40 bg-mint/5 p-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-ink uppercase tracking-wider">
-                      Enter Poster Dimensions (in cm):
-                    </span>
-                    <span className="text-[11px] font-mono font-bold text-mint bg-ink px-2 py-0.5 rounded">
-                      1 cm² = 0.258 rs
-                    </span>
-                  </div>
-                  <div className="mt-2.5 grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-bold text-ink-soft mb-1">Width (cm)</label>
-                      <input
-                        type="number"
-                        min={10}
-                        max={200}
-                        value={customPosterWidth}
-                        onChange={(e) => setCustomPosterWidth(Math.max(5, Math.min(200, Number(e.target.value) || 10)))}
-                        className="w-full rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm font-bold text-ink focus:border-mint focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-ink-soft mb-1">Height (cm)</label>
-                      <input
-                        type="number"
-                        min={10}
-                        max={200}
-                        value={customPosterHeight}
-                        onChange={(e) => setCustomPosterHeight(Math.max(5, Math.min(200, Number(e.target.value) || 10)))}
-                        className="w-full rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm font-bold text-ink focus:border-mint focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-2.5 flex items-center justify-between text-xs border-t border-ink/10 pt-2 text-ink">
-                    <span>Area: <strong>{customPosterWidth * customPosterHeight} cm²</strong></span>
-                    <span className="font-bold text-mint font-mono text-sm">Calculated Price: ₹{customPosterPrice}</span>
-                  </div>
-                </div>
-              )}
 
               <p className="mt-3 text-[11px] text-ink-soft italic border-t border-ink/10 pt-2">
                 Printed on premium 300 GSM archival matte cardstock with crisp edge-to-edge detailing.
@@ -468,7 +413,7 @@ export function ProductPage() {
             </div>
           )}
 
-          {product.variants && purchasable && (
+          {product.variants && purchasable && product.category !== 'posters' && (
             <fieldset className="mt-8">
               <legend className="mb-3 font-bold">{product.variantLabel === 'Theme' ? 'Choose your theme' : 'Size'}</legend>
               <div className={`grid gap-2 ${product.variantLabel === 'Theme' ? 'grid-cols-2' : 'grid-cols-3'}`}>

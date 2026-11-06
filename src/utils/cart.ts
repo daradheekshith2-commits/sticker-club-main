@@ -1,6 +1,7 @@
 import type { Product, Variant } from '../types/product';
 import type { CustomWallConfig } from '../types/wall';
 import { getLayout, type WallLayout } from '../data/wallLayouts';
+import { posterSizes } from '../data/products';
 import { wallPrice } from './customWall';
 import { customStickerUnitPrice, type CustomStickerConfig } from './customSticker';
 import { packFingerprint, packPrice, type CustomPackConfig } from './customPack';
@@ -119,6 +120,7 @@ export type CartAction =
   /** Adds a pack; an identical pack already in the cart gets its quantity increased. */
   | { type: 'addPack'; pack: CustomPackConfig; quantity: number }
   | { type: 'setQuantity'; key: string; quantity: number }
+  | { type: 'updateVariant'; key: string; newVariantId: string }
   | { type: 'remove'; key: string }
   /** Replace the SAVED lines (products and packs, e.g. from another tab); temporary custom lines are kept. */
   | { type: 'replaceProducts'; items: StoredCartItem[] }
@@ -160,6 +162,19 @@ export function cartReducer(state: CartItem[], action: CartAction): CartItem[] {
     case 'setQuantity':
       if (action.quantity < 1) return state.filter((i) => keyOf(i) !== action.key);
       return state.map((i) => (keyOf(i) === action.key ? { ...i, quantity: clampQuantity(action.quantity) } : i));
+    case 'updateVariant': {
+      const target = state.find((i) => keyOf(i) === action.key);
+      if (!target || !isProductItem(target)) return state;
+      const remaining = state.filter((i) => keyOf(i) !== action.key);
+      const newKey = lineKey(target.productId, action.newVariantId, target.secretNote);
+      const existing = remaining.find((i) => isProductItem(i) && keyOf(i) === newKey);
+      if (existing && isProductItem(existing)) {
+        return remaining.map((i) =>
+          keyOf(i) === newKey ? { ...i, quantity: clampQuantity(i.quantity + target.quantity) } : i
+        );
+      }
+      return [...remaining, { ...target, variantId: action.newVariantId }];
+    }
     case 'remove':
       return state.filter((i) => keyOf(i) !== action.key);
     case 'replaceProducts':
@@ -171,8 +186,24 @@ export function cartReducer(state: CartItem[], action: CartAction): CartItem[] {
   }
 }
 
+export function isPosterProduct(product: Product): boolean {
+  return product.category === 'posters' || product.productType === 'poster' || product.id.startsWith('pst-');
+}
+
+export function isLegacyPosterVariant(variantId?: string): boolean {
+  return Boolean(variantId && variantId.startsWith('custom:'));
+}
+
 /** Finds the chosen variant, or undefined for products without variants. */
 export function findVariant(product: Product, variantId?: string): Variant | undefined {
+  if (isPosterProduct(product)) {
+    if (isLegacyPosterVariant(variantId)) {
+      const parts = (variantId || '').split(':');
+      const dims = parts[1] || 'Legacy Custom Size';
+      return { id: variantId!, label: 'Custom (Select Size)', detail: dims, price: 90 };
+    }
+    return posterSizes.find((s) => s.id === variantId);
+  }
   if (variantId?.startsWith('custom:')) {
     const parts = variantId.split(':');
     const dims = parts[1] || 'Custom Size';
@@ -184,6 +215,11 @@ export function findVariant(product: Product, variantId?: string): Variant | und
 
 /** True when this product/variant combination can exist in a cart. */
 export function isValidSelection(product: Product, variantId?: string): boolean {
+  if (isPosterProduct(product)) {
+    if (variantId === 'a5' || variantId === 'a4' || variantId === 'a3') return true;
+    if (isLegacyPosterVariant(variantId)) return true;
+    return false;
+  }
   if (variantId?.startsWith('custom:')) return true;
   if (product.variants?.length) return Boolean(findVariant(product, variantId));
   if (product.productType === 'secret') return true;
@@ -192,6 +228,12 @@ export function isValidSelection(product: Product, variantId?: string): boolean 
 
 /** Unit price for a product + variant. */
 export function unitPrice(product: Product, variantId?: string): number {
+  if (isPosterProduct(product)) {
+    if (variantId === 'a3') return 150;
+    if (variantId === 'a4') return 120;
+    if (variantId === 'a5') return 90;
+    return 90;
+  }
   return findVariant(product, variantId)?.price ?? product.price;
 }
 
@@ -204,6 +246,7 @@ export interface ProductCartLine {
   unitPrice: number;
   quantity: number;
   lineTotal: number;
+  requiresSizeChoice?: boolean;
 }
 
 export interface WallCartLine {
@@ -274,6 +317,7 @@ export function summariseCart(items: CartItem[], findProduct: (id: string) => Pr
     const product = findProduct(item.productId);
     if (!product || !isValidSelection(product, item.variantId)) continue; // removed product or size
     const price = unitPrice(product, item.variantId);
+    const requiresSizeChoice = isPosterProduct(product) && isLegacyPosterVariant(item.variantId);
     lines.push({
       type: 'product',
       key: keyOf(item),
@@ -283,6 +327,7 @@ export function summariseCart(items: CartItem[], findProduct: (id: string) => Pr
       unitPrice: price,
       quantity: item.quantity,
       lineTotal: price * item.quantity,
+      requiresSizeChoice,
     });
   }
   return {

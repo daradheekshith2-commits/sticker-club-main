@@ -136,6 +136,21 @@ export const posterSizes: Variant[] = [
   { id: 'a3', label: 'A3', detail: '29.7 × 42 cm', price: 150 },
 ];
 
+export const POSTER_BASE_PRICE = 90;
+
+export const POSTER_AVAILABILITY_TEXT = `Available in ${posterSizes
+  .map((s) => `${s.label} (₹${s.price})`)
+  .join(', ')
+  .replace(/, ([^,]*)$/, ', and $1')}.`;
+
+export function formatPosterDescription(desc: string | undefined): string {
+  if (!desc) return POSTER_AVAILABILITY_TEXT;
+  return desc.replace(
+    /Available in A5\s*\([^)]*\),\s*A4\s*\([^)]*\),\s*(and\s*)?A3\s*\([^)]*\)/gi,
+    POSTER_AVAILABILITY_TEXT.replace(/\.$/, '')
+  );
+}
+
 /** Builds a single-poster product with the standard sizes, so each poster entry stays short. */
 function poster(p: {
   id: string; slug: string; name: string; shortDescription: string; description: string;

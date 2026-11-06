@@ -415,21 +415,50 @@ export async function handleSupabaseRequest<T>(
     if (Array.isArray(body.standardItems) && body.standardItems.length > 0) {
       const prodIds = body.standardItems.map((item: any) => item.productId).filter(Boolean);
       const { data: dbProducts } = prodIds.length > 0
-        ? await supabase.from('Product').select('id, name, price').in('id', prodIds)
+        ? await supabase.from('Product').select('id, name, price, category, productType').in('id', prodIds)
         : { data: [] };
       const productMap = new Map((dbProducts || []).map((p: any) => [p.id, p]));
 
       for (const item of body.standardItems) {
         const qty = Math.max(1, Math.min(100, Math.floor(Number(item.quantity) || 1)));
         const dbProd = item.productId ? productMap.get(item.productId) : null;
-        // Recompute price authoritatively from database record; never trust client unitPrice
-        const authoritativePrice = dbProd ? Number(dbProd.price) : Number(item.unitPrice || item.price || 0);
+        const isPoster = dbProd
+          ? (dbProd.category === 'posters' || dbProd.productType === 'poster')
+          : String(item.productId || '').startsWith('pst-');
+
+        let authoritativePrice: number;
+        let variantId = item.variantId || null;
+        let variantLabel = item.variantLabel || null;
+
+        if (isPoster) {
+          if (variantId && variantId.startsWith('custom:')) {
+            return {
+              handled: true,
+              error: 'Arbitrary poster sizing is not supported. Please choose A5 (₹90), A4 (₹120), or A3 (₹150).',
+              status: 400,
+            };
+          }
+          if (variantId === 'a3') {
+            authoritativePrice = 150;
+            variantLabel = 'A3';
+          } else if (variantId === 'a4') {
+            authoritativePrice = 120;
+            variantLabel = 'A4';
+          } else {
+            authoritativePrice = 90;
+            variantId = 'a5';
+            variantLabel = 'A5';
+          }
+        } else {
+          authoritativePrice = dbProd ? Number(dbProd.price) : Number(item.unitPrice || item.price || 0);
+        }
+
         subtotal += authoritativePrice * qty;
         orderLines.push({
           productId: item.productId || null,
-          nameSnapshot: dbProd?.name || item.nameSnapshot || item.name || 'Sticker Item',
-          variantId: item.variantId || null,
-          variantLabel: item.variantLabel || null,
+          nameSnapshot: dbProd?.name || item.nameSnapshot || item.name || (isPoster ? 'Poster Print' : 'Sticker Item'),
+          variantId,
+          variantLabel,
           unitPrice: authoritativePrice,
           quantity: qty,
           imageUrl: item.imageUrl || null,
@@ -439,12 +468,19 @@ export async function handleSupabaseRequest<T>(
     } else if (cartItems && cartItems.length > 0) {
       for (const item of cartItems) {
         const qty = Math.max(1, Math.min(100, Math.floor(Number(item.quantity) || 1)));
-        const price = Number(item.product?.price || 0);
+        const isPoster = item.product?.category === 'posters' || item.product?.productType === 'poster' || String(item.productId || '').startsWith('pst-');
+        let price = Number(item.product?.price || 0);
+        let variantId = item.variantId || null;
+        if (isPoster) {
+          if (variantId === 'a3') price = 150;
+          else if (variantId === 'a4') price = 120;
+          else price = 90;
+        }
         subtotal += price * qty;
         orderLines.push({
           productId: item.productId,
-          nameSnapshot: item.product?.name || 'Sticker Item',
-          variantId: item.variantId || null,
+          nameSnapshot: item.product?.name || (isPoster ? 'Poster Print' : 'Sticker Item'),
+          variantId,
           unitPrice: price,
           quantity: qty,
           imageUrl: null,

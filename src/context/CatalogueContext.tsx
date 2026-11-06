@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { products as seedProducts } from '../data/products';
+import { products as seedProducts, posterSizes, POSTER_BASE_PRICE, formatPosterDescription } from '../data/products';
 import type { Category, CollectionId, Product, ProductArt, ProductType, Variant } from '../types/product';
 import { apiUrl } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -121,17 +121,36 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
     if (dbP.status === 'ARCHIVED') continue;
 
     const seed = seedById.get(dbP.id) ?? seedBySlug.get(dbP.slug);
+    const isPoster = dbP.category === 'posters' || dbP.productType === 'poster' || seed?.category === 'posters' || seed?.productType === 'poster';
     const dbPrice = Number(dbP.price);
-    const price = !isNaN(dbPrice) && dbPrice >= 0 ? dbPrice : (seed?.price ?? 0);
+    const price = isPoster ? POSTER_BASE_PRICE : (!isNaN(dbPrice) && dbPrice >= 0 ? dbPrice : (seed?.price ?? 0));
 
-    const variants: Variant[] | undefined = dbP.variants?.length
-      ? dbP.variants.map((v) => ({
-          id: v.id,
-          label: v.label,
-          price: Number(v.price),
-          detail: v.detail,
-        }))
-      : seed?.variants;
+    const variants: Variant[] | undefined = isPoster
+      ? posterSizes
+      : (dbP.variants?.length
+          ? dbP.variants.map((v) => ({
+              id: v.id,
+              label: v.label,
+              price: Number(v.price),
+              detail: v.detail,
+            }))
+          : seed?.variants);
+
+    const description = isPoster
+      ? formatPosterDescription(dbP.description || seed?.description)
+      : (dbP.description || seed?.description || '');
+
+    const dimensions = isPoster
+      ? (dbP.dimensions || seed?.dimensions || 'A4 (21 × 29.7 cm)')
+      : (dbP.dimensions || seed?.dimensions);
+
+    const material = isPoster
+      ? (dbP.material || seed?.material || '300 GSM Archival Matte Cardstock')
+      : (dbP.material || seed?.material);
+
+    const finish = isPoster
+      ? (dbP.finish || seed?.finish || 'Matte Finish')
+      : (dbP.finish || seed?.finish);
 
     const images = dbP.images?.length
       ? [...dbP.images]
@@ -165,7 +184,7 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
         ...seed,
         name: dbP.name || seed.name,
         slug: dbP.slug || seed.slug,
-        description: dbP.description || seed.description,
+        description,
         shortDescription: dbP.shortDescription || seed.shortDescription,
         price,
         category: ((dbP.category as Category) || seed.category),
@@ -180,9 +199,9 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
         isNew: dbP.isNew !== undefined ? dbP.isNew : seed.isNew,
         displayOrder: dbP.displayOrder !== undefined ? dbP.displayOrder : seed.displayOrder,
         packQuantity: dbP.packQuantity ?? seed.packQuantity,
-        dimensions: dbP.dimensions || seed.dimensions,
-        material: dbP.material || seed.material,
-        finish: dbP.finish || seed.finish,
+        dimensions,
+        material,
+        finish,
         note: dbP.note || seed.note,
         rarity: (dbP.rarity as any) || seed.rarity,
         seriesId: dbP.seriesId || seed.seriesId,
@@ -198,11 +217,11 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
         slug: dbP.slug,
         name: dbP.name,
         shortDescription: dbP.shortDescription || dbP.description?.slice(0, 120) || dbP.name,
-        description: dbP.description || '',
+        description,
         price,
         variants,
-        category: ((dbP.category as Category) || 'stickers'),
-        productType: ((dbP.productType as ProductType) || 'single'),
+        category: ((dbP.category as Category) || (isPoster ? 'posters' : 'stickers')),
+        productType: ((dbP.productType as ProductType) || (isPoster ? 'poster' : 'single')),
         collections,
         tags,
         art: createFallbackArt(dbP),
@@ -214,9 +233,9 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
         active: isActive,
         inventory: dbP.inventory ?? null,
         packQuantity: dbP.packQuantity,
-        dimensions: dbP.dimensions,
-        material: dbP.material,
-        finish: dbP.finish,
+        dimensions,
+        material,
+        finish,
         note: dbP.note,
         rarity: (dbP.rarity as any) || 'common',
         seriesId: dbP.seriesId,
@@ -230,8 +249,18 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
   return result;
 }
 
-const CACHE_KEY_PRODUCTS = 'sc_catalogue_products_v2';
-const CACHE_KEY_CATEGORIES = 'sc_catalogue_categories_v2';
+const CACHE_KEY_PRODUCTS = 'sc_catalogue_products_v3';
+const CACHE_KEY_CATEGORIES = 'sc_catalogue_categories_v3';
+
+// Clear stale session cache
+try {
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    window.sessionStorage.removeItem('sc_catalogue_products_v2');
+    window.sessionStorage.removeItem('sc_catalogue_categories_v2');
+    window.sessionStorage.removeItem('sc_catalogue_products_v1');
+    window.sessionStorage.removeItem('sc_catalogue_categories_v1');
+  }
+} catch {}
 
 export function CatalogueProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(() => {

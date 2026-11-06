@@ -23,9 +23,9 @@ export const CUSTOM_PACK_FINISHES = {
 } as const;
 
 export const POSTER_SIZES = {
-  a5: { label: 'A5', price: 59 },
-  a4: { label: 'A4', price: 89 },
-  a3: { label: 'A3', price: 149 },
+  a5: { label: 'A5', price: 90, detail: '14.8 × 21 cm' },
+  a4: { label: 'A4', price: 120, detail: '21 × 29.7 cm' },
+  a3: { label: 'A3', price: 150, detail: '29.7 × 42 cm' },
 } as const;
 
 export const WALL_LAYOUTS = {

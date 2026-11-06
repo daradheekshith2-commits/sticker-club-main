@@ -42,6 +42,7 @@ interface CartContextValue extends CartSummary {
   addCustomPack: (pack: CustomPackConfig, quantity?: number) => string;
   /** `key` is a cart line's key (CartLine.key). */
   setQuantity: (key: string, quantity: number) => void;
+  updateVariant: (key: string, newVariantId: string) => void;
   removeItem: (key: string) => void;
   clearCart: () => void;
   isOpen: boolean;
@@ -168,6 +169,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'setQuantity', key, quantity });
   }, []);
 
+  const updateVariant = useCallback((key: string, newVariantId: string) => {
+    dispatch({ type: 'updateVariant', key, newVariantId });
+  }, []);
+
   const removeItem = useCallback((key: string) => {
     dispatch({ type: 'remove', key });
     setAnnouncement('Item removed from cart');
@@ -180,8 +185,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const summary = useMemo(() => summariseCart(items, findProduct), [items, findProduct]);
 
   const value = useMemo<CartContextValue>(
-    () => ({ items, ...summary, addItem, addCustomWall, addCustomSticker, addCustomPack, setQuantity, removeItem, clearCart, isOpen, openCart, closeCart, announcement }),
-    [items, summary, addItem, addCustomWall, addCustomSticker, addCustomPack, setQuantity, removeItem, clearCart, isOpen, openCart, closeCart, announcement],
+    () => ({ items, ...summary, addItem, addCustomWall, addCustomSticker, addCustomPack, setQuantity, updateVariant, removeItem, clearCart, isOpen, openCart, closeCart, announcement }),
+    [items, summary, addItem, addCustomWall, addCustomSticker, addCustomPack, setQuantity, updateVariant, removeItem, clearCart, isOpen, openCart, closeCart, announcement],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

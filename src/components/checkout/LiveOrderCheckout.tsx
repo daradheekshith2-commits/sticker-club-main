@@ -184,6 +184,13 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
 
   async function place() {
     if (!selected || !preview || working) return;
+    const hasUnresolvedPoster = standard.some(
+      (s) => s.requiresSizeChoice || (s.variant?.id && s.variant.id.startsWith('custom:'))
+    );
+    if (hasUnresolvedPoster) {
+      setError('Please choose a standard poster size (A5, A4, or A3) for all posters before placing your order.');
+      return;
+    }
     const phoneDigits = phone.replace(/\D/g, '');
     if (!phoneDigits || phoneDigits.length < 10) {
       setError('Please enter a valid 10-digit phone number for delivery contact.');
