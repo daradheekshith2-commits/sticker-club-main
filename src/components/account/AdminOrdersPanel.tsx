@@ -951,7 +951,7 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                             </div>
                           </div>
                           <div>
-                            <p className="text-ink-soft">Delivery Address:</p>
+                            <p className="text-ink-soft">College / Delivery Address:</p>
                             {order.shippingAddress ? (
                               <p className="font-semibold text-ink leading-relaxed">
                                 {order.shippingAddress.line1}
@@ -961,7 +961,7 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                                 <span className="font-mono">{order.shippingAddress.postalCode}</span>
                               </p>
                             ) : (
-                              <p className="text-ink-soft italic">No delivery address recorded.</p>
+                              <p className="text-ink-soft italic">No college or delivery address recorded.</p>
                             )}
                             {order.shippingAddress?.notes && (
                               <p className="mt-2 text-xs text-mint">

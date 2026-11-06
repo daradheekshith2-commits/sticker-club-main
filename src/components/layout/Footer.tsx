@@ -95,6 +95,48 @@ export function Footer() {
             ))}
             {!instagramUrl && !phone && !wa && !email && <Placeholder>Social & contact links not set up yet</Placeholder>}
           </div>
+
+          {/* Quick Notes for Customers */}
+          <div className="mt-6 rounded-2xl border border-mint/20 bg-paper/60 p-4 shadow-sm backdrop-blur-sm">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-mint">
+              <span className="inline-block size-2 rounded-full bg-mint animate-pulse" />
+              Quick Notes
+            </p>
+            <ol className="mt-2.5 space-y-2.5 text-xs text-ink/85 leading-relaxed">
+              <li className="flex items-start gap-2.5">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-mint/20 text-[11px] font-extrabold text-mint">
+                  1
+                </span>
+                <span>
+                  For a better experience, use desktop site.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-mint/20 text-[11px] font-extrabold text-mint">
+                  2
+                </span>
+                <span>
+                  If anybody wants to buy a single or 2 stickers, combine with your friends to satisfy the checkout limit or else contact{' '}
+                  {phone ? (
+                    <a href={`tel:${phone}`} className="font-semibold text-mint underline hover:text-ink">
+                      +91 {phone}
+                    </a>
+                  ) : (
+                    'our phone number'
+                  )}
+                  {wa ? (
+                    <>
+                      {' '}or{' '}
+                      <a href={wa} target="_blank" rel="noreferrer" className="font-semibold text-mint underline hover:text-ink">
+                        WhatsApp
+                      </a>
+                    </>
+                  ) : null}{' '}
+                  for help.
+                </span>
+              </li>
+            </ol>
+          </div>
         </div>
         <Column title="Shop" links={shopLinks} />
         <Column title="Collect" links={collectLinks} />

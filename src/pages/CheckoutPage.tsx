@@ -68,7 +68,7 @@ export function CheckoutPage() {
       <p className="mt-2 text-ink-soft">
         {createdOrder
           ? 'Review your confirmed order details, complete UPI payment, and submit your UTR reference.'
-          : 'Review your items, choose your delivery address, and select your payment method (UPI or Cash on Delivery).'}
+          : 'Review your items, choose your college address or delivery address, and select your payment method (UPI or Cash on Delivery).'}
       </p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_1fr]">

@@ -27,7 +27,7 @@ export function validate(f: FormState): Errors {
   if (!contact) e.contact = 'Please enter a phone number or email.';
   else if (!indianMobile.test(contact) && !email.test(contact)) e.contact = 'Enter a 10-digit Indian mobile number or a valid email.';
   if (f.delivery === 'delivery') {
-    if (f.address.trim().length < 8) e.address = 'Please enter a delivery address.';
+    if (f.address.trim().length < 8) e.address = 'Please enter a college or delivery address.';
     if (!pincode.test(f.pincode.trim())) e.pincode = 'Enter a 6-digit PIN code.';
   }
   return e;

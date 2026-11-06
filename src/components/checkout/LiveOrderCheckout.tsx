@@ -520,7 +520,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
 
       {/* Address selection */}
       <label className="mt-5 block text-sm font-bold">
-        Shipping address
+        College address or Delivery address
         <select
           className="field-input mt-2"
           value={selected}
@@ -529,7 +529,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
             setPreview(null);
           }}
         >
-          <option value="">Select a saved address</option>
+          <option value="">Select a saved college or delivery address</option>
           {addresses.map((a) => (
             <option key={a.id} value={a.id}>
               {a.recipient} — {a.line1}, {a.city} {a.postalCode}
@@ -540,12 +540,15 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
 
       {/* Add Address Form */}
       <details open={addresses.length === 0} className="mt-4 rounded-xl border border-ink/20 p-4">
-        <summary className="cursor-pointer font-bold">Add a delivery address</summary>
+        <summary className="cursor-pointer font-bold">Add a college address or delivery address</summary>
+        <p className="mt-1 text-xs text-ink-soft">
+          Enter your College / Hostel / Room number or your home delivery address.
+        </p>
         <form className="mt-3 grid gap-3" onSubmit={addAddress}>
           <input
             className="field-input"
             aria-label="Recipient"
-            placeholder="Recipient name"
+            placeholder="Recipient / Student name"
             required
             maxLength={100}
             value={newAddress.recipient}
@@ -554,7 +557,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
           <input
             className="field-input"
             aria-label="Address line"
-            placeholder="Building, street and area"
+            placeholder="College name, Hostel/Room no., or Street & Building"
             required
             maxLength={250}
             value={newAddress.line1}
@@ -602,7 +605,7 @@ export function LiveOrderCheckout({ onCreated }: { onCreated?: (order: OrderRece
             }}
           />
           <button className="btn-ghost" type="submit" disabled={saving}>
-            {saving ? 'Saving…' : 'Save address'}
+            {saving ? 'Saving…' : 'Save college / delivery address'}
           </button>
         </form>
       </details>
