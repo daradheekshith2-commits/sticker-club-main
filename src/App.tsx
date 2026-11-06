@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthProvider } from './context/AuthContext';
 import { CatalogueProvider } from './context/CatalogueContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -104,6 +105,7 @@ export default function App() {
               </Suspense>
             </Layout>
             <Analytics />
+            <SpeedInsights />
           </CartProvider>
         </CatalogueProvider>
       </AuthProvider>
