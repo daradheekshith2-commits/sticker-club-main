@@ -940,16 +940,37 @@ CREATE POLICY "Order_insert_own" ON public."Order" FOR INSERT WITH CHECK (auth.u
 DROP POLICY IF EXISTS "Order_update_own" ON public."Order";
 CREATE POLICY "Order_update_own" ON public."Order" FOR UPDATE USING (auth.uid()::text = "userId" OR public.is_admin()) WITH CHECK (auth.uid()::text = "userId" OR public.is_admin());
 
+DROP POLICY IF EXISTS "Order_delete_admin" ON public."Order";
+CREATE POLICY "Order_delete_admin" ON public."Order" FOR DELETE USING (public.is_admin());
+
 DO $$
 DECLARE
   t text;
 BEGIN
-  FOREACH t IN ARRAY ARRAY['OrderItem', 'OrderEvent', 'CustomOrder', 'CustomOrderArtwork', 'PaymentSubmission']
+  FOREACH t IN ARRAY ARRAY['OrderItem', 'OrderEvent', 'CustomOrder', 'PaymentSubmission']
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS "%s_order_access" ON public.%I', t, t);
     EXECUTE format('CREATE POLICY "%s_order_access" ON public.%I FOR ALL USING (EXISTS (SELECT 1 FROM public."Order" o WHERE o.id = "orderId" AND (o."userId" = auth.uid()::text OR public.is_admin()))) WITH CHECK (EXISTS (SELECT 1 FROM public."Order" o WHERE o.id = "orderId" AND (o."userId" = auth.uid()::text OR public.is_admin())))', t, t);
   END LOOP;
 END $$;
+
+-- Policy for CustomOrderArtwork which joins through CustomOrder (customOrderId -> CustomOrder.id -> CustomOrder.orderId)
+DROP POLICY IF EXISTS "CustomOrderArtwork_order_access" ON public."CustomOrderArtwork";
+CREATE POLICY "CustomOrderArtwork_order_access" ON public."CustomOrderArtwork" FOR ALL
+USING (
+  EXISTS (
+    SELECT 1 FROM public."CustomOrder" co
+    JOIN public."Order" o ON o.id = co."orderId"
+    WHERE co.id = "customOrderId" AND (o."userId" = auth.uid()::text OR public.is_admin())
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public."CustomOrder" co
+    JOIN public."Order" o ON o.id = co."orderId"
+    WHERE co.id = "customOrderId" AND (o."userId" = auth.uid()::text OR public.is_admin())
+  )
+);
 
 -- F. Payment
 DROP POLICY IF EXISTS "Payment_order_access" ON public."Payment";
