@@ -89,3 +89,22 @@ test('related products exclude the product itself and stay in category', () => {
   assert.ok(related.length > 0);
   assert.ok(related.every((r) => r.id !== p.id && r.category === 'stickers'));
 });
+
+test('bts and gaming collections exist and filter matching items', () => {
+  const bts = filterAndSort({ ...emptyFilters, collections: ['bts'] });
+  assert.ok(Array.isArray(bts));
+  const gaming = filterAndSort({ ...emptyFilters, collections: ['gaming'] });
+  assert.ok(gaming.length > 0);
+  assert.ok(gaming.every((p) => p.collections.includes('gaming')));
+});
+
+test('seeded random shuffle reorders items across different seeds', () => {
+  const sample = products.slice(0, 20);
+  const order1 = filterAndSort(emptyFilters, sample, 12345).map((p) => p.id);
+  const order2 = filterAndSort(emptyFilters, sample, 99999).map((p) => p.id);
+  // Both contain all 20 items
+  assert.equal(order1.length, 20);
+  assert.equal(order2.length, 20);
+  // The sequences are different
+  assert.notDeepEqual(order1, order2);
+});

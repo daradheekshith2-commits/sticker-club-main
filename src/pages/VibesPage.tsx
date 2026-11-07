@@ -8,7 +8,7 @@ import { motifs } from '../components/art/motifs';
 import { Breadcrumbs } from '../components/ui/Breadcrumbs';
 import { pluralise } from '../utils/format';
 
-const EXCLUDED_VIBES = new Set(['study', 'gaming', 'secret']);
+const EXCLUDED_VIBES = new Set(['study', 'secret']);
 
 /** Every "Shop by vibe" collection on one page. */
 export function VibesPage() {

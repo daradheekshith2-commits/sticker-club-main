@@ -229,7 +229,7 @@ export function ShopByVibe() {
             to="/vibes"
             className="flex h-full min-h-24 items-center justify-between gap-4 rounded-[var(--radius-card)] border-2 border-ink bg-white p-5 transition-transform hover:-translate-y-1"
           >
-            <span className="font-display text-2xl leading-none font-extrabold md:text-3xl">Gaming, music, minimal & more</span>
+            <span className="font-display text-2xl leading-none font-extrabold md:text-3xl">Gaming, BTS, music, minimal & more</span>
             <LuArrowRight aria-hidden className="size-6 shrink-0" />
           </Link>
         </li>

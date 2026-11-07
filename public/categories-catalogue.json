@@ -85,11 +85,11 @@
   },
   {
     "id": "gaming",
-    "name": "Gaming-Inspired",
-    "blurb": "Original pixel art and controller doodles.",
+    "name": "Gaming & GTA",
+    "blurb": "GTA legends, pixel retro, controllers and gaming icons.",
     "color": "#8A6CFF",
-    "motif": "pixelHeart",
-    "featured": false,
+    "motif": "controller",
+    "featured": true,
     "displayOrder": 7,
     "archived": false,
     "createdAt": "2026-11-01T12:25:01.417Z",
@@ -178,5 +178,17 @@
     "archived": false,
     "createdAt": "2026-11-01T15:20:03.548Z",
     "updatedAt": "2026-11-01T15:20:03.548Z"
+  },
+  {
+    "id": "bts",
+    "name": "BTS & K-Pop",
+    "blurb": "Bangtan vibes, purple aesthetics, lyrics and chibi members.",
+    "color": "#D1B3FF",
+    "motif": "sparkle",
+    "featured": true,
+    "displayOrder": 11,
+    "archived": false,
+    "createdAt": "2026-11-08T00:00:00.000Z",
+    "updatedAt": "2026-11-08T00:00:00.000Z"
   }
 ]

@@ -15,7 +15,7 @@ export type SortKey = 'featured' | 'price-asc' | 'price-desc' | 'name';
 export type PriceBand = 'under-50' | '50-100' | 'over-100';
 
 export const sortOptions: { value: SortKey; label: string }[] = [
-  { value: 'featured', label: 'Featured' },
+  { value: 'featured', label: 'Random / Shuffled' },
   { value: 'price-asc', label: 'Price: low to high' },
   { value: 'price-desc', label: 'Price: high to low' },
   { value: 'name', label: 'Name: A–Z' },
@@ -128,7 +128,7 @@ export function matchesFilters(p: Product, f: CatalogueFilters): boolean {
   return true;
 }
 
-export function sortProducts(list: Product[], sort: SortKey): Product[] {
+export function sortProducts(list: Product[], sort: SortKey, shuffleSeed?: number): Product[] {
   const copy = [...list]; // never mutate the original array
   switch (sort) {
     case 'price-asc':
@@ -139,6 +139,19 @@ export function sortProducts(list: Product[], sort: SortKey): Product[] {
       return copy.sort((a, b) => a.name.localeCompare(b.name));
     case 'featured':
     default: {
+      if (shuffleSeed !== undefined && shuffleSeed !== 0) {
+        // Seeded pseudorandom shuffle: randomizes the catalogue on every visit,
+        // while remaining stable during pagination/filtering within that visit.
+        let s = shuffleSeed;
+        for (let i = copy.length - 1; i > 0; i--) {
+          s = (s * 9301 + 49297) % 233280;
+          const rnd = s / 233280;
+          const j = Math.floor(rnd * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
       // 30-day popularity score ranking (highest score first)
       const scores = getPopularityScores();
       return copy.sort((a, b) => {
@@ -158,10 +171,11 @@ export function sortProducts(list: Product[], sort: SortKey): Product[] {
   }
 }
 
-export function filterAndSort(f: CatalogueFilters, list: Product[] = allProducts): Product[] {
+export function filterAndSort(f: CatalogueFilters, list: Product[] = allProducts, shuffleSeed?: number): Product[] {
   return sortProducts(
     list.filter((p) => matchesFilters(p, f)),
     f.sort,
+    shuffleSeed,
   );
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { LuArrowRight, LuChevronDown, LuPackage, LuSearch, LuSlidersHorizontal, LuX } from 'react-icons/lu';
+import { LuArrowRight, LuChevronDown, LuPackage, LuSearch, LuShuffle, LuSlidersHorizontal, LuX } from 'react-icons/lu';
 import { brand } from '../config/brand';
 import { useCatalogue } from '../context/CatalogueContext';
 import { collections, getCollection, productTypeLabels } from '../data/collections';
@@ -440,7 +440,9 @@ export function ShopPage() {
   const { products, loading, error, refresh } = useCatalogue();
   const [params, setParams] = useSearchParams();
   const filters = useMemo(() => filtersFromParams(params), [params]);
-  const results = useMemo(() => filterAndSort(filters, products), [filters, products]);
+  // Generates a new random shuffle seed on every visit/mount
+  const [shuffleSeed, setShuffleSeed] = useState(() => Math.floor(Math.random() * 1000000) + 1);
+  const results = useMemo(() => filterAndSort(filters, products, shuffleSeed), [filters, products, shuffleSeed]);
   const PAGE_SIZE = 36;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -566,6 +568,19 @@ export function ShopPage() {
           />
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setShuffleSeed(Math.floor(Math.random() * 1000000) + 1);
+              setVisibleCount(PAGE_SIZE);
+            }}
+            className="chip py-2 flex items-center gap-1.5 transition-colors hover:border-ink hover:bg-paper"
+            title="Shuffle stickers randomly"
+            aria-label="Shuffle stickers randomly"
+          >
+            <LuShuffle aria-hidden className="size-4" />
+            <span className="hidden sm:inline">Shuffle</span>
+          </button>
           <button type="button" onClick={() => setSheetOpen(true)} className="chip py-2 lg:hidden" aria-haspopup="dialog">
             <LuSlidersHorizontal aria-hidden /> Filters{activeCount ? ` (${activeCount})` : ''}
           </button>

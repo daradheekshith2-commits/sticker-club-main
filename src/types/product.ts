@@ -29,9 +29,13 @@ export type CollectionId =
   | 'marvel'
   | 'cute'
   | 'gaming'
+  | 'bts'
   | 'music'
+  | 'devotion'
+  | 'sports'
   | 'minimal'
   | 'motivation'
+  | 'study'
   | 'duos'
   | 'secret'
   | (string & {});

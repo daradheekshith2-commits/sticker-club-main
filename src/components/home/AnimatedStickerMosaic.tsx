@@ -92,12 +92,16 @@ export function AnimatedStickerMosaic({ columns = 3, className = '' }: { columns
 
   const cols = useMemo(() => {
     let files = usingFiles ? heroStickers.filter((f) => !failed.has(f.src)) : [];
-    // Limit to a curated 27 stickers (9 per column) so we don't spam 116 network requests and choke the browser compositor
-    if (files.length > 27) {
-      files = files.slice(0, 27);
+    // Randomize stickers on each visit
+    const shuffled = [...files];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    const tiles: Tile[] = files.length > 0
-      ? files.map((file) => ({ key: file.key, file }))
+    // Limit to a curated 27 stickers (9 per column) so we don't spam 116 network requests and choke the browser compositor
+    const selected = shuffled.length > 27 ? shuffled.slice(0, 27) : shuffled;
+    const tiles: Tile[] = selected.length > 0
+      ? selected.map((file) => ({ key: file.key, file }))
       : fallbackTiles();
     return splitIntoColumns(tiles, columns).map((col) => fillColumn(col, MIN_TILES_PER_COPY));
   }, [usingFiles, failed, columns]);
