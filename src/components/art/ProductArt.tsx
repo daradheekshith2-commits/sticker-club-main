@@ -216,12 +216,12 @@ function Duo({ designs, pairing }: { designs: [StickerDesign, StickerDesign]; pa
             <rect x={200} y={0} width={200} height={400} />
           </clipPath>
         </defs>
-        <g transform="translate(-16 8) rotate(-5 200 200)">
+        <g className="transition-transform duration-300 ease-out group-hover:translate-x-4 group-hover:-translate-y-2 group-hover:rotate-0" transform="translate(-16 8) rotate(-5 200 200)">
           <g clipPath={`url(#${clip}L)`}>
             <Placed design={designs[0]} x={x} y={y} size={size} />
           </g>
         </g>
-        <g transform="translate(16 -8) rotate(5 200 200)">
+        <g className="transition-transform duration-300 ease-out group-hover:-translate-x-4 group-hover:translate-y-2 group-hover:rotate-0" transform="translate(16 -8) rotate(5 200 200)">
           <g clipPath={`url(#${clip}R)`}>
             <Placed design={designs[0]} x={x} y={y} size={size} />
           </g>
@@ -231,16 +231,24 @@ function Duo({ designs, pairing }: { designs: [StickerDesign, StickerDesign]; pa
   }
   if (pairing === 'laptop-phone') {
     return (
-      <g>
-        <Placed design={designs[0]} x={40} y={86} size={210} rotate={-6} />
-        <Placed design={designs[1]} x={236} y={150} size={130} rotate={8} />
+      <g className="transition-all duration-300">
+        <g className="transition-transform duration-300 ease-out group-hover:-translate-x-2 group-hover:rotate-[-4deg]">
+          <Placed design={designs[0]} x={40} y={86} size={210} rotate={-6} />
+        </g>
+        <g className="transition-transform duration-300 ease-out group-hover:translate-x-2 group-hover:rotate-[10deg]">
+          <Placed design={designs[1]} x={236} y={150} size={130} rotate={8} />
+        </g>
       </g>
     );
   }
   return (
-    <g>
-      <Placed design={designs[0]} x={30} y={98} size={176} rotate={-8} />
-      <Placed design={designs[1]} x={196} y={118} size={176} rotate={7} />
+    <g className="transition-all duration-300">
+      <g className="transition-transform duration-300 ease-out group-hover:-translate-x-3 group-hover:rotate-[-4deg]">
+        <Placed design={designs[0]} x={30} y={98} size={176} rotate={-8} />
+      </g>
+      <g className="transition-transform duration-300 ease-out group-hover:translate-x-3 group-hover:rotate-[4deg]">
+        <Placed design={designs[1]} x={196} y={118} size={176} rotate={7} />
+      </g>
     </g>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import JSZip from 'jszip';
+import { LuTrash2, LuStar } from 'react-icons/lu';
 import { useAuth, apiUrl } from '../../context/AuthContext';
 import { useCatalogue } from '../../context/CatalogueContext';
 import { ProductImage } from '../art/ProductArt';
@@ -286,6 +287,64 @@ export function AdminOrdersPanel() {
       await loadOrders();
     } catch (e) {
       const err = e instanceof Error ? e.message : 'Failed to mark COD collected';
+      setError(err);
+      setActionNotice({ id: orderId, text: `✕ ${err}`, isError: true });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handlePingReview(order: Order) {
+    const customerName = order.shippingAddress?.recipient || order.user?.name || 'Customer';
+    const rawPhone = order.shippingAddress?.phone || order.user?.phone || '';
+    const cleanDigits = rawPhone.replace(/\D/g, '').replace(/^0+/, '');
+    const waPhone = cleanDigits.length === 10 ? '91' + cleanDigits : cleanDigits;
+
+    const message = `Hi ${customerName}! 👋 Thank you for ordering from Pixwora (Order #${order.id})! 🌟\n\nWe hope you're loving your stickers & posters. Could you please take 30 seconds to share your review and photos with our community?\n\n👉 Share your review here: https://www.pixwora.store/reviews\n\nOr feel free to reply right here with your photos and feedback! ✨`;
+
+    setBusy(order.id);
+    try {
+      await request(`/api/admin/orders/${encodeURIComponent(order.id)}/ping-review`, {
+        method: 'POST',
+        body: JSON.stringify({ method: waPhone ? 'WHATSAPP' : 'DIRECT' }),
+      });
+      setActionNotice({ id: order.id, text: '✓ Review Ping Sent' });
+      await loadOrders();
+    } catch (e) {
+      console.warn('Could not record review ping event:', e);
+    } finally {
+      setBusy(null);
+    }
+
+    if (waPhone && waPhone.length >= 10) {
+      const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      try {
+        await navigator.clipboard.writeText(message);
+        alert(`No phone number found for order #${order.id}.\n\nReview invitation message has been copied to your clipboard so you can send it via email or message!`);
+      } catch {
+        alert(`Review message:\n\n${message}`);
+      }
+    }
+  }
+
+  async function handleDeleteOrder(orderId: string) {
+    if (!window.confirm(`⚠️ Permanently DELETE order ${orderId}?\n\nThis will remove the order, its items, payment submissions, and custom artwork permanently. This action CANNOT be undone.`)) {
+      return;
+    }
+    setBusy(orderId);
+    setError('');
+    setMessage('');
+    setActionNotice(null);
+    try {
+      await request('/api/admin/orders/' + encodeURIComponent(orderId), {
+        method: 'DELETE',
+      });
+      setMessage(`Order ${orderId} was permanently deleted.`);
+      await loadOrders();
+    } catch (e) {
+      const err = e instanceof Error ? e.message : 'Failed to delete order';
       setError(err);
       setActionNotice({ id: orderId, text: `✕ ${err}`, isError: true });
     } finally {
@@ -818,6 +877,12 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                         <span className="rounded-full bg-paper px-2 py-0.5 text-xs font-bold text-ink">
                           {order.status}
                         </span>
+                        {order.events?.some((e) => e.kind === 'REVIEW_PINGED') && (
+                          <span className="rounded-full bg-sun/15 border border-sun/30 px-2 py-0.5 text-[11px] font-bold text-sun inline-flex items-center gap-1" title="Customer has been pinged for a review">
+                            <LuStar className="size-3 fill-sun text-sun" />
+                            <span>Review Pinged</span>
+                          </span>
+                        )}
                       </div>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-ink-soft">
                         <strong className="text-ink">{customerName}</strong>
@@ -1479,6 +1544,30 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                     >
                       <span>📦</span>
                       <span>{zippingId === order.id ? 'Bundling ZIP…' : 'Download Order ZIP Package'}</span>
+                    </button>
+
+                    {/* Ping Customer for Review Button */}
+                    <button
+                      type="button"
+                      disabled={busy === order.id}
+                      className="btn-ghost text-xs border border-sun/50 text-sun hover:bg-sun/10 hover:border-sun px-2.5 py-1 inline-flex items-center gap-1.5 font-semibold"
+                      onClick={() => void handlePingReview(order)}
+                      title="Ping customer via WhatsApp with personalized review invitation"
+                    >
+                      <LuStar className="size-3.5 fill-sun text-sun" />
+                      <span>{order.events?.some((e) => e.kind === 'REVIEW_PINGED') ? 'Ping Review Again' : '⭐ Ping for Review'}</span>
+                    </button>
+
+                    {/* Delete Order Button */}
+                    <button
+                      type="button"
+                      disabled={busy === order.id}
+                      className="btn-ghost text-xs border border-danger/40 text-danger hover:bg-danger/10 hover:border-danger px-2.5 py-1 inline-flex items-center gap-1 font-semibold ml-auto"
+                      onClick={() => void handleDeleteOrder(order.id)}
+                      title="Permanently delete this order"
+                    >
+                      <LuTrash2 className="size-3.5" />
+                      <span>{busy === order.id ? 'Deleting…' : 'Delete Order'}</span>
                     </button>
 
                     {/* Inline Action Notice Feedback */}

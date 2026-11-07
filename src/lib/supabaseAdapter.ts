@@ -821,7 +821,7 @@ export async function handleSupabaseRequest<T>(
 
     const { data, error } = await supabase
       .from('Order')
-      .select('*, items:OrderItem(*), payment:Payment(*), submissions:PaymentSubmission(*), customOrders:CustomOrder(*, artwork:CustomArtwork(*))')
+      .select('*, items:OrderItem(*), payment:Payment(*), submissions:PaymentSubmission(*), events:OrderEvent(*), customOrders:CustomOrder(*, artwork:CustomArtwork(*))')
       .eq('userId', user.id)
       .order('createdAt', { ascending: false });
 
@@ -1130,7 +1130,7 @@ export async function handleSupabaseRequest<T>(
     if (urlPath === '/api/admin/orders') {
       const { data, error } = await supabase
         .from('Order')
-        .select('*, items:OrderItem(*), payment:Payment(*), submissions:PaymentSubmission(*), user:User(id, name, email, phone), customOrders:CustomOrder(*, artwork:CustomArtwork(*))')
+        .select('*, items:OrderItem(*), payment:Payment(*), submissions:PaymentSubmission(*), events:OrderEvent(*), user:User(id, name, email, phone), customOrders:CustomOrder(*, artwork:CustomArtwork(*))')
         .order('createdAt', { ascending: false });
       if (error) return { handled: true, error: error.message, status: 400 };
       return { handled: true, data: (data || []) as unknown as T };
@@ -1268,6 +1268,102 @@ export async function handleSupabaseRequest<T>(
       } catch {}
 
       return { handled: true, data: updated as unknown as T };
+    }
+
+    // 14.3 Admin Delete Order (/api/admin/orders/:id)
+    if (urlPath.startsWith('/api/admin/orders/') && method === 'DELETE') {
+      const orderId = decodeURIComponent(urlPath.replace('/api/admin/orders/', '').trim());
+      if (!user || user.role !== 'ADMIN') {
+        return { handled: true, error: 'Admin access required', status: 403 };
+      }
+      if (!orderId) {
+        return { handled: true, error: 'Order ID is required', status: 400 };
+      }
+
+      // Check order exists
+      const { data: orderToDel, error: findErr } = await supabase
+        .from('Order')
+        .select('id, items:OrderItem(*)')
+        .eq('id', orderId)
+        .single();
+
+      if (findErr || !orderToDel) {
+        return { handled: true, error: 'Order not found', status: 404 };
+      }
+
+      // Safely delete all dependent records
+      try {
+        const { data: customOrders } = await supabase
+          .from('CustomOrder')
+          .select('id')
+          .eq('orderId', orderId);
+        if (customOrders && customOrders.length > 0) {
+          const coIds = customOrders.map((co: any) => co.id);
+          await supabase.from('CustomOrderArtwork').delete().in('customOrderId', coIds);
+        }
+        await supabase.from('CustomOrder').delete().eq('orderId', orderId);
+        await supabase.from('OrderItem').delete().eq('orderId', orderId);
+        await supabase.from('OrderEvent').delete().eq('orderId', orderId);
+        await supabase.from('PaymentSubmission').delete().eq('orderId', orderId);
+        await supabase.from('Payment').delete().eq('orderId', orderId);
+        await supabase.from('ShippingAddress').delete().eq('orderId', orderId);
+      } catch (childErr) {
+        console.warn('Error clearing child records for order:', childErr);
+      }
+
+      const { error: delErr } = await supabase.from('Order').delete().eq('id', orderId);
+      if (delErr) {
+        return { handled: true, error: delErr.message, status: 500 };
+      }
+
+      // Record AuditLog
+      try {
+        await supabase.from('AuditLog').insert({
+          actor: user.id,
+          action: 'ORDER_DELETED',
+          entity: 'Order',
+          entityId: orderId,
+          before: { id: orderId },
+          after: null,
+        });
+      } catch {}
+
+      return { handled: true, data: { success: true, deletedId: orderId } as unknown as T };
+    }
+
+    // 14.4 Admin Ping Review (/api/admin/orders/:id/ping-review)
+    if (urlPath.startsWith('/api/admin/orders/') && urlPath.endsWith('/ping-review') && method === 'POST') {
+      const orderId = decodeURIComponent(urlPath.replace('/api/admin/orders/', '').replace('/ping-review', '').trim());
+      if (!user || user.role !== 'ADMIN') {
+        return { handled: true, error: 'Admin access required', status: 403 };
+      }
+      const body = parseBody();
+      const methodUsed = body.method || 'WHATSAPP';
+      const pingTime = new Date().toISOString();
+
+      try {
+        await supabase.from('OrderEvent').insert({
+          orderId,
+          kind: 'REVIEW_PINGED',
+          actorId: user.id,
+          detail: { pingedAt: pingTime, method: methodUsed },
+        });
+      } catch (evtErr) {
+        console.warn('Could not record review ping event:', evtErr);
+      }
+
+      try {
+        await supabase.from('AuditLog').insert({
+          actor: user.id,
+          action: 'ORDER_REVIEW_PINGED',
+          entity: 'Order',
+          entityId: orderId,
+          before: null,
+          after: { pingedAt: pingTime, method: methodUsed },
+        });
+      } catch {}
+
+      return { handled: true, data: { success: true, pingedAt: pingTime } as unknown as T };
     }
 
     if (urlPath === '/api/admin/payments') {

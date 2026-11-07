@@ -43,6 +43,12 @@ test('Security Area 3: Admin endpoints reject customer role with 403 but allow a
   const rCustOrders = await handleSupabaseRequest('/api/admin/orders', { method: 'GET' }, customerUser);
   assert.equal(rCustOrders.status, 403);
 
+  const rCustDeleteOrder = await handleSupabaseRequest('/api/admin/orders/ord-test-123', { method: 'DELETE' }, customerUser);
+  assert.equal(rCustDeleteOrder.status, 403);
+
+  const rCustPingReview = await handleSupabaseRequest('/api/admin/orders/ord-test-123/ping-review', { method: 'POST' }, customerUser);
+  assert.equal(rCustPingReview.status, 403);
+
   const rCustCust = await handleSupabaseRequest('/api/admin/customers', { method: 'GET' }, customerUser);
   assert.equal(rCustCust.status, 403);
 

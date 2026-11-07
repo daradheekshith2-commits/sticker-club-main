@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { LuArrowRight, LuMinus, LuPlus } from 'react-icons/lu';
 import type { Product } from '../../types/product';
 import { Link } from '../../router/router';
@@ -26,7 +26,6 @@ export function describeContents(product: Product): string {
 /** Product tile used on the homepage, shop and related-products rows. */
 export const ProductCard = memo(function ProductCard({ product, headingLevel = 'h3' }: { product: Product; headingLevel?: 'h2' | 'h3' }) {
   const { addItem, items, setQuantity, removeItem } = useCart();
-  const [isHovered, setIsHovered] = useState(false);
   const purchasable = isPurchasable(product);
   const hasSizes = Boolean(product.variants?.length);
   const isTheme = product.variantLabel === 'Theme';
@@ -45,29 +44,52 @@ export const ProductCard = memo(function ProductCard({ product, headingLevel = '
   const actionBase =
     'relative z-10 inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border-2 border-ink px-3.5 text-sm font-bold transition-colors';
   const isPoster = product.category === 'posters' || product.productType === 'poster';
+  const isDuo = product.productType === 'duo';
+  const isDuoPair = isDuo && (product.images?.length ?? 0) >= 2;
 
   return (
-    <article
-      className="group relative flex h-full flex-col"
-      onMouseEnter={() => setIsHovered(true)}
-      onFocus={() => setIsHovered(true)}
-    >
+    <article className="group relative flex h-full flex-col">
       <Link
         to={url}
         className={`relative block ${isPoster ? 'aspect-[1/1.414]' : 'aspect-square'} overflow-hidden rounded-[var(--radius-card)] border border-mint/15 bg-paper-deep shadow-[0_8px_20px_rgba(0,0,0,0.3)] transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_16px_32px_rgba(0,0,0,0.5),0_0_20px_rgba(255,16,38,0.15)] group-hover:border-mint/40`}
         tabIndex={-1}
         aria-hidden
       >
-        <ProductImage product={product} className="size-full object-cover object-center" />
-        {hasHover && isHovered && (
-          // Only mounted and downloaded on actual desktop hover/focus, saving bandwidth on initial page loads
-          <span className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-            {product.images && product.images.length > 1 ? (
-              <ProductImage product={product} index={1} className="size-full object-cover object-center" />
-            ) : (
-              <ProductImage product={product} view="context" className="size-full object-cover object-center" />
+        {isDuoPair ? (
+          <div className="relative size-full overflow-hidden">
+            {/* Part A (First sticker of pair) */}
+            <div className="absolute inset-0 flex items-center justify-center p-4 transition-all duration-300 ease-out group-hover:-translate-x-8 group-hover:scale-[0.8] group-hover:-rotate-3">
+              <ProductImage product={product} index={0} className="size-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)]" />
+            </div>
+            {/* Part B (Second sticker of pair) */}
+            <div className="absolute inset-0 flex items-center justify-center p-4 opacity-0 transition-all duration-300 ease-out translate-x-10 scale-[0.7] rotate-3 group-hover:opacity-100 group-hover:translate-x-8 group-hover:scale-[0.8]">
+              <ProductImage product={product} index={1} className="size-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)]" />
+            </div>
+            {/* Duo pairing pill badge on hover */}
+            <div className="absolute bottom-2.5 inset-x-2 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
+              <span className="inline-flex items-center gap-1 rounded-full bg-black/85 backdrop-blur-sm border border-mint/40 px-2.5 py-0.5 text-[10px] font-bold text-mint shadow-lg">
+                <span>✨ Pair:</span>
+                <span className="text-white truncate max-w-[150px]">
+                  {product.duo ? `${product.duo.partA} & ${product.duo.partB}` : 'Matching Pair'}
+                </span>
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="relative size-full overflow-hidden">
+            <div className={`size-full transition-opacity duration-300 ${hasHover ? 'group-hover:opacity-0' : ''}`}>
+              <ProductImage product={product} className="size-full object-cover object-center" />
+            </div>
+            {hasHover && (
+              <span className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                {product.images && product.images.length > 1 ? (
+                  <ProductImage product={product} index={1} className="size-full object-cover object-center" />
+                ) : (
+                  <ProductImage product={product} view="context" className="size-full object-cover object-center" />
+                )}
+              </span>
             )}
-          </span>
+          </div>
         )}
         {/* At most one badge, so the artwork stays the focus. */}
         {!purchasable ? (
@@ -76,6 +98,10 @@ export const ProductCard = memo(function ProductCard({ product, headingLevel = '
           </span>
         ) : product.isNew ? (
           <span className="absolute top-3 left-3 rounded-full bg-ink px-2.5 py-1 text-[11px] font-bold tracking-wide text-paper uppercase">New</span>
+        ) : isDuo ? (
+          <span className="absolute top-3 left-3 rounded-full border border-mint/30 bg-[#03110F]/80 backdrop-blur-xs px-2.5 py-0.5 text-[10px] font-extrabold tracking-wide text-mint uppercase">
+            2-Sticker Duo
+          </span>
         ) : null}
         {/* Rarity only shows for the special tiers, so most cards stay clean. */}
         {(product.rarity === 'rare' || product.rarity === 'limited') && <RarityBadge rarity={product.rarity} className="absolute top-3 right-3" />}

@@ -74,6 +74,7 @@ type Order = {
   customOrders?: CustomOrder[];
   payment?: Payment | null;
   cancelReason?: string | null;
+  events?: Array<{ id: string; kind: string; detail?: any; createdAt: string }>;
 };
 
 const STAGES = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'COMPLETED'] as const;
@@ -912,14 +913,28 @@ export function CustomerOrdersPanel() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-mint/30 bg-mint/5 p-3">
+                    <div className={`flex flex-wrap items-center justify-between gap-2 rounded-xl p-3 ${
+                      o.events?.some((e) => e.kind === 'REVIEW_PINGED')
+                        ? 'border-2 border-sun/60 bg-sun/10 shadow-[0_0_15px_rgba(255,212,71,0.15)]'
+                        : 'border border-mint/30 bg-mint/5'
+                    }`}>
                       <div className="flex items-center gap-2">
-                        <div className="grid size-6 place-items-center rounded-full bg-mint/20 text-mint">
-                          <LuStar className="size-3.5 fill-mint text-mint" />
+                        <div className={`grid size-6 place-items-center rounded-full ${
+                          o.events?.some((e) => e.kind === 'REVIEW_PINGED') ? 'bg-sun/30 text-sun' : 'bg-mint/20 text-mint'
+                        }`}>
+                          <LuStar className="size-3.5 fill-current" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-ink">Order Finished · How was your experience?</p>
-                          <p className="text-[11px] text-ink-soft">Leave a review and photo to be featured in our community.</p>
+                          <p className="text-xs font-bold text-ink">
+                            {o.events?.some((e) => e.kind === 'REVIEW_PINGED')
+                              ? '⭐ Pixwora team requested your review for this order!'
+                              : 'Order Finished · How was your experience?'}
+                          </p>
+                          <p className="text-[11px] text-ink-soft">
+                            {o.events?.some((e) => e.kind === 'REVIEW_PINGED')
+                              ? 'We’d love to see how your stickers look! Tap to leave your feedback.'
+                              : 'Leave a review and photo to be featured in our community.'}
+                          </p>
                         </div>
                       </div>
                       <button
@@ -932,7 +947,11 @@ export function CustomerOrdersPanel() {
                           setReviewCity(o.shippingAddress?.city || '');
                           setReviewPhoto('');
                         }}
-                        className="btn-primary text-xs py-1.5 px-3.5 font-bold flex items-center gap-1.5 shadow-sm"
+                        className={`text-xs py-1.5 px-3.5 font-bold flex items-center gap-1.5 shadow-sm rounded-full ${
+                          o.events?.some((e) => e.kind === 'REVIEW_PINGED')
+                            ? 'bg-sun text-paper hover:bg-sun/90'
+                            : 'btn-primary'
+                        }`}
                       >
                         <LuStar className="size-3.5 fill-current" /> Write a Review
                       </button>

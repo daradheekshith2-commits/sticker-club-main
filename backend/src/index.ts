@@ -1846,7 +1846,7 @@ app.post(
       }
 
       // Update or create payment record
-      const updatedPayment = await tx.payment.upsert({
+      const updatedPayment = await (tx.payment as any).upsert({
         where: { orderId: order.id },
         update: {
           ...(utr ? { utr } : {}),
@@ -1869,7 +1869,7 @@ app.post(
 
       // Dual write to PaymentSubmission for backwards compatibility
       if (utr) {
-        await tx.paymentSubmission.upsert({
+        await (tx.paymentSubmission as any).upsert({
           where: { utr },
           update: {
             status: 'SUBMITTED',
@@ -1886,7 +1886,7 @@ app.post(
           },
         });
       } else {
-        await tx.paymentSubmission.create({
+        await (tx.paymentSubmission as any).create({
           data: {
             orderId: order.id,
             userId,
@@ -1969,7 +1969,7 @@ app.post(
         }
       }
 
-      const updatedPayment = await tx.payment.upsert({
+      const updatedPayment = await (tx.payment as any).upsert({
         where: { orderId: order.id },
         update: {
           ...(utr ? { utr } : {}),
@@ -1990,7 +1990,7 @@ app.post(
         },
       });
 
-      await tx.paymentSubmission.create({
+      await (tx.paymentSubmission as any).create({
         data: {
           orderId: order.id,
           userId,
@@ -2016,7 +2016,7 @@ app.post(
           id: updatedPayment.id,
           status: updatedPayment.status,
           utr: updatedPayment.utr,
-          receiptUrl: updatedPayment.receiptUrl,
+          receiptUrl: (updatedPayment as any).receiptUrl,
         },
       };
     });
@@ -3210,6 +3210,92 @@ app.patch(
     });
 
     res.json(updatedOrder);
+  })
+);
+
+app.delete(
+  '/api/admin/orders/:id',
+  requireAuth,
+  admin,
+  wrap(async (req, res) => {
+    const id = String(req.params.id);
+    const existing = await db.order.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    await db.$transaction(async (tx) => {
+      // Clean up child relations
+      const customOrders = await tx.customOrder.findMany({ where: { orderId: id }, select: { id: true } });
+      if (customOrders.length > 0) {
+        await tx.customOrderArtwork.deleteMany({
+          where: { customOrderId: { in: customOrders.map((c) => c.id) } },
+        });
+      }
+      await tx.customOrder.deleteMany({ where: { orderId: id } });
+      await tx.orderItem.deleteMany({ where: { orderId: id } });
+      await tx.orderEvent.deleteMany({ where: { orderId: id } });
+      await tx.paymentSubmission.deleteMany({ where: { orderId: id } });
+      await tx.payment.deleteMany({ where: { orderId: id } });
+      await tx.customerStamp.deleteMany({ where: { orderId: id } });
+      await tx.order.delete({ where: { id } });
+
+      await tx.auditLog.create({
+        data: {
+          actor: req.session?.id || 'admin',
+          action: 'ORDER_DELETED',
+          entity: 'Order',
+          entityId: id,
+          before: { id, total: existing.total.toString(), status: existing.status },
+          after: undefined,
+        },
+      });
+    });
+
+    res.json({ success: true, deletedId: id });
+  })
+);
+
+app.post(
+  '/api/admin/orders/:id/ping-review',
+  requireAuth,
+  admin,
+  wrap(async (req, res) => {
+    const id = String(req.params.id);
+    const { method: pingMethod } = req.body || {};
+    const existing = await db.order.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    const pingTime = new Date().toISOString();
+    await db.orderEvent.create({
+      data: {
+        id: randomUUID(),
+        orderId: id,
+        kind: 'REVIEW_PINGED',
+        actorId: req.session?.id || 'admin',
+        detail: { pingedAt: pingTime, method: pingMethod || 'WHATSAPP' },
+      },
+    });
+
+    await db.auditLog.create({
+      data: {
+        actor: req.session?.id || 'admin',
+        action: 'ORDER_REVIEW_PINGED',
+        entity: 'Order',
+        entityId: id,
+        before: undefined,
+        after: {
+          pingedAt: pingTime,
+          method: pingMethod || 'WHATSAPP',
+        },
+      },
+    });
+
+    res.json({ success: true, pingedAt: pingTime });
   })
 );
 
