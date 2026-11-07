@@ -113,7 +113,11 @@ function searchableText(p: Product): string {
 export function matchesFilters(p: Product, f: CatalogueFilters): boolean {
   if (f.category && p.category !== f.category) return false;
   if (f.types.length && !f.types.includes(p.productType)) return false;
-  if (f.collections.length && !p.collections.some((c) => f.collections.includes(c))) return false;
+  if (
+    f.collections.length &&
+    !p.collections.some((c) => f.collections.includes(c)) &&
+    !p.tags.some((t) => f.collections.some((fc) => fc.toLowerCase() === t.toLowerCase()))
+  ) return false;
   if (f.price) {
     const band = priceBands.find((b) => b.value === f.price);
     if (band && (p.price < band.min || p.price > band.max)) return false;

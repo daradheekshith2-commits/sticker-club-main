@@ -165,15 +165,26 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
           })
       : seed?.images;
 
-    const rawCats = dbP.categories || dbP.collections || [];
+    const rawCats = [...(dbP.categories || []), ...(dbP.collections || [])];
     const collections = rawCats.length
-      ? (rawCats
-          .map((c: any) => c.categoryId || c.collectionId)
-          .filter((cid: string) => cid && cid !== 'stickers' && cid !== 'posters') as CollectionId[])
+      ? (Array.from(
+          new Set(
+            rawCats
+              .map((c: any) => c.categoryId || c.collectionId || (typeof c === 'string' ? c : undefined))
+              .filter((cid: string) => cid && cid !== 'stickers' && cid !== 'posters')
+          )
+        ) as CollectionId[])
       : (seed?.collections ?? []);
 
-    const tags = dbP.tags?.length
-      ? dbP.tags.map((t) => t.tag)
+    const rawTags = dbP.tags || [];
+    const tags = rawTags.length
+      ? Array.from(
+          new Set(
+            rawTags
+              .map((t: any) => (typeof t === 'string' ? t : t?.tag))
+              .filter(Boolean)
+          )
+        )
       : (seed?.tags ?? []);
 
     const isActive = dbP.active !== false && dbP.status === 'PUBLISHED';
@@ -249,12 +260,14 @@ function processDatabaseProducts(seeds: Product[], dbProducts: BackendProduct[])
   return result;
 }
 
-const CACHE_KEY_PRODUCTS = 'sc_catalogue_products_v3';
-const CACHE_KEY_CATEGORIES = 'sc_catalogue_categories_v3';
+const CACHE_KEY_PRODUCTS = 'sc_catalogue_products_v4';
+const CACHE_KEY_CATEGORIES = 'sc_catalogue_categories_v4';
 
 // Clear stale session cache
 try {
   if (typeof window !== 'undefined' && window.sessionStorage) {
+    window.sessionStorage.removeItem('sc_catalogue_products_v3');
+    window.sessionStorage.removeItem('sc_catalogue_categories_v3');
     window.sessionStorage.removeItem('sc_catalogue_products_v2');
     window.sessionStorage.removeItem('sc_catalogue_categories_v2');
     window.sessionStorage.removeItem('sc_catalogue_products_v1');

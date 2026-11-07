@@ -382,11 +382,18 @@ function ThemeShowcaseRow({
   const [items, setItems] = useState<Product[]>([]);
 
   const matchingProducts: Product[] = useMemo(() => {
-    return products.filter(
-      (p: Product) =>
-        isPurchasable(p) &&
-        (p.collections?.includes(collectionId) || p.tags?.some((t: string) => t.toLowerCase() === collectionId.toLowerCase()))
-    );
+    return products.filter((p: Product) => {
+      if (!isPurchasable(p)) return false;
+      const collMatches = p.collections?.some((c: any) => {
+        const val = typeof c === 'string' ? c : c?.collectionId || c?.categoryId;
+        return typeof val === 'string' && val.toLowerCase() === collectionId.toLowerCase();
+      });
+      const tagMatches = p.tags?.some((t: any) => {
+        const val = typeof t === 'string' ? t : t?.tag;
+        return typeof val === 'string' && val.toLowerCase() === collectionId.toLowerCase();
+      });
+      return Boolean(collMatches || tagMatches);
+    });
   }, [products, collectionId]);
 
   useEffect(() => {
@@ -395,8 +402,14 @@ function ThemeShowcaseRow({
     }
   }, [matchingProducts]);
 
+  const displayedItems = useMemo(() => {
+    if (items.length > 0) return items;
+    if (matchingProducts.length > 0) return shuffleItems<Product>(matchingProducts).slice(0, 4);
+    return [];
+  }, [items, matchingProducts]);
+
   const showRandomItems = () => {
-    const currentIds = new Set(items.map((p) => p.id));
+    const currentIds = new Set(displayedItems.map((p) => p.id));
     const nextCandidates = matchingProducts.filter((p: Product) => !currentIds.has(p.id));
     if (nextCandidates.length >= 4) {
       setItems(shuffleItems<Product>(nextCandidates).slice(0, 4));
@@ -442,7 +455,7 @@ function ThemeShowcaseRow({
     </div>
   );
 
-  if (items.length === 0) return null;
+  if (displayedItems.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-7xl px-4 pt-24 sm:px-6" aria-labelledby={`theme-${collectionId}`}>
@@ -452,7 +465,7 @@ function ThemeShowcaseRow({
         title={title}
         action={action}
       />
-      <ProductGrid products={items} />
+      <ProductGrid products={displayedItems} />
     </section>
   );
 }

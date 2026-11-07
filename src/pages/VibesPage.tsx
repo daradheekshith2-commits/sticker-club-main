@@ -25,7 +25,20 @@ export function VibesPage() {
     }
     for (const p of products) {
       if (isPurchasable(p)) {
-        for (const coll of p.collections) {
+        const productColls = new Set<string>();
+        if (Array.isArray(p.collections)) {
+          for (const c of p.collections) {
+            const id = typeof c === 'string' ? c : (c as any)?.collectionId || (c as any)?.categoryId;
+            if (id) productColls.add(id);
+          }
+        }
+        if (Array.isArray(p.tags)) {
+          for (const t of p.tags) {
+            const val = typeof t === 'string' ? t : (t as any)?.tag;
+            if (val) productColls.add(val.toLowerCase());
+          }
+        }
+        for (const coll of productColls) {
           if (map[coll] !== undefined) {
             map[coll] += 1;
           }
