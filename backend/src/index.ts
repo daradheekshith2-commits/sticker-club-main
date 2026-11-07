@@ -102,7 +102,7 @@ const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', Number(config.TRUST_PROXY) || config.TRUST_PROXY);
 app.use(
-  helmet({
+  ((typeof helmet === 'function' ? helmet : (helmet as any)?.default || helmet) as any)({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
