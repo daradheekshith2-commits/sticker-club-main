@@ -1280,14 +1280,30 @@ export async function handleSupabaseRequest<T>(
         return { handled: true, error: 'Order ID is required', status: 400 };
       }
 
-      // Check order exists
+      // 1. Try calling the PostgreSQL RPC first for atomic server-side deletion
+      try {
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('admin_delete_order', {
+          p_order_id: orderId,
+        });
+        if (!rpcErr) {
+          return { handled: true, data: (rpcData || { success: true, deletedId: orderId }) as unknown as T };
+        }
+        console.warn('RPC admin_delete_order returned error, falling back to client queries:', rpcErr);
+      } catch (rpcEx) {
+        console.warn('RPC admin_delete_order threw, falling back:', rpcEx);
+      }
+
+      // 2. Direct client fallback: verify order existence using simple query
       const { data: orderToDel, error: findErr } = await supabase
         .from('Order')
-        .select('id, items:OrderItem(*)')
+        .select('id')
         .eq('id', orderId)
-        .single();
+        .maybeSingle();
 
-      if (findErr || !orderToDel) {
+      if (findErr) {
+        return { handled: true, error: findErr.message, status: 500 };
+      }
+      if (!orderToDel) {
         return { handled: true, error: 'Order not found', status: 404 };
       }
 
@@ -1306,7 +1322,7 @@ export async function handleSupabaseRequest<T>(
         await supabase.from('OrderEvent').delete().eq('orderId', orderId);
         await supabase.from('PaymentSubmission').delete().eq('orderId', orderId);
         await supabase.from('Payment').delete().eq('orderId', orderId);
-        await supabase.from('ShippingAddress').delete().eq('orderId', orderId);
+        await supabase.from('CustomerStamp').delete().eq('orderId', orderId);
       } catch (childErr) {
         console.warn('Error clearing child records for order:', childErr);
       }
@@ -1319,6 +1335,7 @@ export async function handleSupabaseRequest<T>(
       // Record AuditLog
       try {
         await supabase.from('AuditLog').insert({
+          id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `audit-${Date.now()}`,
           actor: user.id,
           action: 'ORDER_DELETED',
           entity: 'Order',

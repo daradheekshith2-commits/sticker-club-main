@@ -341,12 +341,15 @@ export function AdminOrdersPanel() {
       await request('/api/admin/orders/' + encodeURIComponent(orderId), {
         method: 'DELETE',
       });
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
       setMessage(`Order ${orderId} was permanently deleted.`);
+      setActionNotice({ id: orderId, text: '✓ Deleted' });
       await loadOrders();
     } catch (e) {
       const err = e instanceof Error ? e.message : 'Failed to delete order';
       setError(err);
       setActionNotice({ id: orderId, text: `✕ ${err}`, isError: true });
+      alert(`Could not delete order ${orderId}:\n\n${err}`);
     } finally {
       setBusy(null);
     }
