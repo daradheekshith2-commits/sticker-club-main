@@ -128,3 +128,25 @@ test('Security Area 3: Payment receipt upload rejects non-raster images and miss
   assert.equal(rSvg.status, 400);
   assert.ok(rSvg.error?.includes('Only PNG, JPEG, and WebP'));
 });
+
+
+test('Google OAuth user details: mapSupabaseUser extracts full_name, email, and avatar_url', async () => {
+  const { mapSupabaseUser } = await import('../context/AuthContext');
+  const mockGoogleUser: any = {
+    id: 'google-user-789',
+    email: 'collector.google@gmail.com',
+    user_metadata: {
+      full_name: 'Sticker Collector',
+      avatar_url: 'https://lh3.googleusercontent.com/a/sample-avatar',
+      email: 'collector.google@gmail.com',
+    },
+    app_metadata: {},
+  };
+
+  const account = mapSupabaseUser(mockGoogleUser);
+  assert.equal(account.id, 'google-user-789');
+  assert.equal(account.name, 'Sticker Collector');
+  assert.equal(account.email, 'collector.google@gmail.com');
+  assert.equal(account.role, 'CUSTOMER');
+  assert.equal(account.avatarUrl, 'https://lh3.googleusercontent.com/a/sample-avatar');
+});

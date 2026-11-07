@@ -305,7 +305,9 @@ export function CustomerOrdersPanel() {
         method: 'POST',
         body: JSON.stringify({ reason: 'Cancelled by customer' }),
       });
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...res } : o)));
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, ...res, status: 'CANCELLED', cancelReason: res?.cancelReason || 'Cancelled by customer' } : o))
+      );
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Could not cancel order');
     } finally {
@@ -745,7 +747,7 @@ export function CustomerOrdersPanel() {
                 </div>
               )}
 
-              {o.status === 'PENDING' && (
+              {(o.status === 'PENDING' || o.status === 'CONFIRMED' || o.status === 'PROCESSING') && (
                 <div className="mt-3 border-t border-ink/10 pt-2 text-right">
                   <button
                     type="button"

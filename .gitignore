@@ -3,6 +3,11 @@ dist
 dist-local
 *.local
 .DS_Store
+# Large archives & raw staging
+public/*.zip
+public/new mall/
+scripts/seed-batches/
+
 .vercel
 
 .env
@@ -18,5 +23,10 @@ test-results/
 .agents/
 skills-lock.json
 supabase/.temp/
+
+# Large archives & raw staging
+public/*.zip
+public/new mall/
+scripts/seed-batches/
 
 .vercel

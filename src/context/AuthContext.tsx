@@ -17,6 +17,7 @@ export type Account = {
   email: string;
   role: 'CUSTOMER' | 'ADMIN';
   phone?: string | null;
+  avatarUrl?: string | null;
 };
 
 const getEnvVar = (key: string): string | undefined => {
@@ -45,6 +46,7 @@ export type AuthValue = {
   isSupabase: boolean;
   login: (email: string, password: string) => Promise<Account>;
   register: (name: string, email: string, password: string) => Promise<Account>;
+  signInWithGoogle: (redirectTo?: string) => Promise<void>;
   logout: () => Promise<void>;
   requestPasswordReset: (email: string) => Promise<{ message: string }>;
   updatePassword: (password: string) => Promise<void>;
@@ -84,8 +86,13 @@ export function mapSupabaseUser(u: SupabaseUser): Account {
   }
 
   const name: string =
-    meta.name || meta.full_name || u.email?.split('@')[0] || 'Collector';
+    meta.full_name ||
+    meta.name ||
+    (meta.given_name ? `${meta.given_name} ${meta.family_name || ''}`.trim() : '') ||
+    u.email?.split('@')[0] ||
+    'Collector';
   const phone: string | null = (u.phone as string | undefined) || meta.phone || null;
+  const avatarUrl: string | null = meta.avatar_url || meta.picture || null;
 
   return {
     id: u.id,
@@ -93,6 +100,7 @@ export function mapSupabaseUser(u: SupabaseUser): Account {
     email: u.email || '',
     role,
     phone,
+    avatarUrl,
   };
 }
 
@@ -242,6 +250,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(data.accessToken);
     setUser(data.user);
     return data.user as Account;
+  };
+
+  const signInWithGoogle = async (redirectTo?: string) => {
+    if (isSupabaseConfigured) {
+      const target = redirectTo || `${window.location.origin}/account`;
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: target,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.url) {
+        window.location.assign(data.url);
+      }
+      return;
+    }
+    throw new Error('Google Sign-in is only supported when Supabase Auth is configured.');
   };
 
   const logout = async () => {
@@ -449,6 +479,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isSupabase: isSupabaseConfigured,
       login,
       register,
+      signInWithGoogle,
       logout,
       requestPasswordReset,
       updatePassword,

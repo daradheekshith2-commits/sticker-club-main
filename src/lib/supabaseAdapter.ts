@@ -834,8 +834,19 @@ export async function handleSupabaseRequest<T>(
     if (!user) return { handled: true, error: 'Sign in required', status: 401 };
     const orderId = urlPath.replace('/api/me/orders/', '').replace('/cancel', '').trim();
     const body = parseBody();
+    const reason = body.reason || 'Cancelled by customer';
 
-    // 1. Fetch order and verify ownership & prior state
+    // 1. Try invoking the secure cancel_user_order PostgreSQL function
+    const { data: rpcData, error: rpcErr } = await supabase.rpc('cancel_user_order', {
+      p_order_id: orderId,
+      p_reason: reason,
+    });
+
+    if (!rpcErr && rpcData) {
+      return { handled: true, data: rpcData as unknown as T };
+    }
+
+    // 2. Fallback to client-side cancellation if RPC is unavailable
     const { data: order, error: orderErr } = await supabase
       .from('Order')
       .select('id, userId, status')
@@ -844,55 +855,59 @@ export async function handleSupabaseRequest<T>(
       .single();
 
     if (orderErr || !order) {
-      return { handled: true, error: 'Order not found', status: 404 };
+      return { handled: true, error: rpcErr?.message || 'Order not found', status: 404 };
     }
 
-    if (order.status !== 'PENDING' && order.status !== 'PROCESSING') {
+    if (order.status !== 'PENDING' && order.status !== 'PROCESSING' && order.status !== 'CONFIRMED') {
       return {
         handled: true,
-        error: `Only pending orders can be cancelled. Current status is ${order.status}.`,
+        error: `Only pending or processing orders can be cancelled. Current status is ${order.status}.`,
         status: 400,
       };
     }
 
-    // 2. Atomically restore inventory
-    const { data: orderItems } = await supabase
-      .from('OrderItem')
-      .select('productId, quantity')
-      .eq('orderId', orderId);
+    // Attempt restoring inventory
+    try {
+      const { data: orderItems } = await supabase
+        .from('OrderItem')
+        .select('productId, quantity')
+        .eq('orderId', orderId);
 
-    if (orderItems && orderItems.length > 0) {
-      for (const item of orderItems) {
-        if (item.productId) {
-          const { data: inv } = await supabase
-            .from('Inventory')
-            .select('quantity')
-            .eq('productId', item.productId)
-            .single();
-          if (inv) {
-            const restoredQty = inv.quantity + item.quantity;
-            await supabase.from('Inventory').update({ quantity: restoredQty }).eq('productId', item.productId);
-            await supabase.from('InventoryMovement').insert({
-              id: crypto.randomUUID(),
-              productId: item.productId,
-              delta: item.quantity,
-              quantityAfter: restoredQty,
-              reason: 'CANCELLATION',
-              orderId,
-              actorUserId: user.id,
-            });
+      if (orderItems && orderItems.length > 0) {
+        for (const item of orderItems) {
+          if (item.productId) {
+            const { data: inv } = await supabase
+              .from('Inventory')
+              .select('quantity')
+              .eq('productId', item.productId)
+              .maybeSingle();
+            if (inv) {
+              const restoredQty = inv.quantity + item.quantity;
+              await supabase.from('Inventory').update({ quantity: restoredQty }).eq('productId', item.productId);
+              await supabase.from('InventoryMovement').insert({
+                id: crypto.randomUUID(),
+                productId: item.productId,
+                delta: item.quantity,
+                quantityAfter: restoredQty,
+                reason: 'CANCELLATION',
+                orderId,
+                actorUserId: user.id,
+              });
+            }
           }
         }
       }
+    } catch {
+      // Non-fatal if client RLS restricts Inventory table directly
     }
 
-    // 3. Update Order status
+    // Update Order status
     const { data, error } = await supabase
       .from('Order')
       .update({
         status: 'CANCELLED',
         cancelledAt: new Date().toISOString(),
-        cancelReason: body.reason || 'Cancelled by customer',
+        cancelReason: reason,
       })
       .eq('id', orderId)
       .eq('userId', user.id)
@@ -901,17 +916,25 @@ export async function handleSupabaseRequest<T>(
 
     if (error) return { handled: true, error: error.message, status: 400 };
 
-    // Update payment if awaiting/submitted
-    await supabase.from('Payment').update({ status: 'CANCELLED' }).eq('orderId', orderId).in('status', ['AWAITING', 'SUBMITTED']);
+    // Update payment state if awaiting/submitted (using valid PaymentState enum 'REJECTED')
+    try {
+      await supabase
+        .from('Payment')
+        .update({ status: 'REJECTED' })
+        .eq('orderId', orderId)
+        .in('status', ['AWAITING', 'SUBMITTED']);
+    } catch {}
 
-    await supabase.from('OrderEvent').insert({
-      id: crypto.randomUUID(),
-      orderId,
-      kind: 'ORDER_CANCELLED',
-      detail: { reason: body.reason || 'Cancelled by customer' },
-    });
+    try {
+      await supabase.from('OrderEvent').insert({
+        id: crypto.randomUUID(),
+        orderId,
+        kind: 'ORDER_CANCELLED',
+        detail: { reason },
+      });
+    } catch {}
 
-    return { handled: true, data: data as unknown as T };
+    return { handled: true, data: (data || order) as unknown as T };
   }
 
   // 11. Drop Proposals & Voting (/api/proposals, /api/proposals/:id/vote)
