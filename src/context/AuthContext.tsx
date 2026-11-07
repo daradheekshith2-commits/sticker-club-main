@@ -267,6 +267,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       if (error) throw new Error(error.message);
       if (data?.url) {
+        // Probe endpoint to prevent browser navigating to a raw 400 JSON error page if provider is disabled in Supabase
+        try {
+          const probe = await fetch(data.url, { method: 'GET', redirect: 'manual' });
+          if (probe.status === 400) {
+            const probeJson = await probe.json().catch(() => null);
+            if (
+              probeJson?.msg?.includes('provider is not enabled') ||
+              probeJson?.error_code === 'validation_failed'
+            ) {
+              throw new Error(
+                'Google Sign-in is not enabled in your Supabase project yet. Please enable Google in Supabase Dashboard (Authentication → Providers → Google).'
+              );
+            }
+          }
+        } catch (probeErr) {
+          if (
+            probeErr instanceof Error &&
+            probeErr.message.includes('Supabase project')
+          ) {
+            throw probeErr;
+          }
+        }
         window.location.assign(data.url);
       }
       return;
