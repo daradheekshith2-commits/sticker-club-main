@@ -6,6 +6,8 @@ dist-local
 # Large archives & raw staging
 public/*.zip
 public/new mall/
+public/ccc/
+temp_extract/
 scripts/seed-batches/
 
 .vercel
@@ -27,6 +29,8 @@ supabase/.temp/
 # Large archives & raw staging
 public/*.zip
 public/new mall/
+public/ccc/
+temp_extract/
 scripts/seed-batches/
 
 .vercel
