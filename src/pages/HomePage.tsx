@@ -480,7 +480,6 @@ export function HomePage() {
       <ShopByVibe />
       <FeaturedRow category="stickers" eyebrow="Featured stickers" title="Start small. Collect them all." linkLabel="All stickers" />
       <ThemeShowcaseRow collectionId="gaming" eyebrow="Gaming Theme" title="GTA, pixel & controller vibes." linkLabel="Shop all Gaming" />
-      <ThemeShowcaseRow collectionId="bts" eyebrow="BTS & K-Pop Theme" title="Purple aesthetic & Bangtan vibes." linkLabel="Shop all BTS" />
       <FeaturedRow category="posters" eyebrow="Featured posters" title="Walls deserve personality too." linkLabel="All posters" />
     </>
   );
