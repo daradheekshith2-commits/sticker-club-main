@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LuArrowLeft, LuArrowRight, LuHeart, LuMail, LuPackage, LuStamp } from 'react-icons/lu';
 import { useCatalogue } from '../context/CatalogueContext';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { Link } from '../router/router';
-import type { Category, CollectionId, Product } from '../types/product';
+import type { Category, Product } from '../types/product';
 import { isPurchasable, shopUrl } from '../utils/catalogue';
 import { ProductGrid } from '../components/product/ProductCard';
 import { SectionHeading } from '../components/ui/SectionHeading';
@@ -367,109 +367,6 @@ function FeaturedRow({ category, eyebrow, title, linkLabel }: { category: Catego
   );
 }
 
-function ThemeShowcaseRow({
-  collectionId,
-  eyebrow,
-  title,
-  linkLabel,
-}: {
-  collectionId: CollectionId;
-  eyebrow: string;
-  title: string;
-  linkLabel: string;
-}) {
-  const { products } = useCatalogue();
-  const [items, setItems] = useState<Product[]>([]);
-
-  const matchingProducts: Product[] = useMemo(() => {
-    return products.filter((p: Product) => {
-      if (!isPurchasable(p)) return false;
-      const collMatches = p.collections?.some((c: any) => {
-        const val = typeof c === 'string' ? c : c?.collectionId || c?.categoryId;
-        return typeof val === 'string' && val.toLowerCase() === collectionId.toLowerCase();
-      });
-      const tagMatches = p.tags?.some((t: any) => {
-        const val = typeof t === 'string' ? t : t?.tag;
-        return typeof val === 'string' && val.toLowerCase() === collectionId.toLowerCase();
-      });
-      return Boolean(collMatches || tagMatches);
-    });
-  }, [products, collectionId]);
-
-  useEffect(() => {
-    if (matchingProducts.length > 0) {
-      setItems(shuffleItems<Product>(matchingProducts).slice(0, 4));
-    }
-  }, [matchingProducts]);
-
-  const displayedItems = useMemo(() => {
-    if (items.length > 0) return items;
-    if (matchingProducts.length > 0) return shuffleItems<Product>(matchingProducts).slice(0, 4);
-    return [];
-  }, [items, matchingProducts]);
-
-  const showRandomItems = () => {
-    const currentIds = new Set(displayedItems.map((p) => p.id));
-    const nextCandidates = matchingProducts.filter((p: Product) => !currentIds.has(p.id));
-    if (nextCandidates.length >= 4) {
-      setItems(shuffleItems<Product>(nextCandidates).slice(0, 4));
-    } else {
-      setItems(shuffleItems<Product>(matchingProducts).slice(0, 4));
-    }
-  };
-
-  const action = (
-    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-      <div
-        className="inline-flex items-center gap-1 rounded-full border border-[#315e53] bg-[#071b18] p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
-        aria-label={`Discover ${eyebrow}`}
-      >
-        <span className="hidden px-2 text-[10px] font-extrabold tracking-[0.16em] text-[#a8f0dc] sm:inline">DISCOVER</span>
-        <button
-          type="button"
-          onClick={showRandomItems}
-          disabled={matchingProducts.length <= 4}
-          className="grid size-10 place-items-center rounded-full border border-[#315e53] bg-[#0b2420] text-[#a8f0dc] transition duration-200 hover:border-[#a8f0dc] hover:bg-[#a8f0dc] hover:text-[#03110f] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-          aria-label={`Show a random selection of ${eyebrow}`}
-          title={`Discover random ${eyebrow}`}
-        >
-          <LuArrowLeft aria-hidden className="size-[18px]" />
-        </button>
-        <button
-          type="button"
-          onClick={showRandomItems}
-          disabled={matchingProducts.length <= 4}
-          className="grid size-10 place-items-center rounded-full border border-[#d90a1f] bg-[#d90a1f] text-[#f4f0e8] shadow-[0_3px_12px_rgba(217,10,31,0.24)] transition duration-200 hover:border-[#a8f0dc] hover:bg-[#a8f0dc] hover:text-[#03110f] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-          aria-label={`Show another random selection of ${eyebrow}`}
-          title={`Discover more ${eyebrow}`}
-        >
-          <LuArrowRight aria-hidden className="size-[18px]" />
-        </button>
-      </div>
-      <Link
-        to={shopUrl({ collections: [collectionId] })}
-        className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[#5d9d8f] px-5 py-3 text-sm font-bold text-[#a8f0dc] transition hover:border-[#a8f0dc] hover:bg-[#a8f0dc] hover:text-[#03110f]"
-      >
-        {linkLabel} <LuArrowRight aria-hidden />
-      </Link>
-    </div>
-  );
-
-  if (displayedItems.length === 0) return null;
-
-  return (
-    <section className="mx-auto max-w-7xl px-4 pt-24 sm:px-6" aria-labelledby={`theme-${collectionId}`}>
-      <SectionHeading
-        id={`theme-${collectionId}`}
-        eyebrow={eyebrow}
-        title={title}
-        action={action}
-      />
-      <ProductGrid products={displayedItems} />
-    </section>
-  );
-}
-
 export function HomePage() {
   usePageMeta(null);
   return (
@@ -479,7 +376,6 @@ export function HomePage() {
       <Collect />
       <ShopByVibe />
       <FeaturedRow category="stickers" eyebrow="Featured stickers" title="Start small. Collect them all." linkLabel="All stickers" />
-      <ThemeShowcaseRow collectionId="gaming" eyebrow="Gaming Theme" title="GTA, pixel & controller vibes." linkLabel="Shop all Gaming" />
       <FeaturedRow category="posters" eyebrow="Featured posters" title="Walls deserve personality too." linkLabel="All posters" />
     </>
   );
