@@ -4,7 +4,19 @@
  * replace them with real, founder-approved terms before taking real orders.
  */
 import type { ReactNode } from 'react';
-import { LuArrowRight, LuCheck, LuInstagram, LuMail, LuMessageCircle, LuPhone, LuSparkles } from 'react-icons/lu';
+import {
+  LuArrowRight,
+  LuCheck,
+  LuFileText,
+  LuInstagram,
+  LuMail,
+  LuMessageCircle,
+  LuPhone,
+  LuRotateCcw,
+  LuShieldCheck,
+  LuSparkles,
+  LuTruck,
+} from 'react-icons/lu';
 import { brand, hasAnyContact, whatsappLink } from '../config/brand';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { Link, useParams } from '../router/router';
@@ -563,47 +575,493 @@ export function ContactPage() {
   );
 }
 
-const policies: Record<string, { title: string; points: string[]; placeholderNotice: string }> = {
+interface PolicySection {
+  title: string;
+  content: ReactNode;
+}
+
+interface PolicyDoc {
+  title: string;
+  slug: string;
+  subtitle: string;
+  lastUpdated: string;
+  sections: PolicySection[];
+}
+
+const policies: Record<string, PolicyDoc> = {
   terms: {
     title: 'Terms of Service',
-    points: [
-      'Store operator information and user eligibility',
-      'Pricing, payment terms (UPI and Cash on Delivery), and billing policies',
-      'Order acceptance, dispatch, and delivery terms',
-      'Intellectual property and ownership of original sticker and poster artwork',
-      'Limitation of liability and local jurisdiction in Hyderabad, India',
+    slug: 'terms',
+    subtitle: 'These are the rules for using pixwora.store and for purchasing from us. Please read them before placing an order.',
+    lastUpdated: '9 November 2026',
+    sections: [
+      {
+        title: 'Agreeing to These Terms',
+        content: (
+          <>
+            <p>
+              These Terms of Service constitute a legally binding agreement between you and <strong>Pixwora</strong> (operating{' '}
+              <a href="https://www.pixwora.store" className="text-cinema-red font-semibold underline underline-offset-4">
+                pixwora.store
+              </a>
+              ). Browsing the website, creating an account, or placing an order indicates your complete acceptance of these terms and all
+              applicable store policies.
+            </p>
+            <p className="mt-3">
+              You must be at least 18 years old to make a purchase, or have a parent or legal guardian place the order on your behalf. By
+              placing an order, you confirm that you have the legal capacity to enter into a contract under the Indian Contract Act, 1872,
+              and that all delivery and contact details provided are truthful and accurate.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Account & Fair Usage',
+        content: (
+          <>
+            <p>
+              An account is optional; you are always welcome to check out as a guest. If you choose to register, you are responsible for
+              safeguarding your credentials. Orders placed through your account are treated as authorized by you, so notify us promptly if
+              you suspect any unauthorized access.
+            </p>
+            <p className="mt-3">
+              Please ensure your delivery details, contact phone number, and 6-digit PIN code are current at the time of order confirmation.
+              We dispatch to the exact address provided and cannot redirect parcels sent to an obsolete or incorrect address.
+            </p>
+            <div className="mt-3 rounded-xl border border-mint/20 bg-paper-deep/60 p-4">
+              <p className="font-semibold text-ink">You expressly agree not to:</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-ink-soft">
+                <li>Scrape, crawl, or mass-download our sticker and poster artwork, photography, or source code.</li>
+                <li>Place fraudulent orders, generate false UPI UTR references, or abuse Cash on Delivery options.</li>
+                <li>Commercially redistribute, mass-produce, or resell our stickers or prints without written authorization.</li>
+                <li>Interfere with or compromise website infrastructure, servers, or checkout security.</li>
+                <li>Upload abusive, defamatory, or unlawful artwork through our custom printing tools.</li>
+              </ul>
+            </div>
+          </>
+        ),
+      },
+      {
+        title: 'Artwork, Brand & Intellectual Property',
+        content: (
+          <>
+            <p>
+              Our sticker and poster collections feature original artwork, curated public-domain visuals, and creative fan art made for
+              passionate collectors—they are not official corporate merchandise. The Pixwora brand name, logos, product photography,
+              written copy, and codebase belong exclusively to Pixwora and are protected under Indian copyright and trademark law.
+            </p>
+            <p className="mt-3">
+              Purchasing a physical sticker or art poster gives you ownership of that physical item for personal use and display. It does
+              not transfer any copyright or commercial exploitation rights in the underlying design. You are welcome to display it on your
+              laptop, phone, or wall, and photograph it for social media. You may not duplicate the design or print it onto other commercial
+              products.
+            </p>
+            <p className="mt-3">
+              For custom orders (such as custom vinyl stickers and wall builder sets), you retain all copyright in the photos you upload.
+              By uploading, you warrant that you own the image or have legitimate permission to reproduce it, and you grant Pixwora a
+              temporary license to process and print it solely for your order.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Products, Pricing & Order Processing',
+        content: (
+          <>
+            <p>
+              We describe and display our stickers and art posters as accurately as possible. Due to screen calibration differences and
+              tactile vinyl finishes (such as matte lamination and waterproof coatings), subtle variations between on-screen previews and
+              physical prints are normal and do not constitute a defect.
+            </p>
+            <p className="mt-3">
+              All prices are in Indian Rupees (₹) and include applicable taxes. Prepaid orders carry no hidden convenience fees. If Cash on
+              Delivery (COD) is chosen, an applicable COD handling fee is clearly displayed before you confirm the order. We reserve the
+              right to adjust prices or promotional discounts at any time, but price updates will never affect confirmed orders.
+            </p>
+            <p className="mt-3">
+              Placing an order constitutes an offer to buy. The contract is concluded when we accept and confirm your order for dispatch. We
+              reserve the right to cancel an order if stock becomes unavailable, pricing errors occur, payment cannot be verified, or the
+              delivery location is unserviceable (in which case prepaid amounts are refunded in full immediately).
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Site Availability & Limitation of Liability',
+        content: (
+          <>
+            <p>
+              We run pixwora.store with high diligence, but we cannot guarantee uninterrupted or error-free site operation at all times due
+              to periodic maintenance, hosting updates, or network conditions.
+            </p>
+            <p className="mt-3">
+              To the fullest extent permitted by Indian law (including the Consumer Protection Act, 2019), our total liability for any claim
+              arising out of an order is strictly limited to the purchase price paid for that order. We are not liable for consequential or
+              indirect losses, nor for delivery delays caused by courier disruptions, transit strikes, extreme weather, or circumstances
+              beyond our reasonable control.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Governing Law & Dispute Resolution',
+        content: (
+          <>
+            <p>
+              These Terms of Service are governed by and construed in accordance with the laws of <strong>India</strong>. Any dispute arising
+              out of these terms or orders placed on pixwora.store shall be subject to the exclusive jurisdiction of the competent courts in{' '}
+              <strong>Hyderabad, Telangana, India</strong>.
+            </p>
+            <p className="mt-3">
+              Before initiating any formal legal proceedings, please contact us at{' '}
+              <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline underline-offset-4">
+                support@pixwora.store
+              </a>
+              . Most concerns stem from transit delays or simple misunderstandings and can be resolved quickly and amicably.
+            </p>
+          </>
+        ),
+      },
     ],
-    placeholderNotice: 'Founders: Replace this placeholder with your approved Terms of Service before public launch.',
   },
   privacy: {
     title: 'Privacy Policy',
-    points: [
-      'Customer personal data collected (name, email, delivery addresses, phone number)',
-      'Secure storage in PostgreSQL and non-disclosure to unauthorized third parties',
-      'Session token management and encryption of credentials',
-      'Customer rights regarding data access, updates, and account deletion',
+    slug: 'privacy',
+    subtitle: 'What Pixwora collects when you shop with us, why each piece of it is needed, who else ever sees it, and what you can ask us to do with it.',
+    lastUpdated: '9 November 2026',
+    sections: [
+      {
+        title: 'What We Collect, and Why',
+        content: (
+          <>
+            <p>We ask for as little personal data as an order needs, and nothing decorative:</p>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-ink-soft">
+              <li>
+                <strong className="text-ink">Name, email address, and phone number:</strong> To confirm your order, send dispatch and courier
+                tracking updates via SMS/WhatsApp/email, and reach you if the delivery agent cannot locate your address.
+              </li>
+              <li>
+                <strong className="text-ink">Delivery address, including PIN code:</strong> To print the shipping label, verify courier
+                serviceability, and confirm Cash on Delivery eligibility.
+              </li>
+              <li>
+                <strong className="text-ink">Order history:</strong> Items bought, transaction timestamps, pricing, and fulfillment status.
+                Used to manage your account dashboard, process replacements/refunds, and fulfill tax and accounting obligations under Indian GST
+                law.
+              </li>
+              <li>
+                <strong className="text-ink">Payment records:</strong> Transaction reference IDs, UPI UTR numbers, amounts, and statuses.
+                Card numbers, UPI PINs, and net-banking credentials are processed directly by authorized payment gateways and never touch or
+                reside on our servers.
+              </li>
+              <li>
+                <strong className="text-ink">Account credentials:</strong> For registered users, passwords and authentication tokens are
+                securely hashed and encrypted.
+              </li>
+              <li>
+                <strong className="text-ink">Photos you upload (Custom Stickers & Wall Builder):</strong> Saved in private cloud storage. They
+                are accessed solely through short-lived, authenticated links by our print specialists and used for nothing else. You can
+                request permanent deletion once your order is fulfilled.
+              </li>
+              <li>
+                <strong className="text-ink">"Try It on Your Wall" Preview Tool:</strong> Our live wall preview tool runs{' '}
+                <em>100% locally on your device</em>. The photo you capture or select is processed entirely in your browser memory to render the
+                preview and is <strong>never</strong> uploaded to our servers, saved to cookies, or sent to third parties. Closing the tool
+                clears it permanently.
+              </li>
+            </ul>
+            <p className="mt-3">
+              We do <strong>not</strong> sell, rent, or trade your personal data. Marketing communications are sent only to customers who opted
+              in, and every email includes a one-click unsubscribe link.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Cookies and How to Control Them',
+        content: (
+          <>
+            <p>
+              We use essential cookies to keep your shopping cart intact between visits, maintain your signed-in session, and process checkout
+              securely. Optional analytics signals help us measure site performance in aggregate.
+            </p>
+            <p className="mt-3">
+              You can clear or block cookies at any time via your browser settings. Note that clearing essential cookies will reset your active
+              shopping cart and sign you out of your account.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Who Else Sees Your Data',
+        content: (
+          <>
+            <p>Your details are shared only with trusted service partners strictly necessary to fulfill your order:</p>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-ink-soft">
+              <li>
+                <strong className="text-ink">Payment Gateways & Banking Partners:</strong> Process card, UPI, and net-banking payments under
+                RBI regulations and their respective privacy policies.
+              </li>
+              <li>
+                <strong className="text-ink">Courier & Logistics Partners (Shiprocket, Delhivery, Xpressbees):</strong> Receive your recipient
+                name, delivery address, and phone number to print shipping labels and execute delivery.
+              </li>
+              <li>
+                <strong className="text-ink">Hosting & Infrastructure (Vercel, Supabase):</strong> Provide high-availability hosting, encrypted
+                database storage, and secure authentication.
+              </li>
+              <li>
+                <strong className="text-ink">Government & Tax Authorities:</strong> Only where mandatory compliance is required by Indian
+                statutory, tax, or legal directives.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        title: 'Security & Data Retention',
+        content: (
+          <>
+            <p>
+              All traffic to and from pixwora.store runs over encrypted HTTPS/TLS connections. Access to order and customer records is
+              restricted strictly to authorized personnel. Tax invoices and order records are retained as required by Indian GST and
+              accounting laws. Uploaded customer photos for custom printing can be purged upon request once your order is fulfilled.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Your Rights Over Your Data',
+        content: (
+          <>
+            <p>Under applicable Indian privacy and consumer protection frameworks, you have the right to:</p>
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-ink-soft">
+              <li>Request a copy of the personal information we hold about you.</li>
+              <li>Update or correct inaccurate delivery or contact details.</li>
+              <li>Request deletion of your account and personal data (except statutory tax records).</li>
+              <li>Opt out of marketing newsletters or promotional messages at any time.</li>
+            </ul>
+            <p className="mt-3">
+              To exercise these rights, email{' '}
+              <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline underline-offset-4">
+                support@pixwora.store
+              </a>{' '}
+              from your registered email address. We act on verified requests within 30 days.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Grievance Officer & Statutory Details',
+        content: (
+          <>
+            <p>In accordance with the Information Technology Act, 2000 and the Consumer Protection (E-Commerce) Rules, 2020:</p>
+            <div className="mt-3 rounded-xl border border-mint/20 bg-paper-deep/60 p-4 text-sm leading-relaxed text-ink-soft">
+              <p>
+                <strong className="text-ink">Grievance Officer:</strong> Dheekshith
+              </p>
+              <p className="mt-1">
+                <strong className="text-ink">Email:</strong>{' '}
+                <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline">
+                  support@pixwora.store
+                </a>
+              </p>
+              <p className="mt-1">
+                <strong className="text-ink">WhatsApp / Phone:</strong> +91 6281453660 / +91 7981793020
+              </p>
+              <p className="mt-1">
+                <strong className="text-ink">Working Hours:</strong> Monday to Saturday, 10:00 to 18:00 IST
+              </p>
+              <p className="mt-1">
+                <strong className="text-ink">Location:</strong> Hyderabad, Telangana, India
+              </p>
+            </div>
+          </>
+        ),
+      },
     ],
-    placeholderNotice: 'Founders: Replace this placeholder with your approved Privacy Policy.',
   },
   shipping: {
     title: 'Shipping & Delivery Policy',
-    points: [
-      'Delivery coverage across Hyderabad local areas and pan-India shipping',
-      'Standard dispatch times and delivery partner schedules',
-      'Protective cardboard and bubble packaging for vinyl stickers and art posters',
-      'Shipping fee calculations and delivery confirmation tracking',
+    slug: 'shipping',
+    subtitle: 'Everything you need to know about dispatch timelines, pan-India courier delivery coverage, and protective packaging.',
+    lastUpdated: '9 November 2026',
+    sections: [
+      {
+        title: 'Delivery Coverage & Serviceability',
+        content: (
+          <>
+            <p>
+              We deliver pan-India to over 24,000+ PIN codes across all Indian states and Union Territories through tier-1 courier partners
+              such as Shiprocket, Delhivery, and Xpressbees. Enter your 6-digit PIN code during checkout to verify delivery availability and
+              payment options for your location.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Dispatch & Delivery Timelines',
+        content: (
+          <>
+            <ul className="list-disc space-y-2 pl-5 text-ink-soft">
+              <li>
+                <strong className="text-ink">Dispatch Window:</strong> All orders are printed, laminated, quality-inspected, and dispatched
+                within <strong>24 to 48 hours</strong> (excluding Sundays and national holidays).
+              </li>
+              <li>
+                <strong className="text-ink">Metro Cities & Hyderabad Local:</strong> Typically delivered within 2 to 4 business days
+                post-dispatch.
+              </li>
+              <li>
+                <strong className="text-ink">Rest of India:</strong> Typically delivered within 4 to 7 business days post-dispatch.
+              </li>
+            </ul>
+            <p className="mt-3">
+              As soon as your parcel is dispatched, you will receive real-time courier tracking details via SMS, WhatsApp, and email.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Packaging & Transit Protection',
+        content: (
+          <>
+            <p>We take packaging seriously so your stickers and wall prints arrive in flawless condition:</p>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-ink-soft">
+              <li>
+                <strong className="text-ink">Die-Cut Stickers & Sticker Sheets:</strong> Enclosed in rigid, moisture-resistant protective
+                sleeves to prevent folding, creasing, or edge curling during transit.
+              </li>
+              <li>
+                <strong className="text-ink">Art Posters & Wall Packs:</strong> Shipped in thick, crush-resistant cylindrical cardboard
+                tubes or reinforced heavy-duty flat mailers with protective edge guards.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        title: 'Shipping Charges & Cash on Delivery',
+        content: (
+          <>
+            <p>
+              Prepaid orders qualify for free or promotional shipping rates as indicated during checkout. If Cash on Delivery (COD) is
+              selected, a nominal COD handling fee is clearly displayed before you place your order. COD orders may require a quick phone or
+              WhatsApp confirmation before dispatch to avoid fake delivery attempts.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Delayed or In-Transit Issues',
+        content: (
+          <>
+            <p>
+              While our courier partners maintain high delivery success rates, unforeseen logistical delays may occasionally arise due to
+              weather conditions, regional holidays, or transit disruptions. If your tracking status appears stalled for more than 48 hours,
+              contact our support team at{' '}
+              <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline underline-offset-4">
+                support@pixwora.store
+              </a>{' '}
+              or via WhatsApp at +91 6281453660, and we will coordinate directly with the courier hub.
+            </p>
+          </>
+        ),
+      },
     ],
-    placeholderNotice: 'Founders: Replace this placeholder with your approved Shipping and Delivery terms.',
   },
   returns: {
     title: 'Refund & Cancellation Policy',
-    points: [
-      'Customer cancellation rights for orders in PENDING status prior to processing',
-      'Guidelines for customized or personalized products once production begins',
-      'Damaged in transit, defective or misprinted item replacement procedures',
-      'Refund timelines for manual UPI payments and COD exceptions',
+    slug: 'returns',
+    subtitle: 'Clear, transparent, and fair policies on cancellations, damaged transit replacements, and refunds.',
+    lastUpdated: '9 November 2026',
+    sections: [
+      {
+        title: 'Order Cancellation Window',
+        content: (
+          <>
+            <p>
+              <strong className="text-ink">Standard Catalogue Orders:</strong> You can cancel your order directly from your account page
+              within <strong>12 hours</strong> of placement, or at any time before dispatch, whichever is earlier. Upon cancellation, a 100%
+              refund is processed immediately.
+            </p>
+            <p className="mt-3">
+              <strong className="text-ink">Custom Photo Stickers & Personalized Wall Packs:</strong> Because custom items are printed
+              exclusively for you, cancellations cannot be accepted once printing and laminating production has commenced.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Damaged, Defective, or Wrong Items',
+        content: (
+          <>
+            <p>
+              We stand behind the quality of every product we print. If your package arrives damaged in transit, with defective cutting, or
+              with incorrect items:
+            </p>
+            <ul className="mt-3 list-disc space-y-1.5 pl-5 text-ink-soft">
+              <li>
+                Notify us within <strong>48 hours</strong> of delivery by emailing{' '}
+                <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline">
+                  support@pixwora.store
+                </a>{' '}
+                or messaging our WhatsApp at +91 6281453660.
+              </li>
+              <li>Include a clear photograph or short unboxing video showing the damaged items and the shipping package.</li>
+              <li>
+                We will immediately arrange a <strong>free replacement</strong> or issue a <strong>100% full refund</strong>—no tedious return
+                shipping required!
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        title: 'Returns & Exchange Scope',
+        content: (
+          <>
+            <p>
+              Because die-cut vinyl stickers and art prints are sensitive adhesive goods that cannot be restocked once handled or peeled, we
+              do not accept returns for change of mind. However, for any defect in adhesive quality, print resolution, or finish, we will
+              gladly issue a replacement or refund.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Refund Timelines & Method',
+        content: (
+          <>
+            <ul className="list-disc space-y-2 pl-5 text-ink-soft">
+              <li>
+                <strong className="text-ink">Prepaid / UPI Orders:</strong> Refunds are credited directly back to the original bank account or
+                UPI ID within <strong>5 to 7 business days</strong>.
+              </li>
+              <li>
+                <strong className="text-ink">Cash on Delivery Orders:</strong> In the event of an approved refund on a delivered COD order, our
+                support team will request your preferred UPI ID or bank account details to transfer the refund directly.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        title: 'Customer Support Assistance',
+        content: (
+          <>
+            <p>
+              For any refund or cancellation queries, write to{' '}
+              <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline underline-offset-4">
+                support@pixwora.store
+              </a>{' '}
+              or chat with us on WhatsApp at +91 6281453660. We respond within 48 hours on working days (Monday to Saturday, 10:00 to 18:00
+              IST).
+            </p>
+          </>
+        ),
+      },
     ],
-    placeholderNotice: 'Founders: Replace this placeholder with your approved Refund and Cancellation policy.',
   },
 };
 
@@ -614,29 +1072,108 @@ policies['refund-cancellation'] = policies.returns;
 
 export function PolicyPage({ slug: propSlug }: { slug?: string } = {}) {
   const params = useParams();
-  const slug = propSlug ?? params.slug;
-  const policy = policies[slug ?? ''];
-  usePageMeta(policy ? policy.title : 'Policy not found');
+  const rawSlug = (propSlug ?? params.slug ?? 'terms').toLowerCase();
+  const policy = policies[rawSlug];
+  usePageMeta(policy ? `${policy.title} · ${brand.displayName}` : 'Policy not found');
   if (!policy) return <NotFoundPage />;
+
+  const tabs = [
+    { label: 'Terms of Service', slug: 'terms', icon: LuFileText, to: '/policies/terms' },
+    { label: 'Privacy Policy', slug: 'privacy', icon: LuShieldCheck, to: '/policies/privacy' },
+    { label: 'Shipping & Delivery', slug: 'shipping', icon: LuTruck, to: '/policies/shipping' },
+    { label: 'Refunds & Returns', slug: 'returns', icon: LuRotateCcw, to: '/policies/returns' },
+  ];
+
   return (
-    <Page title={policy.title} crumb={policy.title}>
-      <Notice tone="demo">
-        <strong>[PLACEHOLDER FOR STORE OWNER]</strong> — {policy.placeholderNotice}
-      </Notice>
-      <p className="font-semibold text-ink">This policy section will detail:</p>
-      <ul className="list-disc space-y-2.5 pl-6 text-ink-soft">
-        {policy.points.map((p) => (
-          <li key={p}>{p}</li>
-        ))}
-      </ul>
-      <div className="mt-8 rounded-xl border border-dashed border-ink/20 p-4 text-xs text-ink-soft">
-        <p className="font-bold text-ink">Owner Note:</p>
-        <p className="mt-1">
-          To finalize this policy, replace this placeholder with your verified legal copy. No arbitrary policies,
-          phone numbers or unconfirmed delivery terms are assumed by the system.
+    <div className="mx-auto max-w-4xl px-4 pt-8 pb-16 sm:px-6">
+      <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Legal', to: '/policies/terms' }, { label: policy.title }]} />
+
+      {/* Policy switcher tabs */}
+      <nav aria-label="Policy Navigation" className="mt-6 flex flex-wrap gap-2 border-b border-mint/20 pb-4">
+        {tabs.map((tab) => {
+          const isActive =
+            rawSlug === tab.slug ||
+            (tab.slug === 'shipping' && rawSlug === 'shipping-delivery') ||
+            (tab.slug === 'returns' && (rawSlug === 'refund' || rawSlug === 'refund-cancellation'));
+          const Icon = tab.icon;
+          return (
+            <Link
+              key={tab.slug}
+              to={tab.to}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+                isActive
+                  ? 'bg-paper-deep text-ink shadow-xs ring-1 ring-ink/15 font-bold'
+                  : 'text-ink-soft hover:bg-paper-deep/60 hover:text-ink'
+              }`}
+            >
+              <Icon className="size-4 text-cinema-red" />
+              <span>{tab.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Header */}
+      <header className="mt-8">
+        <div className="inline-flex items-center gap-2 rounded-full border border-mint/30 bg-paper-deep px-3 py-1 text-xs font-semibold uppercase tracking-wider text-ink-soft">
+          <span>Official Store Policy</span>
+          <span>•</span>
+          <span>Updated {policy.lastUpdated}</span>
+        </div>
+        <h1 className="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl text-ink">
+          {policy.title}
+        </h1>
+        <p className="mt-4 text-lg text-ink-soft leading-relaxed max-w-2xl">
+          {policy.subtitle}
         </p>
+      </header>
+
+      {/* Document Content */}
+      <div className="mt-10 space-y-8">
+        {policy.sections.map((sec, idx) => (
+          <section key={idx} className="rounded-2xl border border-mint/20 bg-paper/50 p-6 sm:p-8 shadow-xs">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-baseline gap-3">
+              <span className="font-mono text-sm sm:text-base font-extrabold text-cinema-red opacity-80">
+                {String(idx + 1).padStart(2, '0')}.
+              </span>
+              <span>{sec.title}</span>
+            </h2>
+            <div className="mt-4 space-y-4 text-base sm:text-lg text-ink/85 leading-relaxed">
+              {sec.content}
+            </div>
+          </section>
+        ))}
       </div>
-    </Page>
+
+      {/* Contact Card */}
+      <div className="mt-12 rounded-2xl border border-cinema-red/30 bg-paper-deep p-6 sm:p-8 shadow-sm">
+        <h3 className="text-xl font-bold text-ink flex items-center gap-2">
+          <LuMessageCircle className="size-5 text-cinema-red" />
+          <span>Questions about our policies?</span>
+        </h3>
+        <p className="mt-2 text-ink-soft text-base">
+          Our team is available Monday through Saturday, 10:00 to 18:00 IST. We reply to every inquiry promptly.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-4 text-sm font-semibold">
+          <a
+            href="mailto:support@pixwora.store"
+            className="flex items-center gap-2 rounded-xl bg-paper px-4 py-2.5 text-ink ring-1 ring-mint/30 hover:ring-cinema-red transition-all shadow-xs"
+          >
+            <LuMail className="size-4 text-cinema-red" />
+            <span>support@pixwora.store</span>
+          </a>
+          <a
+            href="https://wa.me/916281453660?text=Hi%20Pixwora%20team,%20I%20have%20a%20question%20regarding%20store%20policies"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 rounded-xl bg-emerald-500/10 px-4 py-2.5 text-emerald-800 dark:text-emerald-300 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20 transition-all shadow-xs"
+          >
+            <LuMessageCircle className="size-4 text-emerald-600 dark:text-emerald-400" />
+            <span>WhatsApp (+91 6281453660)</span>
+          </a>
+        </div>
+      </div>
+    </div>
   );
 }
 
