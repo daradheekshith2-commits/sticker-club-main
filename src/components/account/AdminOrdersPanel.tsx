@@ -156,36 +156,82 @@ export function AdminOrdersPanel() {
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   function resolveArtworkUrl(rawUrlOrId?: string | null, isDownload = false, fileName?: string | null): string {
-    if (!rawUrlOrId && !fileName) return '';
-    if (rawUrlOrId?.startsWith('http')) return rawUrlOrId;
+    const SUPABASE_STORAGE_PUBLIC_BASE = 'https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks';
+
+    // 1. If fileName is known, Supabase public URL is the permanent, authoritative source
     if (fileName) {
-      return `https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks/${fileName}`;
+      const cleanFileName = fileName.replace(/^\/+/, '');
+      return `${SUPABASE_STORAGE_PUBLIC_BASE}/${cleanFileName}`;
     }
-    if (rawUrlOrId && !rawUrlOrId.startsWith('/api')) {
-      if (apiUrl) {
-        let url = `${apiUrl}/api/uploads/artwork/${rawUrlOrId}/${isDownload ? 'download' : 'file'}`;
+
+    if (!rawUrlOrId) return '';
+
+    // 2. If it's a Supabase signed URL (/storage/v1/object/sign/artworks/...), convert to public URL
+    if (rawUrlOrId.includes('/storage/v1/object/sign/artworks/')) {
+      const pathPart = rawUrlOrId.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
+      if (pathPart) {
+        return `${SUPABASE_STORAGE_PUBLIC_BASE}/${pathPart}`;
+      }
+    }
+
+    // 3. If it's already a Supabase public artworks URL, strip query params
+    if (rawUrlOrId.includes('/storage/v1/object/public/artworks/')) {
+      return rawUrlOrId.split('?')[0];
+    }
+
+    // 4. If it's a relative API upload path
+    if (rawUrlOrId.startsWith('/api/uploads/artwork/')) {
+      const artworkId = rawUrlOrId.replace('/api/uploads/artwork/', '').split('/')[0];
+      if (apiUrl && !apiUrl.includes('localhost')) {
+        let url = `${apiUrl}/api/uploads/artwork/${artworkId}/${isDownload ? 'download' : 'file'}`;
         if (token && !url.includes('token=')) {
           url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
         }
         return url;
       }
-      return `https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks/${rawUrlOrId}`;
+      return `${SUPABASE_STORAGE_PUBLIC_BASE}/${artworkId}`;
     }
-    let url = rawUrlOrId || '';
-    if (token && !url.includes('token=')) {
-      url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
+
+    // 5. If it contains a folder path (e.g. userId/123-filename.jpg)
+    if (rawUrlOrId.includes('/') && !rawUrlOrId.startsWith('blob:')) {
+      if (rawUrlOrId.startsWith('http://') || rawUrlOrId.startsWith('https://')) {
+        return rawUrlOrId;
+      }
+      return `${SUPABASE_STORAGE_PUBLIC_BASE}/${rawUrlOrId.replace(/^\/+/, '')}`;
     }
-    return url;
+
+    // 6. If it's an external full URL
+    if (rawUrlOrId.startsWith('http://') || rawUrlOrId.startsWith('https://') || rawUrlOrId.startsWith('blob:')) {
+      return rawUrlOrId;
+    }
+
+    // 7. Fallback to apiUrl or Supabase storage
+    if (apiUrl && !apiUrl.includes('localhost')) {
+      let url = `${apiUrl}/api/uploads/artwork/${rawUrlOrId}/${isDownload ? 'download' : 'file'}`;
+      if (token && !url.includes('token=')) {
+        url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
+      }
+      return url;
+    }
+    return `${SUPABASE_STORAGE_PUBLIC_BASE}/${rawUrlOrId}`;
   }
 
   function resolveProductImageUrl(url?: string | null): string | undefined {
     if (!url) return undefined;
+    const SUPABASE_STORAGE_PUBLIC_BASE = 'https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks';
     let resolved = url;
+    if (resolved.includes('/storage/v1/object/sign/artworks/')) {
+      const pathPart = resolved.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
+      if (pathPart) return `${SUPABASE_STORAGE_PUBLIC_BASE}/${pathPart}`;
+    }
+    if (resolved.includes('/storage/v1/object/public/artworks/')) {
+      return resolved.split('?')[0];
+    }
     if (resolved.startsWith('/') && apiUrl && !resolved.startsWith('http')) {
       resolved = `${apiUrl}${resolved}`;
     }
     if (resolved.includes('/api/uploads/artwork') && token && !resolved.includes('token=')) {
-      return `${resolved}${resolved.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`;
+      return `${resolved}${resolved.includes('?') ? '&' : '?'}` + `token=${encodeURIComponent(token)}`;
     }
     return resolved;
   }
@@ -947,11 +993,13 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <span className="text-xs font-semibold text-ink-soft">Purchased Artwork:</span>
                     <div className="flex flex-wrap items-center gap-2">
-                      {order.items.map((i) => {
+                      {order.items.map((i, iIdx) => {
                         const product = i.productId ? getProductById(i.productId) : undefined;
                         const productImg = product?.images?.[0]?.src;
-                        const rawImg = i.imageUrl ? resolveProductImageUrl(i.imageUrl) : productImg;
-                        const imgUrl = rawImg && !brokenImages[i.id] ? rawImg : undefined;
+                        const matchingCustom = order.customOrders?.find((co) => co.artworkId === (i.metadata as any)?.artworkId) || order.customOrders?.[iIdx];
+                        const customArtworkUrl = matchingCustom ? resolveArtworkUrl(matchingCustom.previewUrl || matchingCustom.artworkId, false, matchingCustom.artwork?.fileName) : undefined;
+                        const rawImg = i.imageUrl ? resolveProductImageUrl(i.imageUrl) : (customArtworkUrl || productImg);
+                        const imgUrl = rawImg && !brokenImages[i.id] ? rawImg : (customArtworkUrl && !brokenImages[`custom_${i.id}`] ? customArtworkUrl : undefined);
                         return (
                           <button
                             key={i.id}
@@ -960,10 +1008,12 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                             onClick={() => {
                               setModalImgFailed(false);
                               setEnlargedImage({
-                                url: rawImg,
+                                url: imgUrl || rawImg,
                                 product,
                                 title: i.nameSnapshot,
                                 subtitle: `${i.variantLabel ? i.variantLabel + ' · ' : ''}Qty: ${i.quantity} · Unit: ₹${i.unitPrice}`,
+                                downloadUrl: customArtworkUrl,
+                                downloadName: matchingCustom?.artwork?.originalName || 'artwork-production',
                               });
                             }}
                             className="group relative h-10 w-10 overflow-hidden rounded-lg border border-ink/15 bg-paper transition hover:border-lime focus:outline-none flex items-center justify-center"
@@ -992,9 +1042,8 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                         );
                       })}
                       {order.customOrders?.map((co) => {
-                        const stickerArtworkUrl =
-                          co.previewUrl ||
-                          resolveArtworkUrl(co.artworkId, false, co.artwork?.fileName);
+                        const stickerArtworkUrl = resolveArtworkUrl(co.previewUrl || co.artworkId, false, co.artwork?.fileName);
+                        const hasCustomImg = Boolean(stickerArtworkUrl && !brokenImages[`co_${co.id}`]);
                         return (
                           <button
                             key={co.id}
@@ -1005,18 +1054,23 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                                 url: stickerArtworkUrl,
                                 title: `Custom Order Design`,
                                 subtitle: `Original: ${co.artwork?.originalName || 'artwork'} · ${co.artwork?.width || '—'}×${co.artwork?.height || '—'} px`,
-                                downloadUrl: co.previewUrl || resolveArtworkUrl(co.artworkId, true, co.artwork?.fileName),
+                                downloadUrl: resolveArtworkUrl(co.previewUrl || co.artworkId, true, co.artwork?.fileName),
                                 downloadName: co.artwork?.originalName || 'artwork-production',
                               })
                             }
-                            className="group relative h-10 w-10 overflow-hidden rounded-lg border-2 border-lime/60 bg-paper transition hover:scale-105"
+                            className="group relative h-10 w-10 overflow-hidden rounded-lg border-2 border-lime/60 bg-paper transition hover:scale-105 flex items-center justify-center"
                           >
-                            <img
-                              src={stickerArtworkUrl}
-                              alt="Custom design"
-                              className="h-full w-full object-contain"
-                              loading="lazy"
-                            />
+                            {hasCustomImg ? (
+                              <img
+                                src={stickerArtworkUrl}
+                                alt="Custom design"
+                                className="h-full w-full object-contain"
+                                loading="lazy"
+                                onError={() => setBrokenImages((prev) => ({ ...prev, [`co_${co.id}`]: true }))}
+                              />
+                            ) : (
+                              <span className="text-[10px] font-bold text-lime">ART</span>
+                            )}
                             <span className="absolute top-0 right-0 bg-lime px-0.5 text-[8px] font-extrabold text-paper uppercase">
                               Custom
                             </span>
@@ -1136,11 +1190,13 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-ink/10">
-                              {order.items.map((i) => {
+                              {order.items.map((i, iIdx) => {
                                 const product = i.productId ? getProductById(i.productId) : undefined;
                                 const productImg = product?.images?.[0]?.src;
-                                const rawImg = i.imageUrl ? resolveProductImageUrl(i.imageUrl) : productImg;
-                                const resolvedImg = rawImg && !brokenImages[i.id] ? rawImg : undefined;
+                                const matchingCustom = order.customOrders?.find((co) => co.artworkId === (i.metadata as any)?.artworkId) || order.customOrders?.[iIdx];
+                                const customArtworkUrl = matchingCustom ? resolveArtworkUrl(matchingCustom.previewUrl || matchingCustom.artworkId, false, matchingCustom.artwork?.fileName) : undefined;
+                                const rawImg = i.imageUrl ? resolveProductImageUrl(i.imageUrl) : (customArtworkUrl || productImg);
+                                const resolvedImg = rawImg && !brokenImages[i.id] ? rawImg : (customArtworkUrl && !brokenImages[`custom_${i.id}`] ? customArtworkUrl : undefined);
                                 return (
                                   <tr key={i.id} className="hover:bg-paper/70">
                                     <td className="py-2">
@@ -1227,16 +1283,8 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                                 co.artwork.height &&
                                 (co.artwork.width < minDpiPixels || co.artwork.height < minDpiPixels);
 
-                              const downloadUrl =
-                                co.previewUrl ||
-                                (co.artworkId
-                                  ? resolveArtworkUrl(co.artworkId, true, co.artwork?.fileName)
-                                  : null);
-                              const artworkPreview =
-                                co.previewUrl ||
-                                (co.artworkId
-                                  ? resolveArtworkUrl(co.artworkId, false, co.artwork?.fileName)
-                                  : null);
+                              const downloadUrl = resolveArtworkUrl(co.previewUrl || co.artworkId, true, co.artwork?.fileName);
+                              const artworkPreview = resolveArtworkUrl(co.previewUrl || co.artworkId, false, co.artwork?.fileName);
 
                               return (
                                 <div
@@ -1377,14 +1425,8 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                                           const fill = slot.fill || {};
                                           const matchingArtwork = co.artworks?.find((a) => a.slotId === slot.slotId)?.artwork;
                                           const artworkId = fill.artworkId || matchingArtwork?.id;
-                                          const slotThumb =
-                                            fill.previewUrl ||
-                                            (artworkId
-                                              ? resolveArtworkUrl(artworkId, false, matchingArtwork?.fileName)
-                                              : fill.url || '/vite.svg');
-                                          const slotDl =
-                                            fill.previewUrl ||
-                                            (artworkId ? resolveArtworkUrl(artworkId, true, matchingArtwork?.fileName) : null);
+                                          const slotThumb = resolveArtworkUrl(fill.previewUrl || artworkId, false, matchingArtwork?.fileName) || fill.url || '/vite.svg';
+                                           const slotDl = resolveArtworkUrl(fill.previewUrl || artworkId, true, matchingArtwork?.fileName);
 
                                           return (
                                             <div

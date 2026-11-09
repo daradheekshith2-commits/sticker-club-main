@@ -181,36 +181,82 @@ export function CustomerOrdersPanel() {
   }
 
   function resolveArtworkUrl(rawUrlOrId?: string | null, isDownload = false, fileName?: string | null): string {
-    if (!rawUrlOrId && !fileName) return '';
-    if (rawUrlOrId?.startsWith('http')) return rawUrlOrId;
+    const SUPABASE_STORAGE_PUBLIC_BASE = 'https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks';
+
+    // 1. If fileName is known, Supabase public URL is the permanent, authoritative source
     if (fileName) {
-      return `https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks/${fileName}`;
+      const cleanFileName = fileName.replace(/^\/+/, '');
+      return `${SUPABASE_STORAGE_PUBLIC_BASE}/${cleanFileName}`;
     }
-    if (rawUrlOrId && !rawUrlOrId.startsWith('/api')) {
-      if (apiUrl) {
-        let url = `${apiUrl}/api/uploads/artwork/${rawUrlOrId}/${isDownload ? 'download' : 'file'}`;
+
+    if (!rawUrlOrId) return '';
+
+    // 2. If it's a Supabase signed URL (/storage/v1/object/sign/artworks/...), convert to public URL
+    if (rawUrlOrId.includes('/storage/v1/object/sign/artworks/')) {
+      const pathPart = rawUrlOrId.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
+      if (pathPart) {
+        return `${SUPABASE_STORAGE_PUBLIC_BASE}/${pathPart}`;
+      }
+    }
+
+    // 3. If it's already a Supabase public artworks URL, strip query params
+    if (rawUrlOrId.includes('/storage/v1/object/public/artworks/')) {
+      return rawUrlOrId.split('?')[0];
+    }
+
+    // 4. If it's a relative API upload path
+    if (rawUrlOrId.startsWith('/api/uploads/artwork/')) {
+      const artworkId = rawUrlOrId.replace('/api/uploads/artwork/', '').split('/')[0];
+      if (apiUrl && !apiUrl.includes('localhost')) {
+        let url = `${apiUrl}/api/uploads/artwork/${artworkId}/${isDownload ? 'download' : 'file'}`;
         if (token && !url.includes('token=')) {
           url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
         }
         return url;
       }
-      return `https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks/${rawUrlOrId}`;
+      return `${SUPABASE_STORAGE_PUBLIC_BASE}/${artworkId}`;
     }
-    let url = rawUrlOrId || '';
-    if (token && !url.includes('token=')) {
-      url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
+
+    // 5. If it contains a folder path (e.g. userId/123-filename.jpg)
+    if (rawUrlOrId.includes('/') && !rawUrlOrId.startsWith('blob:')) {
+      if (rawUrlOrId.startsWith('http://') || rawUrlOrId.startsWith('https://')) {
+        return rawUrlOrId;
+      }
+      return `${SUPABASE_STORAGE_PUBLIC_BASE}/${rawUrlOrId.replace(/^\/+/, '')}`;
     }
-    return url;
+
+    // 6. If it's an external full URL
+    if (rawUrlOrId.startsWith('http://') || rawUrlOrId.startsWith('https://') || rawUrlOrId.startsWith('blob:')) {
+      return rawUrlOrId;
+    }
+
+    // 7. Fallback to apiUrl or Supabase storage
+    if (apiUrl && !apiUrl.includes('localhost')) {
+      let url = `${apiUrl}/api/uploads/artwork/${rawUrlOrId}/${isDownload ? 'download' : 'file'}`;
+      if (token && !url.includes('token=')) {
+        url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
+      }
+      return url;
+    }
+    return `${SUPABASE_STORAGE_PUBLIC_BASE}/${rawUrlOrId}`;
   }
 
   function resolveProductImageUrl(url?: string | null): string | undefined {
     if (!url) return undefined;
+    const SUPABASE_STORAGE_PUBLIC_BASE = 'https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks';
     let resolved = url;
+    if (resolved.includes('/storage/v1/object/sign/artworks/')) {
+      const pathPart = resolved.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
+      if (pathPart) return `${SUPABASE_STORAGE_PUBLIC_BASE}/${pathPart}`;
+    }
+    if (resolved.includes('/storage/v1/object/public/artworks/')) {
+      return resolved.split('?')[0];
+    }
     if (resolved.startsWith('/') && apiUrl && !resolved.startsWith('http')) {
       resolved = `${apiUrl}${resolved}`;
     }
     if (resolved.includes('/api/uploads/artwork') && token && !resolved.includes('token=')) {
-      return `${resolved}${resolved.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`;
+      return `${resolved}${resolved.includes('?') ? '&' : '?'}` + `token=${encodeURIComponent(token)}`;
     }
     return resolved;
   }
@@ -595,11 +641,13 @@ export function CustomerOrdersPanel() {
                   Purchased Items ({o.items.length})
                 </span>
                 <div className="mt-2 space-y-2.5">
-                  {o.items.map((i) => {
+                  {o.items.map((i, iIdx) => {
                     const product = i.productId ? getProductById(i.productId) : undefined;
                     const productImg = product?.images?.[0]?.src;
-                    const rawImg = i.imageUrl ? resolveProductImageUrl(i.imageUrl) : productImg;
-                    const resolvedImg = rawImg && !brokenImages[i.id] ? rawImg : undefined;
+                    const matchingCustom = o.customOrders?.find((co) => co.artworkId === (i.metadata as any)?.artworkId) || o.customOrders?.[iIdx];
+                    const customArtworkUrl = matchingCustom ? resolveArtworkUrl(matchingCustom.previewUrl || matchingCustom.artworkId, false, matchingCustom.artwork?.fileName) : undefined;
+                    const rawImg = i.imageUrl ? resolveProductImageUrl(i.imageUrl) : (customArtworkUrl || productImg);
+                    const resolvedImg = rawImg && !brokenImages[i.id] ? rawImg : (customArtworkUrl && !brokenImages[`custom_${i.id}`] ? customArtworkUrl : undefined);
                     return (
                       <div key={i.id} className="flex items-center justify-between gap-3 text-xs">
                         <div className="flex items-center gap-3">
@@ -670,16 +718,8 @@ export function CustomerOrdersPanel() {
                       const isPack = config.type === 'custom-pack';
 
                       const physicalDim = isSticker ? PHYSICAL_SIZES[config.sizeId] || config.sizeId : null;
-                      const artworkPreview =
-                        co.previewUrl ||
-                        (co.artworkId
-                          ? resolveArtworkUrl(co.artworkId, false, co.artwork?.fileName)
-                          : null);
-                      const artworkDownload =
-                        co.previewUrl ||
-                        (co.artworkId
-                          ? resolveArtworkUrl(co.artworkId, true, co.artwork?.fileName)
-                          : null);
+                      const artworkPreview = resolveArtworkUrl(co.previewUrl || co.artworkId, false, co.artwork?.fileName);
+                      const artworkDownload = resolveArtworkUrl(co.previewUrl || co.artworkId, true, co.artwork?.fileName);
 
                       return (
                         <div

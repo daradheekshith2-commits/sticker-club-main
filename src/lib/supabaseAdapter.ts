@@ -18,6 +18,40 @@ export interface AdapterResult<T = any> {
  * Ensures all UI data entries (auth, addresses, orders, payments, ideas, votes, passport, uploads)
  * are committed directly into Supabase database tables with Row Level Security.
  */
+export function sanitizeOrderArtworks(orders: any[]): any[] {
+  const PUBLIC_STORAGE_BASE = 'https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks';
+  return orders.map((o) => {
+    if (!o) return o;
+    const customOrders = (o.customOrders || []).map((co: any) => {
+      let previewUrl = co.previewUrl;
+      if (co.artwork?.fileName) {
+        previewUrl = `${PUBLIC_STORAGE_BASE}/${co.artwork.fileName.replace(/^\/+/, '')}`;
+      } else if (previewUrl && previewUrl.includes('/storage/v1/object/sign/artworks/')) {
+        const pathPart = previewUrl.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
+        if (pathPart) previewUrl = `${PUBLIC_STORAGE_BASE}/${pathPart}`;
+      }
+      return { ...co, previewUrl };
+    });
+
+    const items = (o.items || []).map((item: any, idx: number) => {
+      let imageUrl = item.imageUrl;
+      if (imageUrl && imageUrl.includes('/storage/v1/object/sign/artworks/')) {
+        const pathPart = imageUrl.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
+        if (pathPart) imageUrl = `${PUBLIC_STORAGE_BASE}/${pathPart}`;
+      }
+      if (!imageUrl || imageUrl.startsWith('blob:')) {
+        const matchingCo = customOrders.find((co: any) => co.artworkId === item.metadata?.artworkId) || customOrders[idx];
+        if (matchingCo?.previewUrl) {
+          imageUrl = matchingCo.previewUrl;
+        }
+      }
+      return { ...item, imageUrl };
+    });
+
+    return { ...o, customOrders, items };
+  });
+}
+
 export async function handleSupabaseRequest<T>(
   path: string,
   options: RequestInit = {},
@@ -513,7 +547,10 @@ export async function handleSupabaseRequest<T>(
         }
 
         let lineArtworkUrl: string | null = line.previewUrl || null;
-        if (line.type === 'custom-sticker' && line.artworkId && !lineArtworkUrl) {
+        if (lineArtworkUrl && lineArtworkUrl.includes('/storage/v1/object/sign/artworks/')) {
+          lineArtworkUrl = lineArtworkUrl.replace('/storage/v1/object/sign/artworks/', '/storage/v1/object/public/artworks/').split('?')[0];
+        }
+        if (line.artworkId && (!lineArtworkUrl || lineArtworkUrl.startsWith('blob:'))) {
           const { data: artRow } = await supabase.from('CustomArtwork').select('fileName').eq('id', line.artworkId).maybeSingle();
           if (artRow?.fileName) {
             lineArtworkUrl = supabase.storage.from('artworks').getPublicUrl(artRow.fileName).data.publicUrl;
@@ -641,8 +678,10 @@ export async function handleSupabaseRequest<T>(
       for (const cl of customLines) {
         let artworkId = cl.artworkId || null;
         let previewUrl = cl.previewUrl || null;
-
-        if (artworkId && !previewUrl) {
+        if (previewUrl && previewUrl.includes('/storage/v1/object/sign/artworks/')) {
+          previewUrl = previewUrl.replace('/storage/v1/object/sign/artworks/', '/storage/v1/object/public/artworks/').split('?')[0];
+        }
+        if (artworkId && (!previewUrl || previewUrl.startsWith('blob:'))) {
           const { data: artRow } = await supabase
             .from('CustomArtwork')
             .select('fileName')
@@ -826,7 +865,7 @@ export async function handleSupabaseRequest<T>(
       .order('createdAt', { ascending: false });
 
     if (error) return { handled: true, error: error.message, status: 400 };
-    return { handled: true, data: (data || []) as unknown as T };
+    return { handled: true, data: sanitizeOrderArtworks(data || []) as unknown as T };
   }
 
   // 10. Cancel Order (/api/me/orders/:id/cancel)
@@ -1156,7 +1195,7 @@ export async function handleSupabaseRequest<T>(
         .select('*, items:OrderItem(*), payment:Payment(*), submissions:PaymentSubmission(*), events:OrderEvent(*), user:User(id, name, email, phone), customOrders:CustomOrder(*, artwork:CustomArtwork(*))')
         .order('createdAt', { ascending: false });
       if (error) return { handled: true, error: error.message, status: 400 };
-      return { handled: true, data: (data || []) as unknown as T };
+      return { handled: true, data: sanitizeOrderArtworks(data || []) as unknown as T };
     }
 
     // 14.1 Admin COD Collection (/api/admin/orders/:id/cod-collected)
@@ -2121,9 +2160,9 @@ export async function handleSupabaseMultipart<T>(
       return { handled: true, error: `Storage upload failed: ${uploadError.message}`, status: 500 };
     }
 
-    // Generate signed URL (expires in 1 hour) for secure access
-    const { data: signedData } = await supabase.storage.from('artworks').createSignedUrl(fileName, 3600);
-    const artworkUrl = signedData?.signedUrl || supabase.storage.from('artworks').getPublicUrl(fileName).data.publicUrl;
+    // Permanent public URL for store operations (does not expire)
+    const { data: publicData } = supabase.storage.from('artworks').getPublicUrl(fileName);
+    const artworkUrl = publicData.publicUrl;
     const artworkId = crypto.randomUUID();
 
     // Record in public."CustomArtwork"
