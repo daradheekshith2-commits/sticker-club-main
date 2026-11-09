@@ -548,6 +548,11 @@ export function ContactPage() {
               </a>
             </li>
           )}
+          <li>
+            <a href="tel:8019345200" className="flex items-center gap-3 rounded-2xl border-2 border-ink bg-white p-5 font-bold hover:bg-lime">
+              <LuPhone aria-hidden className="size-6" /> +91 8019345200
+            </a>
+          </li>
           {wa && (
             <li>
               <a href={wa} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-2xl border-2 border-ink bg-white p-5 font-bold hover:bg-lime">
@@ -714,11 +719,36 @@ const policies: Record<string, PolicyDoc> = {
             </p>
             <p className="mt-3">
               Before initiating any formal legal proceedings, please contact us at{' '}
-              <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline underline-offset-4">
-                support@pixwora.store
+              <a href="mailto:pixworastore@gmail.com" className="text-cinema-red font-semibold underline underline-offset-4">
+                pixworastore@gmail.com
               </a>
               . Most concerns stem from transit delays or simple misunderstandings and can be resolved quickly and amicably.
             </p>
+          </>
+        ),
+      },
+      {
+        title: 'Customer Support & Inquiries',
+        content: (
+          <>
+            <p>For any questions regarding these terms, orders, or policies:</p>
+            <div className="mt-3 rounded-xl border border-mint/20 bg-paper-deep/60 p-4 text-sm leading-relaxed text-ink-soft">
+              <p>
+                <strong className="text-ink">Email:</strong>{' '}
+                <a href="mailto:pixworastore@gmail.com" className="text-cinema-red font-semibold underline">
+                  pixworastore@gmail.com
+                </a>
+              </p>
+              <p className="mt-1">
+                <strong className="text-ink">WhatsApp / Phone:</strong> +91 8019345200 / +91 7981793020
+              </p>
+              <p className="mt-1">
+                <strong className="text-ink">Working Hours:</strong> Monday to Saturday, 10:00 to 18:00 IST
+              </p>
+              <p className="mt-1">
+                <strong className="text-ink">Location:</strong> Hyderabad, Telangana, India
+              </p>
+            </div>
           </>
         ),
       },
@@ -843,8 +873,8 @@ const policies: Record<string, PolicyDoc> = {
             </ul>
             <p className="mt-3">
               To exercise these rights, email{' '}
-              <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline underline-offset-4">
-                support@pixwora.store
+              <a href="mailto:pixworastore@gmail.com" className="text-cinema-red font-semibold underline underline-offset-4">
+                pixworastore@gmail.com
               </a>{' '}
               from your registered email address. We act on verified requests within 30 days.
             </p>
@@ -862,12 +892,12 @@ const policies: Record<string, PolicyDoc> = {
               </p>
               <p className="mt-1">
                 <strong className="text-ink">Email:</strong>{' '}
-                <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline">
-                  support@pixwora.store
+                <a href="mailto:pixworastore@gmail.com" className="text-cinema-red font-semibold underline">
+                  pixworastore@gmail.com
                 </a>
               </p>
               <p className="mt-1">
-                <strong className="text-ink">WhatsApp / Phone:</strong> +91 6281453660 / +91 7981793020
+                <strong className="text-ink">WhatsApp / Phone:</strong> +91 8019345200 / +91 7981793020
               </p>
               <p className="mt-1">
                 <strong className="text-ink">Working Hours:</strong> Monday to Saturday, 10:00 to 18:00 IST
@@ -960,10 +990,10 @@ const policies: Record<string, PolicyDoc> = {
               While our courier partners maintain high delivery success rates, unforeseen logistical delays may occasionally arise due to
               weather conditions, regional holidays, or transit disruptions. If your tracking status appears stalled for more than 48 hours,
               contact our support team at{' '}
-              <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline underline-offset-4">
-                support@pixwora.store
+              <a href="mailto:pixworastore@gmail.com" className="text-cinema-red font-semibold underline underline-offset-4">
+                pixworastore@gmail.com
               </a>{' '}
-              or via WhatsApp at +91 6281453660, and we will coordinate directly with the courier hub.
+              or via WhatsApp at +91 7981793020, and we will coordinate directly with the courier hub.
             </p>
           </>
         ),
@@ -1003,10 +1033,10 @@ const policies: Record<string, PolicyDoc> = {
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-ink-soft">
               <li>
                 Notify us within <strong>48 hours</strong> of delivery by emailing{' '}
-                <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline">
-                  support@pixwora.store
+                <a href="mailto:pixworastore@gmail.com" className="text-cinema-red font-semibold underline">
+                  pixworastore@gmail.com
                 </a>{' '}
-                or messaging our WhatsApp at +91 6281453660.
+                or messaging our WhatsApp at +91 7981793020.
               </li>
               <li>Include a clear photograph or short unboxing video showing the damaged items and the shipping package.</li>
               <li>
@@ -1052,10 +1082,10 @@ const policies: Record<string, PolicyDoc> = {
           <>
             <p>
               For any refund or cancellation queries, write to{' '}
-              <a href="mailto:support@pixwora.store" className="text-cinema-red font-semibold underline underline-offset-4">
-                support@pixwora.store
+              <a href="mailto:pixworastore@gmail.com" className="text-cinema-red font-semibold underline underline-offset-4">
+                pixworastore@gmail.com
               </a>{' '}
-              or chat with us on WhatsApp at +91 6281453660. We respond within 48 hours on working days (Monday to Saturday, 10:00 to 18:00
+              or chat with us on WhatsApp / Phone at +91 8019345200 / +91 7981793020. We respond within 48 hours on working days (Monday to Saturday, 10:00 to 18:00
               IST).
             </p>
           </>
@@ -1156,20 +1186,27 @@ export function PolicyPage({ slug: propSlug }: { slug?: string } = {}) {
         </p>
         <div className="mt-6 flex flex-wrap gap-4 text-sm font-semibold">
           <a
-            href="mailto:support@pixwora.store"
+            href="mailto:pixworastore@gmail.com"
             className="flex items-center gap-2 rounded-xl bg-paper px-4 py-2.5 text-ink ring-1 ring-mint/30 hover:ring-cinema-red transition-all shadow-xs"
           >
             <LuMail className="size-4 text-cinema-red" />
-            <span>support@pixwora.store</span>
+            <span>pixworastore@gmail.com</span>
           </a>
           <a
-            href="https://wa.me/916281453660?text=Hi%20Pixwora%20team,%20I%20have%20a%20question%20regarding%20store%20policies"
+            href="https://wa.me/917981793020?text=Hi%20Pixwora%20team,%20I%20have%20a%20question%20regarding%20store%20policies"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 rounded-xl bg-emerald-500/10 px-4 py-2.5 text-emerald-800 dark:text-emerald-300 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20 transition-all shadow-xs"
           >
             <LuMessageCircle className="size-4 text-emerald-600 dark:text-emerald-400" />
-            <span>WhatsApp (+91 6281453660)</span>
+            <span>WhatsApp (+91 7981793020)</span>
+          </a>
+          <a
+            href="tel:8019345200"
+            className="flex items-center gap-2 rounded-xl bg-paper px-4 py-2.5 text-ink ring-1 ring-mint/30 hover:ring-cinema-red transition-all shadow-xs"
+          >
+            <LuPhone className="size-4 text-cinema-red" />
+            <span>+91 8019345200</span>
           </a>
         </div>
       </div>

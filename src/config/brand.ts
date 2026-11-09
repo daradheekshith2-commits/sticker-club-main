@@ -40,15 +40,15 @@ export const brand = {
 
   contact: {
     /** e.g. 'hello@yourbrand.in' — leave null until the inbox exists. */
-    email: 'support@pixwora.store' as string | null,
+    email: 'pixworastore@gmail.com' as string | null,
     /** e.g. 'https://instagram.com/yourbrand' */
     instagramUrl: 'https://www.instagram.com/pixwora.store/?hl=en' as string | null,
     /** e.g. '@yourbrand' */
     instagramHandle: '@pixwora.store' as string | null,
     /** International format without '+', e.g. '919876543210'. Null until a business number is set up. */
-    whatsappNumber: '916281453660' as string | null,
+    whatsappNumber: '917981793020' as string | null,
     /** Contact phone number */
-    phone: '6281453660' as string | null,
+    phone: '7981793020' as string | null,
     otherSocials: [] as SocialLink[],
   },
 
