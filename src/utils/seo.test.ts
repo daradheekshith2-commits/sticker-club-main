@@ -73,6 +73,30 @@ test('index.html contains complete head metadata and schema', () => {
   assert.ok(html.includes('"@type": "WebSite"'), 'Must contain WebSite schema');
   assert.ok(html.includes('"@type": "SearchAction"'), 'Must contain SearchAction schema');
   assert.ok(html.includes('<h1>'), 'Must contain fallback H1 for crawlers');
+
+  // Verify Google Site Names alternateName
+  assert.ok(html.includes('"alternateName"'), 'Must contain alternateName in WebSite schema');
+  assert.ok(html.includes('"PIXWORA"'), 'Must include PIXWORA in alternateName');
+  assert.ok(html.includes('"Pixwora Store"'), 'Must include Pixwora Store in alternateName');
+  assert.ok(html.includes('"Pixwora India"'), 'Must include Pixwora India in alternateName');
+  assert.ok(html.includes('"Pixwora Stickers"'), 'Must include Pixwora Stickers in alternateName');
+
+  // Verify multi-resolution Google-compliant favicons
+  assert.ok(html.includes('href="/favicon-48x48.png"'), 'Must declare 48x48 search favicon');
+  assert.ok(html.includes('href="/favicon-96x96.png"'), 'Must declare 96x96 search favicon');
+  assert.ok(html.includes('href="/favicon-192x192.png"'), 'Must declare 192x192 search favicon');
+  assert.ok(html.includes('href="/apple-touch-icon.png"'), 'Must declare apple-touch-icon');
+  assert.ok(html.includes('href="/favicon.ico"'), 'Must declare fallback favicon.ico');
+
+  // Verify single standardized JSON-LD script ID
+  assert.equal(html.split('id="pixwora-page-ld-json"').length, 2, 'Must have exactly one JSON-LD block with ID pixwora-page-ld-json');
+  assert.ok(!html.includes('id="pixwora-ld-json"'), 'Must not have legacy duplicate script tag ID');
+
+  // Verify refined meta description length (around 150-155 characters)
+  const descMatch = html.match(/<meta\s+name=["']description["']\s+content=["'](.*?)["']/);
+  assert.ok(descMatch, 'Must find meta description');
+  assert.ok(descMatch[1].length <= 160 && descMatch[1].length >= 130, 'Meta description should be within 130-160 characters');
+  assert.ok(descMatch[1].startsWith('Pixwora'), 'Meta description should lead with brand name Pixwora');
 });
 
 test('Dynamic product handler serves 200 with schema for valid products and 404 with noindex for unknown slugs', async () => {
@@ -107,6 +131,8 @@ test('Dynamic product handler serves 200 with schema for valid products and 404 
   assert.ok(outLive.body.includes('https://www.pixwora.store/product/iron-man'));
   assert.ok(outLive.body.includes('"@type": "Product"'));
   assert.ok(outLive.body.includes('"@type": "BreadcrumbList"'));
+  assert.equal(outLive.body.split('id="pixwora-page-ld-json"').length, 2, 'Product page must have exactly one JSON-LD block');
+  assert.ok(!outLive.body.includes('"@type": "WebSite"'), 'Product page JSON-LD must replace homepage WebSite schema');
   assert.ok(outLive.body.includes('iron man'));
 
   // 2. Live Supabase published product test (og)

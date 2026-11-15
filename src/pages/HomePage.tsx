@@ -394,6 +394,7 @@ export function HomePage() {
         '@id': `${siteOrigin}/#website`,
         url: `${siteOrigin}/`,
         name: brand.displayName,
+        alternateName: ['PIXWORA', 'Pixwora Store', 'Pixwora India', 'Pixwora Stickers'],
         description: 'Buy original laptop stickers, anime stickers, aesthetic decals and wall posters online in India.',
         publisher: {
           '@id': `${siteOrigin}/#organization`,
@@ -409,7 +410,7 @@ export function HomePage() {
 
   usePageMeta({
     title: 'PIXWORA — Original Stickers & Posters | Buy Online India',
-    description: 'Original waterproof vinyl stickers and 300 GSM matte wall posters for students. Mini stickers, sheets, packs, anime decals and custom printing. Student-run brand from Hyderabad, India.',
+    description: 'Pixwora is your go-to Indian store for original waterproof stickers, 300 GSM wall posters, and custom sticker printing. Student-run brand from Hyderabad.',
     canonical: `${siteOrigin}/`,
     schema: homeSchema,
   });

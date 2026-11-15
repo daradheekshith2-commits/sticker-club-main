@@ -190,9 +190,13 @@ export default async function handler(req: any, res: any) {
   template = template.replace(/<meta\s+name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*>/i, `<meta name="twitter:description" content="${escapeHtml(metaDescription)}" />`);
   template = template.replace(/<meta\s+name=["']twitter:image["'][^>]*content=["'][^"']*["'][^>]*>/i, `<meta name="twitter:image" content="${escapeHtml(fullImgUrl)}" />`);
 
-  // Inject JSON-LD Schema
+  // Inject JSON-LD Schema (replace template schema if present, otherwise insert before </head>)
   const schemaScript = `\n    <script id="pixwora-page-ld-json" type="application/ld+json">\n${JSON.stringify(schema, null, 2)}\n    </script>\n`;
-  template = template.replace('</head>', `${schemaScript}</head>`);
+  if (/<script\b[^>]*id="pixwora-(?:page-)?ld-json"[^>]*>[\s\S]*?<\/script>/i.test(template)) {
+    template = template.replace(/<script\b[^>]*id="pixwora-(?:page-)?ld-json"[^>]*>[\s\S]*?<\/script>/i, schemaScript.trim());
+  } else {
+    template = template.replace('</head>', `${schemaScript}</head>`);
+  }
 
   // Inject semantic HTML inside <div id="root"> for crawlers
   const semanticRoot = `
@@ -287,10 +291,14 @@ function getHtmlTemplate(): string {
 <html lang="en-IN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="/logo.jpeg" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PIXWORA — Original Stickers & Posters</title>
-    <meta name="description" content="Original stickers and posters for students from Hyderabad." />
+    <title>PIXWORA — Original Stickers & Posters | Buy Online India</title>
+    <meta name="description" content="Pixwora is your go-to Indian store for original waterproof stickers, 300 GSM wall posters, and custom sticker printing. Student-run brand from Hyderabad." />
     <link rel="canonical" href="https://www.pixwora.store/" />
   </head>
   <body>
