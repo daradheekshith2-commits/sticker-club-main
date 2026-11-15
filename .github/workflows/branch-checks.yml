@@ -65,9 +65,14 @@ jobs:
         working-directory: backend
     env:
       DATABASE_URL: postgresql://stickerclub:integration_only_password@localhost:5432/stickerclub?schema=public
-      JWT_SECRET: not-a-real-secret-used-only-for-disposable-ci-database
+      JWT_SECRET: ci_jwt_secret_must_be_at_least_32_characters_long_for_security_checks
+      JWT_REFRESH_SECRET: ci_jwt_refresh_secret_must_be_at_least_32_characters_long
+      CORS_ORIGIN: http://localhost:5173
       FRONTEND_ORIGIN: http://localhost:5173
       NODE_ENV: test
+      TEST_DATABASE_IS_DISPOSABLE: "yes"
+      DELIVERY_FEE: "50.00"
+      UPI_ID: "store@upi"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -78,18 +83,25 @@ jobs:
       - run: npx prisma migrate deploy
       - run: npm run db:seed
       - run: npx prisma migrate status
+      - name: Deploy migrations and seed to test schema
+        run: |
+          npx prisma migrate deploy
+          npm run db:seed
+        env:
+          DATABASE_URL: postgresql://stickerclub:integration_only_password@localhost:5432/stickerclub?schema=stickerclub_test
       - name: Generate disposable CI test environment file
         run: |
           touch .env.test
           echo "DATABASE_URL=$DATABASE_URL" >> .env.test
           echo "JWT_SECRET=$JWT_SECRET" >> .env.test
-          echo "JWT_REFRESH_SECRET=ci_jwt_refresh_secret_must_be_at_least_32_characters_long" >> .env.test
-          echo "CORS_ORIGIN=http://localhost:5173" >> .env.test
+          echo "JWT_REFRESH_SECRET=$JWT_REFRESH_SECRET" >> .env.test
+          echo "CORS_ORIGIN=$CORS_ORIGIN" >> .env.test
           echo "FRONTEND_ORIGIN=$FRONTEND_ORIGIN" >> .env.test
           echo "NODE_ENV=test" >> .env.test
           echo "TEST_DATABASE_IS_DISPOSABLE=yes" >> .env.test
-          echo "DELIVERY_FEE=50.00" >> .env.test
-          echo "UPI_ID=store@upi" >> .env.test
+          echo "DELIVERY_FEE=$DELIVERY_FEE" >> .env.test
+          echo "UPI_ID=$UPI_ID" >> .env.test
+          cp .env.test .env
       - run: npm test
         env:
           TEST_DATABASE_IS_DISPOSABLE: "yes"
