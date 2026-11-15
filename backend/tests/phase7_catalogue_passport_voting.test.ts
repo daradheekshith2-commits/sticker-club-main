@@ -286,14 +286,15 @@ test('Phase 7 verification: catalogue management, quotes preservation, live voti
     // Customer adds in-stock item to cart
     const activeProducts = await api('/api/products?type=stickers');
     assert.equal(activeProducts.status, 200);
-    const orderProduct = activeProducts.body[0];
+    const orderProduct = activeProducts.body.find((p: any) => !p.variants || p.variants.length === 0) || activeProducts.body[0];
     assert.ok(orderProduct);
+    const variantId = orderProduct.variants?.[0]?.id;
 
     const cartRes = await api(
       '/api/cart/items',
       {
         method: 'POST',
-        body: JSON.stringify({ productId: orderProduct.id, quantity: 1 }),
+        body: JSON.stringify({ productId: orderProduct.id, quantity: 1, ...(variantId ? { variantId } : {}) }),
       },
       custToken
     );
@@ -311,7 +312,6 @@ test('Phase 7 verification: catalogue management, quotes preservation, live voti
       },
       custToken
     );
-    if (placeOrderRes.status !== 201) console.log('DEBUG PHASE7 ORDER:', placeOrderRes.body, 'ORDER PRODUCT:', orderProduct);
     assert.equal(placeOrderRes.status, 201);
     const orderId = placeOrderRes.body.id;
 

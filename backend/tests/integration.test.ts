@@ -58,7 +58,6 @@ test('end-to-end local API: registration, ownership, stock and unpaid checkout',
   assert.equal(order.body.paymentStatus,'PENDING');
   assert.equal(Number(order.body.total),Number(product.price));
   const quantity=await db.inventory.findUnique({where:{productId:product.id}});
-  if (quantity?.quantity !== 1) console.log('DEBUG INTEGRATION:', { productId: product.id, productPrice: product.price, orderBody: order.body, quantityFound: quantity });
   assert.equal(quantity?.quantity,1,'An order must decrement inventory atomically.');
   const second=await api('/api/orders',{method:'POST',headers:{'Idempotency-Key':randomUUID()},body:JSON.stringify({addressId:address.body.id,paymentMethod:'COD'})},token);
   assert.equal(second.status,400,'An empty cart must not create a duplicate order.');
