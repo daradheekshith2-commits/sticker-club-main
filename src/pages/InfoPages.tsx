@@ -57,7 +57,12 @@ const marqueeStickers = [
 ];
 
 export function AboutPage() {
-  usePageMeta('About', 'Boring was never our thing. Meet Sticker Club.');
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: `About ${brand.displayName} — Original Student-Run Sticker & Poster Brand`,
+    description: `Learn the story behind ${brand.displayName}. A student-run brand from Hyderabad making waterproof vinyl stickers and premium wall posters.`,
+    canonical: `${siteOrigin}/about`,
+  });
 
   const collections = [
     {
@@ -506,7 +511,26 @@ const faqs: { q: string; a: ReactNode }[] = [
 ];
 
 export function FaqPage() {
-  usePageMeta('FAQ', 'Answers to common questions about our stickers, ordering and delivery.');
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: f.a,
+      },
+    })),
+  };
+
+  usePageMeta({
+    title: `FAQ — Frequently Asked Questions | ${brand.displayName}`,
+    description: `Answers to common questions about ${brand.displayName} stickers, wall posters, materials, shipping across India and payment.`,
+    canonical: `${siteOrigin}/faq`,
+    schema: faqSchema,
+  });
   return (
     <Page title="Questions, answered." crumb="FAQ">
       <div className="divide-y-2 divide-ink/10 border-y-2 border-ink/10">
@@ -527,7 +551,12 @@ export function FaqPage() {
 }
 
 export function ContactPage() {
-  usePageMeta('Contact', `How to reach ${brand.displayName}.`);
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: `Contact Us | ${brand.displayName} Hyderabad`,
+    description: `Get in touch with ${brand.displayName} for custom sticker orders, bulk queries, or feedback. WhatsApp, email and Instagram support.`,
+    canonical: `${siteOrigin}/contact`,
+  });
   const { email, instagramUrl, instagramHandle, phone } = brand.contact;
   const wa = whatsappLink('Hey! I am interested to buy stickers');
   return (
@@ -1104,7 +1133,13 @@ export function PolicyPage({ slug: propSlug }: { slug?: string } = {}) {
   const params = useParams();
   const rawSlug = (propSlug ?? params.slug ?? 'terms').toLowerCase();
   const policy = policies[rawSlug];
-  usePageMeta(policy ? `${policy.title} · ${brand.displayName}` : 'Policy not found');
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: policy ? `${policy.title} — ${brand.displayName}` : 'Policy Not Found',
+    description: policy ? `${policy.title} for ${brand.displayName} orders and customer service.` : undefined,
+    canonical: policy ? `${siteOrigin}/policies/${policy.slug}` : undefined,
+    noindex: !policy,
+  });
   if (!policy) return <NotFoundPage />;
 
   const tabs = [
@@ -1215,7 +1250,11 @@ export function PolicyPage({ slug: propSlug }: { slug?: string } = {}) {
 }
 
 export function NotFoundPage() {
-  usePageMeta('Page not found');
+  usePageMeta({
+    title: 'Page Not Found — Pixwora',
+    description: 'The requested page could not be found on Pixwora.',
+    noindex: true,
+  });
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
       <EmptyState

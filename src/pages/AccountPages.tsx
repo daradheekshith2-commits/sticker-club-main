@@ -41,7 +41,10 @@ function GoogleIcon({ className = 'size-5' }: { className?: string }) {
 export function AuthPage({mode}:{mode:Mode}){
  const {login,register,signInWithGoogle,requestPasswordReset,updatePassword,isSupabase}=useAuth(),navigate=useNavigate();
  const [params]=useSearchParams();const [name,setName]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
- usePageMeta(mode==='register'?'Create account':mode==='admin'?'Admin sign in':'Account access');
+ usePageMeta({
+  title: mode==='register'?'Create account':mode==='admin'?'Admin sign in':'Account access',
+  noindex: true,
+ });
 
  async function handleGoogleAuth() {
   setBusy(true);
@@ -126,7 +129,7 @@ export function Guard({role,children}:{role:'ADMIN'|'CUSTOMER';children:(u:Accou
  return <ProtectedRoute role={role}>{children}</ProtectedRoute>;
 }
 export function CustomerDashboard() {
-  usePageMeta('My account');
+  usePageMeta({ title: 'My account', noindex: true });
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'settings'>('orders');
 
   return (
@@ -203,7 +206,7 @@ export function CustomerDashboard() {
 }
 
 export function AdminDashboard() {
-  usePageMeta('Store admin');
+  usePageMeta({ title: 'Store admin', noindex: true });
   const { request, logout, user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState<{

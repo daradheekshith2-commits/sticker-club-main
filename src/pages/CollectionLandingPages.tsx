@@ -4,6 +4,7 @@
  * - /secret-messages   — message stickers with sealed message cards
  * Products come from the catalogue (productType 'duo' / 'secret').
  */
+import { brand } from '../config/brand';
 import { useCatalogue } from '../context/CatalogueContext';
 import { usePageMeta } from '../hooks/usePageMeta';
 import type { DuoPairing } from '../types/collectible';
@@ -21,7 +22,12 @@ const pairingBlurbs: Record<DuoPairing, string> = {
 };
 
 export function DuosPage() {
-  usePageMeta('Matching duos', 'Coordinated sticker pairs, sold together as one product.');
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: 'Matching Duo Stickers India — Couple & Bestie Vinyl Sticker Pairs | Pixwora',
+    description: 'Coordinated matching sticker pairs for best friends, couples and project partners. Waterproof die-cut vinyl stickers from Pixwora.',
+    canonical: `${siteOrigin}/matching-duos`,
+  });
   const { products } = useCatalogue();
   const duos = sortProducts(
     products.filter((p) => p.productType === 'duo' || p.collections.includes('duos')),
@@ -53,7 +59,12 @@ export function DuosPage() {
 }
 
 export function SecretMessagesPage() {
-  usePageMeta('Secret message stickers', 'Original message stickers, each with a sealed message card.');
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: 'Secret Message Stickers — Hidden Card Stickers for Gifting | Pixwora',
+    description: 'Original secret message stickers with a sealed surprise card inside. The perfect collectible gift from Pixwora Hyderabad.',
+    canonical: `${siteOrigin}/secret-messages`,
+  });
   return (
     <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
       <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Collectibles', to: '/collectibles' }, { label: 'Secret messages' }]} />

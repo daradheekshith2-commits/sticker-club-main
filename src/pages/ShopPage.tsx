@@ -462,14 +462,130 @@ export function ShopPage() {
   // The poster landing view (merchandising sections) shows until the shopper narrows things down.
   const showPosterLanding =
     isPosterShop && !filters.types.length && !filters.collections.length && !filters.sizes.length && !filters.query && !filters.price;
-  usePageMeta(
-    showIntro ? 'Stickers' : showPosterLanding ? 'Posters' : title,
-    isPosterShop
-      ? `Posters in A5, A4 and A3, ready-made wall packs and a build-your-own wall from ${brand.displayName}.`
-      : isStickerShop
-      ? `Original mini stickers, sticker sheets and themed packs from ${brand.displayName}.`
-      : `Browse ${title.toLowerCase()} — original stickers and posters from ${brand.displayName}.`,
-  );
+
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  const activeVibe = filters.collections.length === 1 ? filters.collections[0] : null;
+  const activeType = filters.types.length === 1 ? filters.types[0] : null;
+
+  let seoTitle = `${title} — ${brand.displayName}`;
+  let seoDescription = `Browse ${title.toLowerCase()} — original stickers and posters from ${brand.displayName}.`;
+  let canonicalUrl = `${siteOrigin}/shop`;
+
+  if (isStickerShop) {
+    if (activeVibe === 'anime') {
+      seoTitle = 'Anime Stickers India — Waterproof Laptop & Journal Decals | Pixwora';
+      seoDescription = 'Shop original anime stickers in India. High quality waterproof die-cut vinyl stickers for laptops, phones, bottles and notebooks from Pixwora Hyderabad.';
+      canonicalUrl = `${siteOrigin}/shop?category=stickers&vibe=anime`;
+    } else if (activeVibe === 'cute') {
+      seoTitle = 'Aesthetic Stickers India — Cute Pastel Vinyl Stickers & Sheets | Pixwora';
+      seoDescription = 'Explore cute and aesthetic vinyl stickers in India. Soft pastel designs, sleepy clouds, journal stickers and sticker sheets from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=stickers&vibe=cute`;
+    } else if (activeVibe === 'quotes') {
+      seoTitle = 'Car & Bike Stickers India — Racing, Helmet & Auto Vinyl Decals | Pixwora';
+      seoDescription = 'Shop durable car and motorcycle stickers in India. Waterproof, weather-resistant vinyl decals for bikes, cars, helmets and laptops from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=stickers&vibe=quotes`;
+    } else if (activeVibe === 'gaming') {
+      seoTitle = 'Gaming Stickers India — GTA, Retro & Gamer Laptop Decals | Pixwora';
+      seoDescription = 'Shop epic gaming and GTA stickers in India. High quality vinyl stickers for gaming laptops, consoles, setups and desks from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=stickers&vibe=gaming`;
+    } else if (activeVibe === 'movies') {
+      seoTitle = 'Movie Stickers India — Cinema, Pop Culture & Fan Art Decals | Pixwora';
+      seoDescription = 'Shop iconic movie and cinema vinyl stickers in India. Pop culture and movie-inspired decals for laptops, bottles and notebooks from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=stickers&vibe=movies`;
+    } else if (activeVibe === 'marvel') {
+      seoTitle = 'Marvel Stickers India — Superhero Vinyl Decals | Pixwora';
+      seoDescription = 'Shop Marvel superhero vinyl stickers in India. Epic character decals for laptops, tablets, and journals from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=stickers&vibe=marvel`;
+    } else if (activeVibe === 'bts') {
+      seoTitle = 'BTS & K-Pop Stickers India — Bangtan Aesthetic Decals | Pixwora';
+      seoDescription = 'Shop BTS and K-Pop stickers in India. Purple aesthetics, lyrics and chibi vinyl stickers from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=stickers&vibe=bts`;
+    } else if (activeType === 'pack') {
+      seoTitle = 'Sticker Packs India — Themed Waterproof Sticker Bundles | Pixwora';
+      seoDescription = 'Shop curated sticker packs in India. Save on themed sets of waterproof vinyl stickers for laptops, water bottles and scrapbooks from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=stickers&type=pack`;
+    } else if (activeType === 'sheet') {
+      seoTitle = 'Sticker Sheets India — Kiss-Cut Planner & Journal Sheets | Pixwora';
+      seoDescription = 'Shop original sticker sheets in India. Multi-sticker kiss-cut vinyl sheets for planners, journals, and phones from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=stickers&type=sheet`;
+    } else {
+      seoTitle = 'Buy Stickers Online India — Laptop, Anime & Aesthetic Vinyl Stickers | Pixwora';
+      seoDescription = 'Shop premium waterproof vinyl stickers online in India. Discover laptop stickers, anime stickers, cute aesthetics, packs, sheets and custom printing from Pixwora Hyderabad.';
+      canonicalUrl = `${siteOrigin}/shop?category=stickers`;
+    }
+  } else if (isPosterShop) {
+    if (activeVibe === 'anime') {
+      seoTitle = 'Anime Posters India — High Quality Wall Art in A5, A4 & A3 | Pixwora';
+      seoDescription = 'Shop premium anime wall posters in India. Crisp prints on 300 GSM cardstock for bedroom and dorm walls from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=posters&vibe=anime`;
+    } else if (activeVibe === 'movies') {
+      seoTitle = 'Movie Posters India — Iconic Cinema Wall Art (A5, A4, A3) | Pixwora';
+      seoDescription = 'Shop cinematic movie posters in India. High resolution pop culture and film art printed on thick 300 GSM paper from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=posters&vibe=movies`;
+    } else if (activeVibe === 'quotes') {
+      seoTitle = 'Car & Bike Posters India — Supercars & Motorcycle Wall Art | Pixwora';
+      seoDescription = 'Shop automotive wall posters in India. Supercars, racing legends and motorcycle prints on 300 GSM cardstock from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=posters&vibe=quotes`;
+    } else if (activeVibe === 'music') {
+      seoTitle = 'Music Posters India — Aesthetic Album & Artist Wall Art | Pixwora';
+      seoDescription = 'Shop aesthetic music and album wall posters in India. Premium matte prints for your bedroom or music studio from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=posters&vibe=music`;
+    } else if (activeVibe === 'motivation') {
+      seoTitle = 'Motivational Posters India — Aesthetic Study & Gym Wall Art | Pixwora';
+      seoDescription = 'Shop motivational wall posters in India. Inspiring quotes and aesthetic artwork for home offices, dorms and desks from Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=posters&vibe=motivation`;
+    } else {
+      seoTitle = 'Buy Wall Posters Online India — 300 GSM Matte Anime, Movie & Aesthetic Prints | Pixwora';
+      seoDescription = 'Shop premium 300 GSM matte wall posters in India. Discover anime posters, movie art, car & bike prints in A5, A4, A3 and custom wall packs at Pixwora.';
+      canonicalUrl = `${siteOrigin}/shop?category=posters`;
+    }
+  }
+
+  const hasSearchQuery = Boolean(filters.query && filters.query.trim());
+  const shopSchema = useMemo(() => {
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'CollectionPage',
+          '@id': `${canonicalUrl}#collection`,
+          name: seoTitle,
+          url: canonicalUrl,
+          description: seoDescription,
+          isPartOf: {
+            '@type': 'WebSite',
+            '@id': `${siteOrigin}/#website`,
+          },
+        },
+        {
+          '@type': 'BreadcrumbList',
+          '@id': `${canonicalUrl}#breadcrumbs`,
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: `${siteOrigin}/`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: isPosterShop ? 'Posters' : isStickerShop ? 'Stickers' : 'Shop',
+              item: canonicalUrl,
+            },
+          ],
+        },
+      ],
+    };
+  }, [canonicalUrl, seoTitle, seoDescription, siteOrigin, isPosterShop, isStickerShop]);
+
+  usePageMeta({
+    title: seoTitle,
+    description: seoDescription,
+    canonical: canonicalUrl,
+    noindex: hasSearchQuery,
+    schema: shopSchema,
+  });
 
   // Filter clicks replace the URL (so Back doesn't step through every tick);
   // format/vibe/category tiles are links, which add history entries.

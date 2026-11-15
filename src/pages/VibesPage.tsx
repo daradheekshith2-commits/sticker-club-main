@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { brand } from '../config/brand';
 import { collections } from '../data/collections';
 import { useCatalogue } from '../context/CatalogueContext';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -12,7 +13,12 @@ const EXCLUDED_VIBES = new Set(['study', 'secret']);
 
 /** Every "Shop by vibe" collection on one page. */
 export function VibesPage() {
-  usePageMeta('Shop by vibe', 'Find stickers by interest: anime, movies, life quotes, superheroes, cute, and more.');
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: `Shop Stickers & Wall Posters by Vibe | ${brand.displayName}`,
+    description: `Find stickers and posters by your favorite themes: Anime, Movies, Superheroes, Cars & Bikes, Aesthetic, Gaming and K-Pop at ${brand.displayName}.`,
+    canonical: `${siteOrigin}/vibes`,
+  });
   const { products } = useCatalogue();
 
   const visibleCollections = useMemo(() => collections.filter((c) => !EXCLUDED_VIBES.has(c.id)), []);

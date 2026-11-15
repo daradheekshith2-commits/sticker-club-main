@@ -7,7 +7,12 @@ import { Link } from '../router/router';
 import { fetchReviews, type ReviewItem } from '../services/reviews';
 
 export function ReviewsPage() {
-  usePageMeta('Customer Reviews & Community', `See what sticker and wall art lovers say about ${brand.displayName}.`);
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: `Customer Reviews & Real Photos | ${brand.displayName}`,
+    description: `See real customer reviews and photos of ${brand.displayName} waterproof stickers and room wall posters from students across India.`,
+    canonical: `${siteOrigin}/reviews`,
+  });
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -5,6 +5,7 @@
  * voting and the planned bonus gift.
  */
 import { LuArrowRight, LuCheck, LuMinus } from 'react-icons/lu';
+import { brand } from '../config/brand';
 import { bonusGift } from '../config/bonusGift';
 import { packSizes, packSurprise } from '../data/packBuilder';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -27,7 +28,12 @@ const tray: StickerDesign[] = [
 ];
 
 export function CollectiblesPage() {
-  usePageMeta('Collectibles', 'Mystery packs, build-your-own packs, matching duos, secret messages, rare designs and more.');
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: 'Collectible Stickers & Limited Edition Mystery Packs | Pixwora',
+    description: 'Explore Pixwora collectibles: mystery packs, custom sticker bundles, matching duos and secret message stickers.',
+    canonical: `${siteOrigin}/collectibles`,
+  });
   const mystery = getProductBySlug('mystery-pack');
   const tiles = [
     { to: '/matching-duos', title: 'Matching duos', body: 'Two coordinated stickers, one product.', slug: 'window-cat-day-and-night' },
