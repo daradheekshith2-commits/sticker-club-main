@@ -146,41 +146,6 @@ export function ProductPage() {
               '@type': 'Organization',
               name: brand.displayName,
             },
-            shippingDetails: {
-              '@type': 'OfferShippingDetails',
-              shippingRate: {
-                '@type': 'MonetaryAmount',
-                value: '0',
-                currency: 'INR',
-              },
-              shippingDestination: {
-                '@type': 'DefinedRegion',
-                addressCountry: 'IN',
-              },
-              deliveryTime: {
-                '@type': 'ShippingDeliveryTime',
-                handlingTime: {
-                  '@type': 'QuantitativeValue',
-                  minValue: 1,
-                  maxValue: 2,
-                  unitCode: 'd',
-                },
-                transitTime: {
-                  '@type': 'QuantitativeValue',
-                  minValue: 2,
-                  maxValue: 7,
-                  unitCode: 'd',
-                },
-              },
-            },
-            hasMerchantReturnPolicy: {
-              '@type': 'MerchantReturnPolicy',
-              applicableCountry: 'IN',
-              returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-              merchantReturnDays: 2,
-              returnMethod: 'https://schema.org/ReturnByMail',
-              returnFees: 'https://schema.org/FreeReturn',
-            },
           },
         },
         {
