@@ -5,7 +5,7 @@ test.describe('Sticker Club Storefront & Order Flow', () => {
     await page.goto('/');
 
     // Check document title
-    await expect(page).toHaveTitle(/Sticker Club/i);
+    await expect(page).toHaveTitle(/PIXWORA|Sticker Club/i);
 
     // Verify exactly three primary categories exist: Stickers, Posters, Shop Your Own
     const stickersHeading = page.getByRole('heading', { name: 'Stickers', exact: true });

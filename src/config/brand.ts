@@ -27,7 +27,7 @@ export const brand = {
    * Printed QR codes (packaging inserts) are generated from this. While null,
    * QR codes are previews only and say so.
    */
-  publicUrl: 'https://sticker-club-main.vercel.app' as string | null,
+  publicUrl: 'https://www.pixwora.store' as string | null,
 
   currency: 'INR',
   locale: 'en-IN',

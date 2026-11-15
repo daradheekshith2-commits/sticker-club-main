@@ -37,7 +37,12 @@ function Step({ n, title, children }: { n: number; title: string; children?: Rea
 }
 
 export function BuildWallPage() {
-  usePageMeta('Build your own wall', `Arrange our poster designs and your own photos into a custom wall with ${brand.displayName}.`);
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: 'Build Your Own Wall Collage Kit India — Custom Room Poster Packs | Pixwora',
+    description: 'Design and arrange your dream aesthetic wall collage with Pixwora. Mix anime art, movie prints and your own photos in A5, A4 and A3 sizes with live layout preview.',
+    canonical: `${siteOrigin}/build-your-wall`,
+  });
   const {
     state,
     layout,

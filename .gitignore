@@ -34,3 +34,4 @@ temp_extract/
 scripts/seed-batches/
 
 .vercel
+scripts/backups/

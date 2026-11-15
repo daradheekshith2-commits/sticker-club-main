@@ -22,7 +22,7 @@ import { Breadcrumbs } from '../components/ui/Breadcrumbs';
 import { EmptyState } from '../components/ui/EmptyState';
 
 export function CheckoutPage() {
-  usePageMeta('Checkout');
+  usePageMeta({ title: 'Checkout', noindex: true });
   const { lines, subtotal, itemCount, openCart } = useCart();
   const [createdOrder, setCreatedOrder] = useState<OrderReceipt | null>(null);
 

@@ -78,7 +78,50 @@ function OptionCards<T extends string>({
 }
 
 export function CreateStickersPage() {
-  usePageMeta('Create your own stickers', `Turn your own image into a custom sticker with ${brand.displayName}.`);
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  const customSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Service',
+        '@id': `${siteOrigin}/create-your-stickers#service`,
+        name: 'Custom Sticker Printing India',
+        url: `${siteOrigin}/create-your-stickers`,
+        provider: {
+          '@type': 'Organization',
+          name: brand.displayName,
+          url: `${siteOrigin}/`,
+        },
+        description: 'Upload your own image, logo or art and print custom die-cut vinyl stickers with matte or glossy finish in India.',
+        areaServed: 'IN',
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${siteOrigin}/create-your-stickers#breadcrumbs`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: `${siteOrigin}/`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Create Your Own Stickers',
+            item: `${siteOrigin}/create-your-stickers`,
+          },
+        ],
+      },
+    ],
+  };
+
+  usePageMeta({
+    title: 'Custom Stickers Online India — Print Your Own Vinyl Stickers | Pixwora',
+    description: 'Print custom waterproof vinyl stickers online in India with Pixwora. Upload your photo or logo, customize shapes, sizes and finishes with live 3D preview. Fast shipping from Hyderabad.',
+    canonical: `${siteOrigin}/create-your-stickers`,
+    schema: customSchema,
+  });
   const { addCustomSticker, openCart } = useCart();
   const [image, setImage] = useState<PickedImage | null>(null);
   const [replacing, setReplacing] = useState(false);

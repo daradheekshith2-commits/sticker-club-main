@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { LuArrowLeft, LuArrowRight, LuHeart, LuMail, LuPackage, LuStamp } from 'react-icons/lu';
+import { brand } from '../config/brand';
 import { useCatalogue } from '../context/CatalogueContext';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { Link } from '../router/router';
@@ -368,7 +369,50 @@ function FeaturedRow({ category, eyebrow, title, linkLabel }: { category: Catego
 }
 
 export function HomePage() {
-  usePageMeta(null);
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  const homeSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${siteOrigin}/#organization`,
+        name: brand.displayName,
+        url: `${siteOrigin}/`,
+        logo: `${siteOrigin}/logo.jpeg`,
+        description: 'Student-run brand from Hyderabad creating original waterproof vinyl stickers and high-quality room wall posters.',
+        contactPoint: {
+          '@type': 'ContactPoint',
+          telephone: '+91-7981793020',
+          contactType: 'customer service',
+          areaServed: 'IN',
+          availableLanguage: ['English', 'Hindi', 'Telugu'],
+        },
+        sameAs: ['https://www.instagram.com/pixwora.store/?hl=en'],
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${siteOrigin}/#website`,
+        url: `${siteOrigin}/`,
+        name: brand.displayName,
+        description: 'Buy original laptop stickers, anime stickers, aesthetic decals and wall posters online in India.',
+        publisher: {
+          '@id': `${siteOrigin}/#organization`,
+        },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${siteOrigin}/shop?q={search_term_string}`,
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  };
+
+  usePageMeta({
+    title: 'PIXWORA — Original Stickers & Posters | Buy Online India',
+    description: 'Original waterproof vinyl stickers and 300 GSM matte wall posters for students. Mini stickers, sheets, packs, anime decals and custom printing. Student-run brand from Hyderabad, India.',
+    canonical: `${siteOrigin}/`,
+    schema: homeSchema,
+  });
   return (
     <>
       <AnimatedStickerHero />

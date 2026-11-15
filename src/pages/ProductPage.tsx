@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LuArrowRight, LuCheck, LuChevronDown, LuChevronUp, LuShoppingBag, LuX } from 'react-icons/lu';
 import type { Variant } from '../types/product';
-import { whatsappLink } from '../config/brand';
+import { brand, whatsappLink } from '../config/brand';
 import { useCart } from '../context/CartContext';
 import { useCatalogue } from '../context/CatalogueContext';
 import { getCollection, productTypeLabels } from '../data/collections';
@@ -90,7 +90,101 @@ export function ProductPage() {
     }
   }, [product, items, variantId]);
 
-  usePageMeta(product ? product.name : 'Product not found', product?.shortDescription);
+  const isPoster = product?.category === 'posters' || product?.productType === 'poster';
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  const canonicalUrl = product ? `${siteOrigin}/product/${product.slug}` : undefined;
+  const primaryImgRaw = product?.images?.[0]?.src;
+  const ogImgUrl = primaryImgRaw
+    ? primaryImgRaw.startsWith('http')
+      ? primaryImgRaw
+      : `${siteOrigin}${primaryImgRaw.startsWith('/') ? '' : '/'}${primaryImgRaw}`
+    : `${siteOrigin}/logo.jpeg`;
+
+  const pageTitle = product
+    ? `${product.name} ${isPoster ? 'Wall Poster' : 'Sticker'} — Buy Online India | ${brand.displayName}`
+    : loading
+    ? 'Loading product…'
+    : 'Product Not Found — Pixwora';
+
+  const materialClaim = isPoster
+    ? 'Printed on 300 GSM archival matte cardstock with rich color reproduction.'
+    : 'Printed on waterproof die-cut vinyl with durable scratch-resistant lamination.';
+
+  const pageDescription = product
+    ? `Buy ${product.name} ${isPoster ? 'Wall Poster' : 'Sticker'} online at Pixwora. ${
+        product.shortDescription || product.description || 'Original student-crafted design.'
+      } ${materialClaim} Genuine INR ₹${product.price}. Dispatches in 24–48 hours across India.`
+    : 'The requested product could not be found in our catalogue.';
+
+  const productSchema = useMemo(() => {
+    if (!product) return null;
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Product',
+          '@id': `${canonicalUrl}#product`,
+          name: `${product.name} ${isPoster ? 'Wall Poster' : 'Sticker'}`,
+          url: canonicalUrl,
+          description: product.description || product.shortDescription,
+          sku: product.id,
+          image: [ogImgUrl],
+          brand: {
+            '@type': 'Brand',
+            name: brand.displayName,
+          },
+          category: isPoster ? 'Wall Posters' : 'Stickers',
+          offers: {
+            '@type': 'Offer',
+            url: canonicalUrl,
+            priceCurrency: 'INR',
+            price: String(product.price),
+            priceValidUntil: '2027-12-31',
+            itemCondition: 'https://schema.org/NewCondition',
+            availability: isPurchasable(product) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            seller: {
+              '@type': 'Organization',
+              name: brand.displayName,
+            },
+          },
+        },
+        {
+          '@type': 'BreadcrumbList',
+          '@id': `${canonicalUrl}#breadcrumbs`,
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: `${siteOrigin}/`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: isPoster ? 'Posters' : 'Stickers',
+              item: isPoster ? `${siteOrigin}/shop?category=posters` : `${siteOrigin}/shop?category=stickers`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: product.name,
+              item: canonicalUrl,
+            },
+          ],
+        },
+      ],
+    };
+  }, [product, isPoster, canonicalUrl, ogImgUrl, isPurchasable, siteOrigin]);
+
+  usePageMeta({
+    title: pageTitle,
+    description: pageDescription,
+    canonical: canonicalUrl,
+    noindex: !product && !loading,
+    ogType: 'product',
+    ogImage: ogImgUrl,
+    schema: productSchema,
+  });
 
   if (loading && !product) {
     return (

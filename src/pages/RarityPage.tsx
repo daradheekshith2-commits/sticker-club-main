@@ -6,6 +6,7 @@
  * printed — not odds, not stock. No counts of copies are ever shown.
  */
 import { LuInfo } from 'react-icons/lu';
+import { brand } from '../config/brand';
 import { rarityDataSource, rarityTiers, series } from '../data/rarity';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { Link, useSearchParams } from '../router/router';
@@ -37,7 +38,12 @@ function CollectibleTile({ product }: { product: Product }) {
 }
 
 export function RarityPage() {
-  usePageMeta('Rare collections', 'Browse every design by series and rarity: Common, Uncommon, Rare and Limited Edition.');
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: 'Rare Collections & Limited Edition Sticker Drops | Pixwora',
+    description: 'Browse every sticker design by series and rarity: Common, Uncommon, Rare and Limited Edition from Pixwora Hyderabad.',
+    canonical: `${siteOrigin}/rare-collections`,
+  });
   const [params, setParams] = useSearchParams();
   const active = series.find((s) => s.id === params.get('series'))?.id ?? null;
   const groups = rarityGroups().map((g) => ({ ...g, items: g.items.filter((p) => !active || p.seriesId === active) }));

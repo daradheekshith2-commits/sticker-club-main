@@ -5,6 +5,7 @@
  * All prices and rules come from src/data/packBuilder.ts via src/utils/customPack.ts.
  */
 import { useId, useMemo, useState, type ReactNode } from 'react';
+import { brand } from '../config/brand';
 import { LuCheck, LuSearch, LuShoppingBag, LuX } from 'react-icons/lu';
 import { useCart } from '../context/CartContext';
 import { useCatalogue } from '../context/CatalogueContext';
@@ -40,7 +41,12 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint?: R
 type Filter = 'theme' | 'all' | string; // a series id
 
 export function BuildPackPage() {
-  usePageMeta('Build your own sticker pack', 'Choose a theme, pick 10 designs you love and get a surprise sticker on top for ₹200.');
+  const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  usePageMeta({
+    title: 'Build Your Own Sticker Pack — Custom 5 & 10 Sticker Bundles | Pixwora',
+    description: 'Pick your favorite vinyl sticker designs and build a custom sticker pack with Pixwora. Choose themes, premium finishes and get a free bonus sticker.',
+    canonical: `${siteOrigin}/build-your-pack`,
+  });
   const { addCustomPack, openCart } = useCart();
   const { products: catProducts } = useCatalogue();
 
