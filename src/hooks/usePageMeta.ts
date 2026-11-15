@@ -41,7 +41,7 @@ function updateLinkTag(rel: string, href: string | null) {
 
 function updateJsonLd(schema: Record<string, any> | Array<Record<string, any>> | null) {
   const id = 'pixwora-page-ld-json';
-  let tag = document.getElementById(id) as HTMLScriptElement | null;
+  let tag = (document.getElementById(id) || document.getElementById('pixwora-ld-json')) as HTMLScriptElement | null;
   if (!schema) {
     if (tag) tag.remove();
     return;
@@ -51,6 +51,8 @@ function updateJsonLd(schema: Record<string, any> | Array<Record<string, any>> |
     tag.id = id;
     tag.type = 'application/ld+json';
     document.head.appendChild(tag);
+  } else {
+    tag.id = id;
   }
   tag.textContent = JSON.stringify(schema, null, 2);
 }
