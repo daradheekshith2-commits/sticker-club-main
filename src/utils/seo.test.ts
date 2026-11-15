@@ -54,6 +54,11 @@ test('XML sitemap exists, is valid XML, and includes primary indexable URLs', ()
   // Verify image sitemap tags exist
   assert.ok(xml.includes('<image:image>'), 'Must include image tags for Google Images discovery');
   assert.ok(xml.includes('<image:loc>'), 'Must include image loc tags');
+
+  // Verify XML escaping and arithmetic
+  assert.ok(!xml.includes('&amp;amp;'), 'Sitemap must never contain double-escaped ampersands');
+  const locMatches = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]);
+  assert.ok(locMatches.length >= 3469, 'Sitemap must contain all published products and landing pages');
 });
 
 test('index.html contains complete head metadata and schema', () => {

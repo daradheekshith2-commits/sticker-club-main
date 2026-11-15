@@ -57,22 +57,8 @@ async function generateSitemapAndPages() {
 
     if (dbMap.size > 0) {
       console.log(`Synced ${dbMap.size} live products from Supabase.`);
-      // Merge with catalogue
-      const knownSlugs = new Set();
-      const merged = [];
-      // DB products first
-      for (const [slug, p] of dbMap.entries()) {
-        knownSlugs.add(slug);
-        merged.push(p);
-      }
-      // Add any local seed products not yet in DB
-      for (const p of products) {
-        if (!knownSlugs.has(p.slug)) {
-          merged.push(p);
-          knownSlugs.add(p.slug);
-        }
-      }
-      products = merged;
+      // Live Supabase database is the single source of truth for real, purchasable products
+      products = Array.from(dbMap.values());
     }
   } catch (err) {
     console.log('Notice: Supabase live sync skipped or offline, using local catalogue snapshot.', err.message);
@@ -112,11 +98,15 @@ async function generateSitemapAndPages() {
     { src: `${BASE_URL}/logo.jpeg`, title: 'Pixwora Store Logo' },
   ]);
 
-  // 2. Core Shop & Category Landing Pages
+  // 2. Core Shop & Category Landing Pages (2 URLs)
   addUrl(`${BASE_URL}/shop?category=stickers`, '0.9', 'daily');
   addUrl(`${BASE_URL}/shop?category=posters`, '0.9', 'daily');
+
+  // 3. Creative Builders (2 URLs)
   addUrl(`${BASE_URL}/create-your-stickers`, '0.9', 'weekly');
   addUrl(`${BASE_URL}/build-your-wall`, '0.9', 'weekly');
+
+  // 4. Special Collection & Community Landing Pages (7 URLs)
   addUrl(`${BASE_URL}/build-your-pack`, '0.8', 'weekly');
   addUrl(`${BASE_URL}/matching-duos`, '0.8', 'weekly');
   addUrl(`${BASE_URL}/secret-messages`, '0.8', 'weekly');
@@ -125,21 +115,21 @@ async function generateSitemapAndPages() {
   addUrl(`${BASE_URL}/vibes`, '0.8', 'weekly');
   addUrl(`${BASE_URL}/reviews`, '0.8', 'daily');
 
-  // 3. Category Vibe Landing Views
+  // 5. Category Vibe Landing Views (14 URLs: 9 stickers + 5 posters)
   const stickerVibes = ['anime', 'cute', 'quotes', 'gaming', 'movies', 'marvel', 'bts', 'devotion', 'sports'];
   for (const v of stickerVibes) {
-    addUrl(`${BASE_URL}/shop?category=stickers&amp;vibe=${v}`, '0.8', 'daily');
+    addUrl(`${BASE_URL}/shop?category=stickers&vibe=${v}`, '0.8', 'daily');
   }
 
   const posterVibes = ['anime', 'movies', 'quotes', 'music', 'motivation'];
   for (const v of posterVibes) {
-    addUrl(`${BASE_URL}/shop?category=posters&amp;vibe=${v}`, '0.8', 'daily');
+    addUrl(`${BASE_URL}/shop?category=posters&vibe=${v}`, '0.8', 'daily');
   }
 
-  // 4. Formats
-  addUrl(`${BASE_URL}/shop?category=stickers&amp;type=pack`, '0.8', 'daily');
-  addUrl(`${BASE_URL}/shop?category=stickers&amp;type=sheet`, '0.8', 'daily');
-  addUrl(`${BASE_URL}/shop?category=posters&amp;type=poster-set`, '0.8', 'daily');
+  // 6. Formats (3 URLs)
+  addUrl(`${BASE_URL}/shop?category=stickers&type=pack`, '0.8', 'daily');
+  addUrl(`${BASE_URL}/shop?category=stickers&type=sheet`, '0.8', 'daily');
+  addUrl(`${BASE_URL}/shop?category=posters&type=poster-set`, '0.8', 'daily');
 
   // 5. Individual Published Product Pages with Image Sitemaps
   for (const p of publishedProducts) {

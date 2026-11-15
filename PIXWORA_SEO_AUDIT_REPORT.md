@@ -166,7 +166,7 @@ Created an automated generator executed during `npm run build` (`sitemap:generat
 
 | Dimension | Before | After | Verification Status |
 |---|---|---|---|
-| **Live Products Covered** | 0 in server HTML | **4,047 published products** (Supabase + catalogue) | Verified via `public/sitemap.xml` & `api/product.ts` |
+| **Live Products Covered** | 0 in server HTML | **3,433 published products** (Live Supabase database) | Verified via `public/sitemap.xml` & `api/product.ts` |
 | **Server-Side Rendered Title** | Generic homepage title on all products | `[Product Name] [Sticker / Wall Poster] — Buy Online India \| Pixwora` | Verified |
 | **Server-Side Meta Description** | Generic store description on all products | Unique product description with genuine price, material, and city | Verified |
 | **Canonical URL** | None | `https://www.pixwora.store/product/[slug]` | Verified |
@@ -181,18 +181,20 @@ Created an automated generator executed during `npm run build` (`sitemap:generat
 ## 5. SITEMAP AND INDEXING CHECKS
 
 1. **Sitemap File Location:** `https://www.pixwora.store/sitemap.xml`
-2. **File Size:** ~2.07 MB XML document.
-3. **Total URLs Included:** **4,080 URLs**
-   * 1 Homepage
-   * 2 Core Shop Hubs (`/shop?category=stickers`, `/shop?category=posters`)
-   * 2 Creative Builders (`/create-your-stickers`, `/build-your-wall`)
-   * 14 Curated Category / Vibe Landing Views
-   * 9 Special Collection & Community Landing Pages
-   * 7 Policy & Help Pages
-   * 4,047 Individual Published Product URLs
+2. **File Size:** ~1.85 MB XML document.
+3. **Total URLs Included:** **3,469 URLs** (Exact arithmetic sum: 36 static/landing + 3,433 products = 3,469)
+   * **1 Homepage:** `https://www.pixwora.store/`
+   * **2 Core Shop Hubs:** `/shop?category=stickers`, `/shop?category=posters`
+   * **2 Creative Builders:** `/create-your-stickers`, `/build-your-wall`
+   * **7 Special Collection & Community Landing Pages:** `/build-your-pack`, `/matching-duos`, `/secret-messages`, `/collectibles`, `/rare-collections`, `/vibes`, `/reviews`
+   * **14 Curated Category / Vibe Landing Views:** 9 Sticker vibes (`anime`, `cute`, `quotes`, `gaming`, `movies`, `marvel`, `bts`, `devotion`, `sports`) + 5 Poster vibes (`anime`, `movies`, `quotes`, `music`, `motivation`)
+   * **3 Format Views:** `/shop?category=stickers&type=pack`, `/shop?category=stickers&type=sheet`, `/shop?category=posters&type=poster-set`
+   * **7 Policy & Help Pages:** `/about`, `/faq`, `/contact`, `/shipping`, `/returns`, `/terms`, `/privacy`
+   * **3,433 Individual Published Product URLs:** Directly synced from active live rows in Supabase
 4. **Google Image Sitemaps:** Each product entry in the sitemap includes `<image:image>` with absolute `<image:loc>` and product title for Google Images discovery.
 5. **Private URL Exclusion:** Zero administrative, account, checkout, or login URLs are exposed in the sitemap.
-6. **Robots.txt Declaration:** `Sitemap: https://www.pixwora.store/sitemap.xml` declared at the end of `public/robots.txt`.
+6. **XML Escaping Quality:** Zero double-escaped ampersands (`&amp;` cleanly rendered for query strings; `&amp;amp;` eliminated).
+7. **Robots.txt Declaration:** `Sitemap: https://www.pixwora.store/sitemap.xml` declared at the end of `public/robots.txt`.
 
 ---
 
@@ -225,7 +227,7 @@ Validated against Google Rich Results standards:
 | **Raw HTML Structured Data Blocks** | 0 blocks (0/100) | **2 blocks per product** (Product + BreadcrumbList) |
 | **Raw HTML Content Structure** | 0 H1, 0 Links, 0 Images | **H1 heading**, product image, price, and category links |
 | **Robots.txt Sitemaps Declared** | 0 (returned `index.html`) | 1 (`https://www.pixwora.store/sitemap.xml`) |
-| **XML Sitemap Status** | Missing (returned 404 / `index.html`) | **Valid XML (2.07 MB, 4,080 URLs with image tags)** |
+| **XML Sitemap Status** | Missing (returned 404 / `index.html`) | **Valid XML (1.85 MB, 3,469 URLs with image tags)** |
 | **Unknown Product URL Status** | HTTP 200 OK (Soft-404) | **HTTP 404 Not Found** with `X-Robots-Tag: noindex` |
 | **Account & Admin Indexing** | Missing robots tag (Indexable by default) | **`meta name="robots" content="noindex, nofollow"`** |
 | **Search Query Indexing** | Indexable with generic canonical | **`noindex: true`** on internal search queries |
@@ -322,8 +324,27 @@ Because GSC API credentials were not configured locally, perform these exact set
 
 ---
 
-## 12. DEPLOYMENT READINESS
+## 12. FINAL 9-POINT PRODUCTION READINESS VERIFICATION
+
+Before pushing or deploying, a comprehensive 9-point verification was performed:
+
+| Point | Verification Area | Result | Evidence & Analysis |
+|---|---|---|---|
+| **1** | **Catalogue Reconciliation (3,434 vs 4,047 products)** | **PASS** | Supabase `Product` table contains 3,434 rows: 3,433 active `PUBLISHED` products and 1 `ARCHIVED` product (`campus-survival-sheet`). `products-catalogue.json` held 4,041 products from older commits. Reconciled `scripts/generate-seo-pages.mjs` so Supabase is the single source of truth: 3,433 live products are included in the sitemap. 614 un-synced entries (including internal test artifact `store-category-cards-reference-screenshot`) were removed from sitemap without deleting any database or catalogue data. |
+| **2** | **Sitemap URL Arithmetic & Formatting** | **PASS** | Exact arithmetic breakdown: 1 Homepage + 2 Shop Hubs + 2 Builders + 7 Collection Pages + 14 Vibe Views + 3 Formats + 7 Policy Pages = 36 landing URLs. 36 landing URLs + 3,433 published products = **exactly 3,469 URLs**. Double-escaped XML ampersand bug (`&amp;amp;`) was discovered and fixed; all query params now render clean `&amp;`. |
+| **3** | **Product HTML & Rich Snippets (No JS Dependency)** | **PASS** | `api/product.ts` executes server-side on `/product/:slug`. Verified live: returns HTTP 200 with unique title, meta description, INR pricing, canonical link, Schema.org `Product` + `BreadcrumbList`, and semantic crawler HTML inside `<div id="root">`. Tested with `iron-man`, `og`, and other live database slugs. |
+| **4** | **Vercel Serverless Routing & 404 Responses** | **PASS** | `vercel.json` rewrites `/product/:slug` to `api/product.ts`. Valid products return HTTP 200. Unknown slugs (`fake-product-12345`), archived products (`campus-survival-sheet`), and empty slugs return authentic **HTTP 404 Not Found** with `X-Robots-Tag: noindex, nofollow` and `<meta name="robots" content="noindex, nofollow" />`. Client SPA routes remain unaffected. |
+| **5** | **Admin Dashboard Discoverability** | **PASS** | Adding a product through Admin Dashboard inserts into Supabase `Product` table with `status: 'PUBLISHED'` and `active: true`. `api/product.ts` queries Supabase in real-time, instantly granting 200 OK and SEO discoverability. Unpublished products (`status: 'HIDDEN'` or `active: false`) immediately return 404 / noindex. |
+| **6** | **React Client Hydration & Interaction Safety** | **PASS** | `src/main.tsx` mounts via `createRoot` rather than `hydrateRoot`, cleanly replacing the crawler fallback without hydration mismatch warnings. `usePageMeta.ts` targets existing tags by ID (`#pixwora-page-ld-json`, `meta[name=...]`, `link[rel=canonical]`), completely preventing duplicate tags or DOM node collisions. |
+| **7** | **Production Build & Automated Tests** | **PASS** | `npm run typecheck` passed (exit code 0). `npm test` passed: **129/129 tests passed (0 failed)**, including all 5 new automated SEO tests. `npm run build` completed in 39s (`tsc --noEmit && vite build && node scripts/generate-seo-pages.mjs`). `e2e/smoke.spec.ts` title assertion updated to support Pixwora brand name. |
+| **8** | **Zero Functionality & Visual Regressions** | **PASS** | Verified via full `git diff main`: 0 modifications to storefront themes, colors, typography, cart, checkout, payment/UPI/COD flows, customer accounts, or admin dashboard functionality. All changes are strictly confined to metadata, canonicals, Schema, routing, and sitemap generation. |
+| **9** | **Overall Production Readiness Score** | **PASS** | The branch `seo/pixwora-optimization` is 100% production-ready. No code has been pushed to GitHub, merged to `main`, or deployed to Vercel, pending user approval. |
+
+---
+
+## 13. DEPLOYMENT READINESS
 
 * **Git Branch:** All changes are committed / isolated on `seo/pixwora-optimization`. The `main` branch was left completely untouched as read-only reference.
 * **Zero Breaking Changes:** Storefront theme, design, typography, cart, checkout, payment, auth, and admin panels remain 100% operational and visually identical.
+* **Approval Gate:** In accordance with instructions, changes remain local on branch `seo/pixwora-optimization`. Deployment will proceed only upon explicit user approval.
 * **Ready for Review & Merge:** A pull request can be opened from `seo/pixwora-optimization` into `main` whenever approved.
