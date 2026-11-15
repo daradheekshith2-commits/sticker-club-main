@@ -311,6 +311,7 @@ test('Phase 7 verification: catalogue management, quotes preservation, live voti
       },
       custToken
     );
+    if (placeOrderRes.status !== 201) console.log('DEBUG PHASE7 ORDER:', placeOrderRes.body, 'ORDER PRODUCT:', orderProduct);
     assert.equal(placeOrderRes.status, 201);
     const orderId = placeOrderRes.body.id;
 
