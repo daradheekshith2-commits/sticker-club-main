@@ -486,7 +486,10 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
   const isPurchasable = useCallback((product: Product): boolean => {
     if (product.active === false) return false;
     if (product.status !== 'demo' && (product.status as string) !== 'PUBLISHED') return false;
-    if (product.inventory && product.inventory.quantity <= 0) return false;
+    const qty = Array.isArray(product.inventory)
+      ? (product.inventory as any)[0]?.quantity
+      : product.inventory?.quantity;
+    if (typeof qty === 'number' && qty <= 0) return false;
     return true;
   }, []);
 

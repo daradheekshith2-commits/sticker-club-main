@@ -72,23 +72,12 @@ export default async function handler(req: any, res: any) {
     return send404(res, 'Product Not Found');
   }
 
-  // 4. Database Outage Disaster Recovery:
-  // ONLY in the event of an active database connection error or network outage, check seed products
+  // 4. Database Outage Handling:
+  // If the database encountered an error or network outage and we have no cached live copy,
+  // return HTTP 503 Service Unavailable with Retry-After. Never serve obsolete static seed snapshots
+  // which might present discontinued products or inaccurate pricing/inventory as live inventory.
   if (dbError && !product) {
-    const seedFile = path.join(process.cwd(), 'public', 'seed-products.json');
-    if (fs.existsSync(seedFile)) {
-      try {
-        const list = JSON.parse(fs.readFileSync(seedFile, 'utf8'));
-        const match = list.find((p: any) => p.slug === slug);
-        if (match && match.status === 'PUBLISHED' && match.active !== false) {
-          product = match;
-        }
-      } catch {}
-    }
-
-    if (!product) {
-      return sendServiceUnavailable(res, 'Database temporarily unavailable');
-    }
+    return sendServiceUnavailable(res, 'Database temporarily unavailable');
   }
 
   // 5. Validate product active & published status
@@ -113,8 +102,11 @@ export default async function handler(req: any, res: any) {
     ? 'Printed on 300 GSM archival matte cardstock with rich color reproduction.'
     : 'Printed on waterproof die-cut vinyl with durable scratch-resistant lamination.';
 
-  // Stock Availability: verified against inventory relation
-  const inStock = product.inventory ? product.inventory.quantity > 0 : true;
+  // Stock Availability: verified against inventory relation (supports object or array relation)
+  const inventoryQty = Array.isArray(product.inventory)
+    ? product.inventory[0]?.quantity
+    : product.inventory?.quantity;
+  const inStock = typeof inventoryQty === 'number' ? inventoryQty > 0 : (product.active !== false && product.status === 'PUBLISHED');
   const availabilitySchema = inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
   const stockLabel = inStock ? 'In Stock' : 'Currently Out of Stock';
 
@@ -154,6 +146,41 @@ export default async function handler(req: any, res: any) {
           seller: {
             '@type': 'Organization',
             name: 'Pixwora',
+          },
+          shippingDetails: {
+            '@type': 'OfferShippingDetails',
+            shippingRate: {
+              '@type': 'MonetaryAmount',
+              value: '0',
+              currency: 'INR',
+            },
+            shippingDestination: {
+              '@type': 'DefinedRegion',
+              addressCountry: 'IN',
+            },
+            deliveryTime: {
+              '@type': 'ShippingDeliveryTime',
+              handlingTime: {
+                '@type': 'QuantitativeValue',
+                minValue: 1,
+                maxValue: 2,
+                unitCode: 'd',
+              },
+              transitTime: {
+                '@type': 'QuantitativeValue',
+                minValue: 2,
+                maxValue: 7,
+                unitCode: 'd',
+              },
+            },
+          },
+          hasMerchantReturnPolicy: {
+            '@type': 'MerchantReturnPolicy',
+            applicableCountry: 'IN',
+            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            merchantReturnDays: 2,
+            returnMethod: 'https://schema.org/ReturnByMail',
+            returnFees: 'https://schema.org/FreeReturn',
           },
         },
       },
@@ -226,12 +253,7 @@ export default async function handler(req: any, res: any) {
   template = template.replace(/<div id="root">[\s\S]*?<\/div>/i, semanticRoot);
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  if (dbError) {
-    // During database outages, do not cache responses on edge so recovery is immediate
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  } else {
-    res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400');
-  }
+  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400');
   res.status(200).send(template);
 }
 
@@ -268,7 +290,8 @@ function sendServiceUnavailable(res: any, _reason?: string) {
     <div id="root">
       <main style="padding: 3rem 1.5rem; max-width: 800px; margin: 0 auto; text-align: center; font-family: sans-serif;">
         <h1>Service Temporarily Unavailable</h1>
-        <p>Our catalogue service is undergoing scheduled maintenance. Please refresh in a moment.</p>
+        <p>Our catalogue service is temporarily unavailable. Please refresh in a moment.</p>
+        <p><a href="/" style="display: inline-block; padding: 0.75rem 1.5rem; background: #FF1026; color: white; text-decoration: none; border-radius: 9999px; font-weight: bold; margin-top: 1rem;">Back to Home</a></p>
       </main>
     </div>`;
 
@@ -276,6 +299,7 @@ function sendServiceUnavailable(res: any, _reason?: string) {
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  res.setHeader('Retry-After', '60');
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.status(503).send(template);
 }
