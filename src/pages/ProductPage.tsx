@@ -106,10 +106,14 @@ export function ProductPage() {
     ? 'Loading product…'
     : 'Product Not Found — Pixwora';
 
+  const materialClaim = isPoster
+    ? 'Printed on 300 GSM archival matte cardstock with rich color reproduction.'
+    : 'Printed on waterproof die-cut vinyl with durable scratch-resistant lamination.';
+
   const pageDescription = product
     ? `Buy ${product.name} ${isPoster ? 'Wall Poster' : 'Sticker'} online at Pixwora. ${
         product.shortDescription || product.description || 'Original student-crafted design.'
-      } Premium waterproof quality in India. Genuine INR ₹${product.price}.`
+      } ${materialClaim} Genuine INR ₹${product.price}. Dispatches in 24–48 hours across India.`
     : 'The requested product could not be found in our catalogue.';
 
   const productSchema = useMemo(() => {

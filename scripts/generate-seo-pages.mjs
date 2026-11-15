@@ -19,6 +19,17 @@ function escapeXml(unsafe) {
     .replace(/'/g, '&apos;');
 }
 
+function formatLastMod(rawDate) {
+  if (!rawDate) return null;
+  try {
+    const d = new Date(rawDate);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString().split('T')[0];
+  } catch {
+    return null;
+  }
+}
+
 async function generateSitemapAndPages() {
   console.log('Generating Pixwora XML Sitemap and SEO Prerendered Shells...');
 
@@ -45,7 +56,7 @@ async function generateSitemapAndPages() {
     while (true) {
       const { data, error } = await supabase
         .from('Product')
-        .select('id, slug, name, description, price, status, active, category, productType, images:ProductImage(*)')
+        .select('id, slug, name, description, price, status, active, category, productType, createdAt, updatedAt, images:ProductImage(*)')
         .range(from, from + step - 1);
       if (error || !data || data.length === 0) break;
       for (const p of data) {
@@ -73,10 +84,12 @@ async function generateSitemapAndPages() {
   xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ';
   xml += 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
 
-  const addUrl = (loc, priority = '0.8', changefreq = 'daily', images = []) => {
+  const addUrl = (loc, priority = '0.8', changefreq = 'daily', images = [], lastmod = null) => {
     xml += '  <url>\n';
     xml += `    <loc>${escapeXml(loc)}</loc>\n`;
-    xml += `    <lastmod>${TODAY}</lastmod>\n`;
+    if (lastmod) {
+      xml += `    <lastmod>${escapeXml(lastmod)}</lastmod>\n`;
+    }
     xml += `    <changefreq>${changefreq}</changefreq>\n`;
     xml += `    <priority>${priority}</priority>\n`;
     for (const img of images) {
@@ -131,7 +144,7 @@ async function generateSitemapAndPages() {
   addUrl(`${BASE_URL}/shop?category=stickers&type=sheet`, '0.8', 'daily');
   addUrl(`${BASE_URL}/shop?category=posters&type=poster-set`, '0.8', 'daily');
 
-  // 5. Individual Published Product Pages with Image Sitemaps
+  // 5. Individual Published Product Pages with Image Sitemaps and genuine lastmod
   for (const p of publishedProducts) {
     const isPoster = p.category === 'posters' || p.productType === 'poster';
     const prodImages = [];
@@ -141,12 +154,13 @@ async function generateSitemapAndPages() {
         if (src) {
           prodImages.push({
             src,
-            title: `${p.name} ${isPoster ? 'Wall Poster' : 'Waterproof Vinyl Sticker'} - Pixwora`,
+            title: `${p.name} ${isPoster ? '300 GSM Matte Wall Poster' : 'Waterproof Vinyl Sticker'} - Pixwora`,
           });
         }
       }
     }
-    addUrl(`${BASE_URL}/product/${p.slug}`, '0.7', 'weekly', prodImages);
+    const genuineLastMod = formatLastMod(p.updatedAt || p.createdAt);
+    addUrl(`${BASE_URL}/product/${p.slug}`, '0.7', 'weekly', prodImages, genuineLastMod);
   }
 
   // 6. Policy & Info Pages

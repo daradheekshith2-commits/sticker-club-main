@@ -86,4 +86,15 @@ jobs:
       - run: npx prisma migrate deploy
       - run: npm run db:seed
       - run: npx prisma migrate status
+      - name: Generate disposable CI test environment file
+        run: |
+          touch .env.test
+          echo "DATABASE_URL=$DATABASE_URL" >> .env.test
+          echo "JWT_SECRET=$JWT_SECRET" >> .env.test
+          echo "JWT_REFRESH_SECRET=$JWT_REFRESH_SECRET" >> .env.test
+          echo "CORS_ORIGIN=$CORS_ORIGIN" >> .env.test
+          echo "NODE_ENV=test" >> .env.test
+          echo "TEST_DATABASE_IS_DISPOSABLE=yes" >> .env.test
+          echo "DELIVERY_FEE=$DELIVERY_FEE" >> .env.test
+          echo "UPI_ID=$UPI_ID" >> .env.test
       - run: npm test

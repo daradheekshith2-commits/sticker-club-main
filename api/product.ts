@@ -31,6 +31,8 @@ export default async function handler(req: any, res: any) {
   }
 
   let product: any = null;
+  let dbResponded = false;
+  let dbError = false;
 
   // 1. Check in-memory cache
   const cached = productCache.get(slug);
@@ -38,56 +40,86 @@ export default async function handler(req: any, res: any) {
     product = cached.product;
   }
 
-  // 2. Fetch from Supabase (source of truth for live products)
+  // 2. Fetch from Supabase (sole authoritative source of truth for published product eligibility)
   if (!product) {
     try {
       const { data, error } = await supabase
         .from('Product')
-        .select('*, images:ProductImage(*), variants:ProductVariant(*)')
+        .select('*, inventory:Inventory(quantity), images:ProductImage(*), variants:ProductVariant(*)')
         .eq('slug', slug)
         .maybeSingle();
 
-      if (!error && data) {
-        product = data;
-        productCache.set(slug, { product, timestamp: Date.now() });
+      if (error) {
+        dbError = true;
+        console.warn('Supabase query error:', error.message);
+      } else {
+        dbResponded = true;
+        if (data) {
+          product = data;
+          productCache.set(slug, { product, timestamp: Date.now() });
+        }
       }
-    } catch (e) {
-      console.warn('Supabase product query error:', e);
+    } catch (e: any) {
+      dbError = true;
+      console.warn('Supabase network exception / outage:', e?.message || e);
     }
   }
 
-  // 3. Fallback to seed products & catalogue snapshot if Supabase did not find it
-  if (!product) {
-    const candidateFiles = [
-      path.join(process.cwd(), 'public', 'seed-products.json'),
-      path.join(process.cwd(), 'public', 'products-catalogue.json'),
-    ];
-    for (const f of candidateFiles) {
-      if (fs.existsSync(f)) {
-        try {
-          const list = JSON.parse(fs.readFileSync(f, 'utf8'));
-          const match = list.find((p: any) => p.slug === slug);
-          if (match) {
-            product = match;
-            productCache.set(slug, { product, timestamp: Date.now() });
-            break;
-          }
-        } catch {}
-      }
+  // 3. Authoritative DB decision:
+  // If the live database responded and found no record, this product is GENUINELY not found.
+  // We NEVER resurrect deleted or unpublished legacy products from static catalogue snapshots.
+  if (dbResponded && !product) {
+    return send404(res, 'Product Not Found');
+  }
+
+  // 4. Database Outage Disaster Recovery:
+  // ONLY in the event of an active database connection error or network outage, check seed products
+  if (dbError && !product) {
+    const seedFile = path.join(process.cwd(), 'public', 'seed-products.json');
+    if (fs.existsSync(seedFile)) {
+      try {
+        const list = JSON.parse(fs.readFileSync(seedFile, 'utf8'));
+        const match = list.find((p: any) => p.slug === slug);
+        if (match && match.status === 'PUBLISHED' && match.active !== false) {
+          product = match;
+        }
+      } catch {}
+    }
+
+    if (!product) {
+      return sendServiceUnavailable(res, 'Database temporarily unavailable');
     }
   }
 
-  // 4. Validate product active & published status
+  // 5. Validate product active & published status
   if (!product || product.status !== 'PUBLISHED' || product.active === false) {
     return send404(res, 'Product Not Found');
   }
 
-  // 5. Construct SEO Metadata
+  // 6. Construct Accurate SEO Metadata matching genuine product specs
   const isPoster = product.category === 'posters' || product.productType === 'poster';
-  const prodTypeLabel = isPoster ? 'Wall Poster' : 'Waterproof Vinyl Sticker';
+  const prodTypeLabel = isPoster
+    ? 'Wall Poster'
+    : product.productType === 'sheet'
+    ? 'Sticker Sheet'
+    : product.productType === 'pack'
+    ? 'Sticker Pack'
+    : 'Waterproof Vinyl Sticker';
+
   const pageTitle = `${product.name} ${isPoster ? 'Wall Poster' : 'Sticker'} — Buy Online India | Pixwora`;
-  const cleanDesc = product.shortDescription || (product.description ? product.description.slice(0, 155) : `Buy ${product.name} ${prodTypeLabel} online at Pixwora. Premium quality, student-run brand from Hyderabad.`);
-  const metaDescription = `Buy ${product.name} ${prodTypeLabel} online at Pixwora. ${cleanDesc} Waterproof finish. Genuine INR ₹${product.price}. Fast shipping across India.`;
+
+  // Material & Finish: Posters are 300 GSM matte cardstock; stickers are waterproof vinyl
+  const materialClaim = isPoster
+    ? 'Printed on 300 GSM archival matte cardstock with rich color reproduction.'
+    : 'Printed on waterproof die-cut vinyl with durable scratch-resistant lamination.';
+
+  // Stock Availability: verified against inventory relation
+  const inStock = product.inventory ? product.inventory.quantity > 0 : true;
+  const availabilitySchema = inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+  const stockLabel = inStock ? 'In Stock' : 'Currently Out of Stock';
+
+  const cleanDesc = product.shortDescription || (product.description ? product.description.slice(0, 140) : `Buy ${product.name} online at Pixwora. Student-run brand from Hyderabad.`);
+  const metaDescription = `Buy ${product.name} ${prodTypeLabel} online at Pixwora. ${cleanDesc} ${materialClaim} Genuine INR ₹${product.price}. Dispatches in 24–48 hours across India.`;
   const canonicalUrl = `${BASE_URL}/product/${product.slug}`;
 
   // Image URL
@@ -118,7 +150,7 @@ export default async function handler(req: any, res: any) {
           price: String(product.price),
           priceValidUntil: '2027-12-31',
           itemCondition: 'https://schema.org/NewCondition',
-          availability: 'https://schema.org/InStock',
+          availability: availabilitySchema,
           seller: {
             '@type': 'Organization',
             name: 'Pixwora',
@@ -152,7 +184,7 @@ export default async function handler(req: any, res: any) {
     ],
   };
 
-  // 6. Template HTML
+  // 7. Template HTML
   let template = getHtmlTemplate();
 
   template = template.replace(/<title>.*?<\/title>/i, `<title>${escapeHtml(pageTitle)}</title>`);
@@ -184,7 +216,9 @@ export default async function handler(req: any, res: any) {
         <p>${escapeHtml(product.description || product.shortDescription || '')}</p>
         <p><strong>Price:</strong> ₹${product.price} (INR)</p>
         <p><strong>Brand:</strong> Pixwora (Hyderabad, India)</p>
-        <p><strong>Availability:</strong> In Stock</p>
+        <p><strong>Availability:</strong> ${stockLabel}</p>
+        <p><strong>Material:</strong> ${isPoster ? '300 GSM Archival Matte Cardstock' : 'Waterproof Vinyl'}</p>
+        <p><strong>Delivery:</strong> Dispatches within 24–48 hours. Pan-India shipping to 24,000+ PIN codes.</p>
         <p><a href="/shop?category=${isPoster ? 'posters' : 'stickers'}">Explore more ${isPoster ? 'wall posters' : 'laptop stickers'}</a></p>
       </main>
     </div>`;
@@ -192,12 +226,18 @@ export default async function handler(req: any, res: any) {
   template = template.replace(/<div id="root">[\s\S]*?<\/div>/i, semanticRoot);
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400');
+  if (dbError) {
+    // During database outages, do not cache responses on edge so recovery is immediate
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  } else {
+    res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400');
+  }
   res.status(200).send(template);
 }
 
 function send404(res: any, _reason?: string) {
   let template = getHtmlTemplate();
+
   template = template.replace(/<title>.*?<\/title>/i, `<title>Product Not Found — Pixwora</title>`);
   template = template.replace(/<head>/i, `<head>\n    <meta name="robots" content="noindex, nofollow" />`);
 
@@ -216,6 +256,28 @@ function send404(res: any, _reason?: string) {
   res.setHeader('X-Robots-Tag', 'noindex, nofollow');
   res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=600');
   res.status(404).send(template);
+}
+
+function sendServiceUnavailable(res: any, _reason?: string) {
+  let template = getHtmlTemplate();
+
+  template = template.replace(/<title>.*?<\/title>/i, `<title>Service Temporarily Unavailable — Pixwora</title>`);
+  template = template.replace(/<head>/i, `<head>\n    <meta name="robots" content="noindex, nofollow" />`);
+
+  const root503 = `
+    <div id="root">
+      <main style="padding: 3rem 1.5rem; max-width: 800px; margin: 0 auto; text-align: center; font-family: sans-serif;">
+        <h1>Service Temporarily Unavailable</h1>
+        <p>Our catalogue service is undergoing scheduled maintenance. Please refresh in a moment.</p>
+      </main>
+    </div>`;
+
+  template = template.replace(/<div id="root">[\s\S]*?<\/div>/i, root503);
+
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.status(503).send(template);
 }
 
 function getHtmlTemplate(): string {

@@ -18,6 +18,17 @@ function escapeXml(unsafe: string | null | undefined): string {
     .replace(/'/g, '&apos;');
 }
 
+function formatLastMod(rawDate: string | null | undefined): string | null {
+  if (!rawDate) return null;
+  try {
+    const d = new Date(rawDate);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString().split('T')[0];
+  } catch {
+    return null;
+  }
+}
+
 // In-memory cache for the generated sitemap (1 hour TTL)
 let cachedSitemapXml: string | null = null;
 let lastCacheTime = 0;
@@ -42,7 +53,7 @@ export default async function handler(_req: any, res: any) {
     while (true) {
       const { data, error } = await supabase
         .from('Product')
-        .select('slug, name, category, productType, images:ProductImage(url)')
+        .select('slug, name, category, productType, createdAt, updatedAt, images:ProductImage(url)')
         .eq('status', 'PUBLISHED')
         .eq('active', true)
         .range(from, from + step - 1);
@@ -54,14 +65,21 @@ export default async function handler(_req: any, res: any) {
     }
 
     if (allProducts.length > 0) {
-      const today = new Date().toISOString().split('T')[0];
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
       xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
 
-      const addUrl = (loc: string, priority = '0.8', changefreq = 'daily', images: Array<{ src: string; title?: string }> = []) => {
+      const addUrl = (
+        loc: string,
+        priority = '0.8',
+        changefreq = 'daily',
+        images: Array<{ src: string; title?: string }> = [],
+        lastmod: string | null = null
+      ) => {
         xml += '  <url>\n';
         xml += `    <loc>${escapeXml(loc)}</loc>\n`;
-        xml += `    <lastmod>${today}</lastmod>\n`;
+        if (lastmod) {
+          xml += `    <lastmod>${escapeXml(lastmod)}</lastmod>\n`;
+        }
         xml += `    <changefreq>${changefreq}</changefreq>\n`;
         xml += `    <priority>${priority}</priority>\n`;
         for (const img of images) {
@@ -116,7 +134,7 @@ export default async function handler(_req: any, res: any) {
       addUrl(`${BASE_URL}/shop?category=stickers&type=sheet`, '0.8', 'daily');
       addUrl(`${BASE_URL}/shop?category=posters&type=poster-set`, '0.8', 'daily');
 
-      // 7. Individual Published Product Pages with Image Sitemaps
+      // 7. Individual Published Product Pages with Image Sitemaps and genuine lastmod
       for (const p of allProducts) {
         const isPoster = p.category === 'posters' || p.productType === 'poster';
         const prodImages: Array<{ src: string; title?: string }> = [];
@@ -131,7 +149,8 @@ export default async function handler(_req: any, res: any) {
             }
           }
         }
-        addUrl(`${BASE_URL}/product/${p.slug}`, '0.7', 'weekly', prodImages);
+        const genuineLastMod = formatLastMod(p.updatedAt || p.createdAt);
+        addUrl(`${BASE_URL}/product/${p.slug}`, '0.7', 'weekly', prodImages, genuineLastMod);
       }
 
       // 8. Policy & Info Pages (7 URLs)

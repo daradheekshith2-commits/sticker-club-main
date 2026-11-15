@@ -98,26 +98,26 @@ test('Dynamic product handler serves 200 with schema for valid products and 404 
     };
   };
 
-  // 1. Seed product test
-  const resSeed = mockResponse();
-  await handler({ url: '/api/product?slug=chai-first', query: { slug: 'chai-first' }, headers: { host: 'www.pixwora.store' } }, resSeed);
-  const outSeed = resSeed.getResult();
-  assert.equal(outSeed.statusCode, 200);
-  assert.ok(outSeed.body.includes('<title>Chai First Sticker — Buy Online India | Pixwora</title>'));
-  assert.ok(outSeed.body.includes('https://www.pixwora.store/product/chai-first'));
-  assert.ok(outSeed.body.includes('"@type": "Product"'));
-  assert.ok(outSeed.body.includes('"@type": "BreadcrumbList"'));
-  assert.ok(outSeed.body.includes('<h1>Chai First Waterproof Vinyl Sticker</h1>'));
-
-  // 2. Live Supabase product test
+  // 1. Live Supabase published product test (iron-man)
   const resLive = mockResponse();
   await handler({ url: '/api/product?slug=iron-man', query: { slug: 'iron-man' }, headers: { host: 'www.pixwora.store' } }, resLive);
   const outLive = resLive.getResult();
   assert.equal(outLive.statusCode, 200);
   assert.ok(outLive.body.includes('<title>iron man Sticker — Buy Online India | Pixwora</title>'));
+  assert.ok(outLive.body.includes('https://www.pixwora.store/product/iron-man'));
   assert.ok(outLive.body.includes('"@type": "Product"'));
+  assert.ok(outLive.body.includes('"@type": "BreadcrumbList"'));
+  assert.ok(outLive.body.includes('iron man'));
 
-  // 3. Unknown non-existent product test
+  // 2. Live Supabase published product test (og)
+  const resLive2 = mockResponse();
+  await handler({ url: '/api/product?slug=og', query: { slug: 'og' }, headers: { host: 'www.pixwora.store' } }, resLive2);
+  const outLive2 = resLive2.getResult();
+  assert.equal(outLive2.statusCode, 200);
+  assert.ok(outLive2.body.includes('<title>og Sticker — Buy Online India | Pixwora</title>'));
+  assert.ok(outLive2.body.includes('"@type": "Product"'));
+
+  // 3. Unknown or un-synced product test (must return authentic 404, never fallback to static)
   const res404 = mockResponse();
   await handler({ url: '/api/product?slug=fake-product-does-not-exist-12345', query: { slug: 'fake-product-does-not-exist-12345' }, headers: { host: 'www.pixwora.store' } }, res404);
   const out404 = res404.getResult();
