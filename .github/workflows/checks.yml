@@ -105,4 +105,13 @@ jobs:
           echo "DELIVERY_FEE=$DELIVERY_FEE" >> .env.test
           echo "UPI_ID=$UPI_ID" >> .env.test
           cp .env.test .env
-      - run: npm test
+      - name: Run backend tests
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test-output.txt || {
+            echo "### Backend Test Failures" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 120 test-output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
