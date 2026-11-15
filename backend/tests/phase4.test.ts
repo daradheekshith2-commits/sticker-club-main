@@ -55,9 +55,9 @@ test('Phase 4: Custom artwork infrastructure, storage, upload validation, custom
     calculateCustomPackUnitPrice(5, 'gloss');
   }, /currently unavailable/);
 
-  // Wall pricing: compact (1 A3 [149] + 4 A5 [4 * 59 = 236]) = 385
+  // Wall pricing: compact (1 A3 [150] + 4 A5 [4 * 90 = 360]) = 510
   const wallPrice = calculateCustomWallUnitPrice('compact');
-  assert.equal(wallPrice.toNumber(), 385);
+  assert.equal(wallPrice.toNumber(), 510);
 
   // Test 3: Integration tests via Express server
   const port = 5096;
