@@ -131,6 +131,8 @@ test('Dynamic product handler serves 200 with schema for valid products and 404 
   assert.ok(outLive.body.includes('https://www.pixwora.store/product/iron-man'));
   assert.ok(outLive.body.includes('"@type": "Product"'));
   assert.ok(outLive.body.includes('"@type": "BreadcrumbList"'));
+  assert.equal(outLive.body.split('id="pixwora-page-ld-json"').length, 2, 'Product page must have exactly one JSON-LD block');
+  assert.ok(!outLive.body.includes('"@type": "WebSite"'), 'Product page JSON-LD must replace homepage WebSite schema');
   assert.ok(outLive.body.includes('iron man'));
 
   // 2. Live Supabase published product test (og)

@@ -190,9 +190,13 @@ export default async function handler(req: any, res: any) {
   template = template.replace(/<meta\s+name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*>/i, `<meta name="twitter:description" content="${escapeHtml(metaDescription)}" />`);
   template = template.replace(/<meta\s+name=["']twitter:image["'][^>]*content=["'][^"']*["'][^>]*>/i, `<meta name="twitter:image" content="${escapeHtml(fullImgUrl)}" />`);
 
-  // Inject JSON-LD Schema
+  // Inject JSON-LD Schema (replace template schema if present, otherwise insert before </head>)
   const schemaScript = `\n    <script id="pixwora-page-ld-json" type="application/ld+json">\n${JSON.stringify(schema, null, 2)}\n    </script>\n`;
-  template = template.replace('</head>', `${schemaScript}</head>`);
+  if (/<script\b[^>]*id="pixwora-(?:page-)?ld-json"[^>]*>[\s\S]*?<\/script>/i.test(template)) {
+    template = template.replace(/<script\b[^>]*id="pixwora-(?:page-)?ld-json"[^>]*>[\s\S]*?<\/script>/i, schemaScript.trim());
+  } else {
+    template = template.replace('</head>', `${schemaScript}</head>`);
+  }
 
   // Inject semantic HTML inside <div id="root"> for crawlers
   const semanticRoot = `
