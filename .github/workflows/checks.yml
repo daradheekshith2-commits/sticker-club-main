@@ -107,11 +107,14 @@ jobs:
           cp .env.test .env
       - name: Run backend tests
         run: |
-          set -o pipefail
-          npm test 2>&1 | tee test-output.txt || {
-            echo "### Backend Test Failures" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 120 test-output.txt >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+          npm test > test-output.txt 2>&1 || {
+            echo "TEST FAILED:"
+            cat test-output.txt
             exit 1
           }
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-log-checks
+          path: backend/test-output.txt
