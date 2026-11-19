@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/(PNG|Poster|Stickers|hero-stickers|category-art)/(.*)",
+      "source": "/(PNG|Poster|Stickers|hero-stickers|category-art|gta|gta6_stickers_fast)/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
