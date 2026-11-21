@@ -184,29 +184,31 @@ export function CustomerOrdersPanel() {
     const SUPABASE_STORAGE_PUBLIC_BASE = 'https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks';
 
     // 1. If fileName is known, Supabase public URL is the permanent, authoritative source
-    if (fileName) {
-      const cleanFileName = fileName.replace(/^\/+/, '');
+    if (fileName && fileName.trim()) {
+      const cleanFileName = fileName.trim().replace(/^\/+/, '');
       return `${SUPABASE_STORAGE_PUBLIC_BASE}/${cleanFileName}`;
     }
 
-    if (!rawUrlOrId) return '';
+    if (!rawUrlOrId || typeof rawUrlOrId !== 'string') return '';
+    const trimmed = rawUrlOrId.trim();
+    if (!trimmed) return '';
 
-    // 2. If it's a Supabase signed URL (/storage/v1/object/sign/artworks/...), convert to public URL
-    if (rawUrlOrId.includes('/storage/v1/object/sign/artworks/')) {
-      const pathPart = rawUrlOrId.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
+    // 2. If it's a Supabase signed URL (/storage/v1/object/sign/artworks/...), convert to public URL and drop token
+    if (trimmed.includes('/storage/v1/object/sign/artworks/')) {
+      const pathPart = trimmed.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
       if (pathPart) {
-        return `${SUPABASE_STORAGE_PUBLIC_BASE}/${pathPart}`;
+        return `${SUPABASE_STORAGE_PUBLIC_BASE}/${pathPart.replace(/^\/+/, '')}`;
       }
     }
 
     // 3. If it's already a Supabase public artworks URL, strip query params
-    if (rawUrlOrId.includes('/storage/v1/object/public/artworks/')) {
-      return rawUrlOrId.split('?')[0];
+    if (trimmed.includes('/storage/v1/object/public/artworks/')) {
+      return trimmed.split('?')[0];
     }
 
     // 4. If it's a relative API upload path
-    if (rawUrlOrId.startsWith('/api/uploads/artwork/')) {
-      const artworkId = rawUrlOrId.replace('/api/uploads/artwork/', '').split('/')[0];
+    if (trimmed.startsWith('/api/uploads/artwork/')) {
+      const artworkId = trimmed.replace('/api/uploads/artwork/', '').split('/')[0];
       if (apiUrl && !apiUrl.includes('localhost')) {
         let url = `${apiUrl}/api/uploads/artwork/${artworkId}/${isDownload ? 'download' : 'file'}`;
         if (token && !url.includes('token=')) {
@@ -214,45 +216,57 @@ export function CustomerOrdersPanel() {
         }
         return url;
       }
-      return `${SUPABASE_STORAGE_PUBLIC_BASE}/${artworkId}`;
+      return '';
     }
 
     // 5. If it contains a folder path (e.g. userId/123-filename.jpg)
-    if (rawUrlOrId.includes('/') && !rawUrlOrId.startsWith('blob:')) {
-      if (rawUrlOrId.startsWith('http://') || rawUrlOrId.startsWith('https://')) {
-        return rawUrlOrId;
+    if (trimmed.includes('/') && !trimmed.startsWith('blob:')) {
+      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        return trimmed.split('?')[0];
       }
-      return `${SUPABASE_STORAGE_PUBLIC_BASE}/${rawUrlOrId.replace(/^\/+/, '')}`;
+      return `${SUPABASE_STORAGE_PUBLIC_BASE}/${trimmed.replace(/^\/+/, '')}`;
     }
 
     // 6. If it's an external full URL
-    if (rawUrlOrId.startsWith('http://') || rawUrlOrId.startsWith('https://') || rawUrlOrId.startsWith('blob:')) {
-      return rawUrlOrId;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed.split('?')[0];
     }
 
-    // 7. Fallback to apiUrl or Supabase storage
+    // 7. If it's a blob: URL (temporary session only)
+    if (trimmed.startsWith('blob:')) {
+      return trimmed;
+    }
+
+    // 8. Bare UUID or legacy ID without path
     if (apiUrl && !apiUrl.includes('localhost')) {
-      let url = `${apiUrl}/api/uploads/artwork/${rawUrlOrId}/${isDownload ? 'download' : 'file'}`;
+      let url = `${apiUrl}/api/uploads/artwork/${trimmed}/${isDownload ? 'download' : 'file'}`;
       if (token && !url.includes('token=')) {
         url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
       }
       return url;
     }
-    return `${SUPABASE_STORAGE_PUBLIC_BASE}/${rawUrlOrId}`;
+
+    return '';
   }
 
   function resolveProductImageUrl(url?: string | null): string | undefined {
-    if (!url) return undefined;
+    if (!url || typeof url !== 'string') return undefined;
     const SUPABASE_STORAGE_PUBLIC_BASE = 'https://iarclkcnxpbbxxpfwamd.supabase.co/storage/v1/object/public/artworks';
-    let resolved = url;
+    let resolved = url.trim();
+    if (!resolved) return undefined;
+
     if (resolved.includes('/storage/v1/object/sign/artworks/')) {
       const pathPart = resolved.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
-      if (pathPart) return `${SUPABASE_STORAGE_PUBLIC_BASE}/${pathPart}`;
+      if (pathPart) return `${SUPABASE_STORAGE_PUBLIC_BASE}/${pathPart.replace(/^\/+/, '')}`;
     }
     if (resolved.includes('/storage/v1/object/public/artworks/')) {
       return resolved.split('?')[0];
     }
-    if (resolved.startsWith('/') && apiUrl && !resolved.startsWith('http')) {
+    // Static assets in /public (/PNG/, /Stickers/, /Poster/, etc.) should never be prefixed with localhost apiUrl
+    if (resolved.startsWith('/') && !resolved.startsWith('/api/')) {
+      return resolved;
+    }
+    if (resolved.startsWith('/api/uploads/') && apiUrl && !apiUrl.includes('localhost')) {
       resolved = `${apiUrl}${resolved}`;
     }
     if (resolved.includes('/api/uploads/artwork') && token && !resolved.includes('token=')) {
@@ -642,12 +656,20 @@ export function CustomerOrdersPanel() {
                 </span>
                 <div className="mt-2 space-y-2.5">
                   {o.items.map((i, iIdx) => {
+                    const isCustom = !i.productId ||
+                      i.metadata?.type?.startsWith('custom') ||
+                      i.nameSnapshot.toLowerCase().includes('custom');
                     const product = i.productId ? getProductById(i.productId) : undefined;
                     const productImg = product?.images?.[0]?.src;
-                    const matchingCustom = o.customOrders?.find((co) => co.artworkId === (i.metadata as any)?.artworkId) || o.customOrders?.[iIdx];
+                    const matchingCustom = o.customOrders?.find((co) =>
+                      (i.metadata?.artworkId && co.artworkId === i.metadata.artworkId) ||
+                      ((i.metadata as any)?.customOrderId && co.id === (i.metadata as any).customOrderId) ||
+                      (co.artwork?.id && i.metadata?.artworkId === co.artwork.id) ||
+                      (i.imageUrl && co.previewUrl && (i.imageUrl === co.previewUrl || i.imageUrl.split('?')[0] === co.previewUrl.split('?')[0]))
+                    ) || (isCustom ? o.customOrders?.[iIdx] : undefined);
                     const customArtworkUrl = matchingCustom ? resolveArtworkUrl(matchingCustom.previewUrl || matchingCustom.artworkId, false, matchingCustom.artwork?.fileName) : undefined;
-                    const rawImg = i.imageUrl ? resolveProductImageUrl(i.imageUrl) : (customArtworkUrl || productImg);
-                    const resolvedImg = rawImg && !brokenImages[i.id] ? rawImg : (customArtworkUrl && !brokenImages[`custom_${i.id}`] ? customArtworkUrl : undefined);
+                    const rawImg = i.imageUrl ? resolveProductImageUrl(i.imageUrl) : (customArtworkUrl || (productImg ? resolveProductImageUrl(productImg) : undefined));
+                    const resolvedImg = (!brokenImages[i.id] && rawImg) || (!brokenImages[`custom_${i.id}`] && customArtworkUrl) || undefined;
                     return (
                       <div key={i.id} className="flex items-center justify-between gap-3 text-xs">
                         <div className="flex items-center gap-3">
@@ -656,13 +678,17 @@ export function CustomerOrdersPanel() {
                             onClick={() => {
                               setModalImgFailed(false);
                               setEnlargedImage({
-                                url: rawImg,
+                                url: rawImg || customArtworkUrl,
                                 product,
                                 title: i.nameSnapshot,
                                 subtitle: `${i.variantLabel ? i.variantLabel + ' · ' : ''}₹${i.unitPrice} each`,
+                                downloadUrl: customArtworkUrl || rawImg,
+                                downloadName: matchingCustom?.artwork?.originalName || (isCustom ? `${i.nameSnapshot.replace(/\s+/g, '_')}_artwork` : undefined),
                               });
                             }}
-                            className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-ink/15 bg-white transition hover:scale-105 flex items-center justify-center"
+                            className={`h-10 w-10 shrink-0 overflow-hidden rounded-lg border bg-white transition hover:scale-105 flex items-center justify-center ${
+                              isCustom ? 'border-lime/60' : 'border-ink/15'
+                            }`}
                           >
                             {resolvedImg ? (
                               <img
@@ -670,10 +696,16 @@ export function CustomerOrdersPanel() {
                                 alt={i.nameSnapshot}
                                 className="h-full w-full object-cover"
                                 loading="lazy"
+                                crossOrigin="anonymous"
+                                referrerPolicy="no-referrer"
                                 onError={() => setBrokenImages((prev) => ({ ...prev, [i.id]: true }))}
                               />
                             ) : product ? (
                               <ProductImage product={product} className="size-full" />
+                            ) : isCustom ? (
+                              <div className="flex h-full w-full flex-col items-center justify-center bg-paper-deep text-[9px] font-black text-lime uppercase tracking-tighter">
+                                <span>CUST</span>
+                              </div>
                             ) : (
                               <div className="flex h-full w-full items-center justify-center bg-paper-deep text-[10px] font-bold text-ink uppercase">
                                 {i.nameSnapshot.slice(0, 2)}
@@ -747,6 +779,8 @@ export function CustomerOrdersPanel() {
                                     alt="Custom item preview"
                                     className="h-full w-full object-contain"
                                     loading="lazy"
+                                    crossOrigin="anonymous"
+                                    referrerPolicy="no-referrer"
                                   />
                                 </button>
                               )}
@@ -1040,6 +1074,8 @@ export function CustomerOrdersPanel() {
                   src={enlargedImage.url}
                   alt={enlargedImage.title}
                   className="max-h-[60vh] max-w-full rounded object-contain"
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
                   onError={() => setModalImgFailed(true)}
                 />
               ) : enlargedImage.product ? (

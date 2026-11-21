@@ -28,7 +28,9 @@ export function sanitizeOrderArtworks(orders: any[]): any[] {
         previewUrl = `${PUBLIC_STORAGE_BASE}/${co.artwork.fileName.replace(/^\/+/, '')}`;
       } else if (previewUrl && previewUrl.includes('/storage/v1/object/sign/artworks/')) {
         const pathPart = previewUrl.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
-        if (pathPart) previewUrl = `${PUBLIC_STORAGE_BASE}/${pathPart}`;
+        if (pathPart) previewUrl = `${PUBLIC_STORAGE_BASE}/${pathPart.replace(/^\/+/, '')}`;
+      } else if (previewUrl && previewUrl.includes('/storage/v1/object/public/artworks/')) {
+        previewUrl = previewUrl.split('?')[0];
       }
       return { ...co, previewUrl };
     });
@@ -37,12 +39,34 @@ export function sanitizeOrderArtworks(orders: any[]): any[] {
       let imageUrl = item.imageUrl;
       if (imageUrl && imageUrl.includes('/storage/v1/object/sign/artworks/')) {
         const pathPart = imageUrl.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
-        if (pathPart) imageUrl = `${PUBLIC_STORAGE_BASE}/${pathPart}`;
+        if (pathPart) imageUrl = `${PUBLIC_STORAGE_BASE}/${pathPart.replace(/^\/+/, '')}`;
+      } else if (imageUrl && imageUrl.includes('/storage/v1/object/public/artworks/')) {
+        imageUrl = imageUrl.split('?')[0];
       }
-      if (!imageUrl || imageUrl.startsWith('blob:')) {
-        const matchingCo = customOrders.find((co: any) => co.artworkId === item.metadata?.artworkId) || customOrders[idx];
+
+      let metaPreviewUrl = item.metadata?.previewUrl;
+      if (metaPreviewUrl && metaPreviewUrl.includes('/storage/v1/object/sign/artworks/')) {
+        const pathPart = metaPreviewUrl.split('/storage/v1/object/sign/artworks/')[1]?.split('?')[0];
+        if (pathPart) metaPreviewUrl = `${PUBLIC_STORAGE_BASE}/${pathPart.replace(/^\/+/, '')}`;
+      } else if (metaPreviewUrl && metaPreviewUrl.includes('/storage/v1/object/public/artworks/')) {
+        metaPreviewUrl = metaPreviewUrl.split('?')[0];
+      }
+
+      const isCustomItem = !item.productId ||
+        item.metadata?.type?.startsWith('custom') ||
+        (item.nameSnapshot && item.nameSnapshot.toLowerCase().includes('custom'));
+
+      if (!imageUrl || imageUrl.startsWith('blob:') || !imageUrl.startsWith('http')) {
+        const matchingCo = customOrders.find((co: any) =>
+          (item.metadata?.artworkId && co.artworkId === item.metadata.artworkId) ||
+          (item.metadata?.customOrderId && co.id === item.metadata.customOrderId) ||
+          (co.artwork?.id && item.metadata?.artworkId === co.artwork.id)
+        ) || (isCustomItem ? customOrders[idx] : undefined);
+
         if (matchingCo?.previewUrl) {
           imageUrl = matchingCo.previewUrl;
+        } else if (metaPreviewUrl && !metaPreviewUrl.startsWith('blob:')) {
+          imageUrl = metaPreviewUrl;
         }
       }
       return { ...item, imageUrl };
