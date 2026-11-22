@@ -40,9 +40,29 @@
           "@type": "Organization",
           "@id": "https://www.pixwora.store/#organization",
           "name": "Pixwora",
+          "alternateName": [
+            "PIXWORA",
+            "Pixwora Store",
+            "Pixwora India",
+            "Pixwora Stickers"
+          ],
           "url": "https://www.pixwora.store/",
           "logo": "https://www.pixwora.store/logo.jpeg",
-          "description": "Student-run brand from Hyderabad creating original waterproof vinyl stickers and high-quality room wall posters.",
+          "description": "Student-run brand from Hyderabad creating original waterproof vinyl stickers, 300 GSM room wall posters, and custom sticker printing.",
+          "email": "pixworastore@gmail.com",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Hyderabad",
+            "addressRegion": "Telangana",
+            "addressCountry": "IN"
+          },
+          "knowsAbout": [
+            "Waterproof Vinyl Stickers",
+            "Die-Cut Laptop Stickers",
+            "300 GSM Wall Posters",
+            "Custom Sticker Printing",
+            "Room Decor & Wall Collage Kits"
+          ],
           "contactPoint": {
             "@type": "ContactPoint",
             "telephone": "+91-7981793020",
@@ -90,18 +110,48 @@
   </head>
   <body>
     <div id="root">
-      <div style="padding: 2rem; max-width: 1200px; margin: 0 auto; font-family: sans-serif;">
-        <h1>PIXWORA — Original Stickers & Posters in India</h1>
-        <p>Discover original waterproof vinyl stickers and high-quality room wall posters crafted in Hyderabad, India.</p>
-        <nav aria-label="Quick links">
-          <ul>
-            <li><a href="/shop?category=stickers">Laptop & Vinyl Stickers</a></li>
-            <li><a href="/shop?category=posters">Wall Posters (A5, A4, A3)</a></li>
-            <li><a href="/create-your-stickers">Create Custom Stickers</a></li>
-            <li><a href="/build-your-wall">Build Your Poster Wall</a></li>
-          </ul>
-        </nav>
-      </div>
+      <main style="padding: 2rem; max-width: 1200px; margin: 0 auto; font-family: sans-serif; line-height: 1.6;">
+        <h1>PIXWORA — Original Waterproof Stickers &amp; Wall Posters in India</h1>
+        <p>
+          Pixwora is an independent, student-run creative studio from Hyderabad, India, specializing in original waterproof vinyl stickers, 300 GSM archival matte wall posters, and precision custom sticker printing.
+        </p>
+
+        <section>
+          <h2>Explore Pixwora Collections</h2>
+          <nav aria-label="Main Categories">
+            <ul>
+              <li><a href="/shop?category=stickers"><strong>Laptop &amp; Vinyl Stickers:</strong> 100% waterproof, die-cut, scratch-resistant vinyl decals for laptops, water bottles, and helmets.</a></li>
+              <li><a href="/shop?category=posters"><strong>Wall Posters:</strong> Heavyweight 300 GSM archival matte art prints in A5, A4, and A3 dimensions.</a></li>
+              <li><a href="/create-your-stickers"><strong>Create Custom Stickers:</strong> Print your own artwork or photos with live preview and custom shapes.</a></li>
+              <li><a href="/build-your-wall"><strong>Build Your Poster Wall:</strong> Design custom aesthetic room wall collage layouts.</a></li>
+            </ul>
+          </nav>
+        </section>
+
+        <section>
+          <h2>Frequently Asked Questions</h2>
+          <dl>
+            <dt><strong>Are Pixwora stickers waterproof?</strong></dt>
+            <dd>Yes, all Pixwora stickers are printed on durable vinyl with protective matte lamination, making them 100% waterproof, UV-resistant, and residue-free when peeled.</dd>
+            <dt><strong>What paper is used for wall posters?</strong></dt>
+            <dd>Our wall posters are printed on heavy 300 GSM premium matte art paper with rich archival inks in standard A5, A4, and A3 sizes.</dd>
+            <dt><strong>Where does Pixwora ship from?</strong></dt>
+            <dd>Orders are crafted and dispatched from Hyderabad, Telangana, with tracked pan-India delivery to over 24,000 pincodes.</dd>
+          </dl>
+        </section>
+
+        <footer style="margin-top: 2rem; border-top: 1px solid #ccc; padding-top: 1rem;">
+          <nav aria-label="Legal &amp; Info">
+            <a href="/about">About Us</a> ·
+            <a href="/faq">FAQ</a> ·
+            <a href="/contact">Contact</a> ·
+            <a href="/shipping">Shipping Policy</a> ·
+            <a href="/returns">Returns &amp; Cancellations</a> ·
+            <a href="/terms">Terms of Service</a> ·
+            <a href="/privacy">Privacy Policy</a>
+          </nav>
+        </footer>
+      </main>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

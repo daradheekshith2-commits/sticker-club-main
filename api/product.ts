@@ -133,7 +133,10 @@ export default async function handler(req: any, res: any) {
         brand: {
           '@type': 'Brand',
           name: 'Pixwora',
+          url: `${BASE_URL}/`,
+          logo: `${BASE_URL}/logo.jpeg`,
         },
+        material: isPoster ? '300 GSM Archival Matte Cardstock' : 'Waterproof Vinyl',
         category: isPoster ? 'Wall Posters' : 'Stickers',
         offers: {
           '@type': 'Offer',

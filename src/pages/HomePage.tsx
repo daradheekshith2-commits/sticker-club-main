@@ -10,6 +10,7 @@ import { ProductGrid } from '../components/product/ProductCard';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { ShopByVibe } from '../components/vibes/ShopByVibe';
 import { AnimatedStickerHero } from '../components/home/AnimatedStickerHero';
+import { HOMEPAGE_FAQS } from '../data/storeFaqs';
 
 function CategoryCardImage({ cardId, title }: { cardId: string; title: string }) {
   const [failed, setFailed] = useState(false);
@@ -149,7 +150,7 @@ function Collect() {
       to: '/collector-passport',
       eyebrow: 'YOUR COLLECTION JOURNEY',
       title: 'Collector Passport',
-      description: 'Preview the stamp-card idea and see how your Sticker Club collection could grow.',
+      description: 'Preview the stamp-card idea and see how your Pixwora collection could grow.',
       cta: 'VIEW PASSPORT',
       Icon: LuStamp,
       accent: '#8FD3FF',
@@ -368,6 +369,50 @@ function FeaturedRow({ category, eyebrow, title, linkLabel }: { category: Catego
   );
 }
 
+function HomepageFaqSection() {
+  return (
+    <section className="mx-auto max-w-5xl px-4 pt-24 pb-16 sm:px-6" aria-labelledby="home-faq-heading">
+      <div className="text-center">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#a8f0dc]">Got Questions?</p>
+        <h2 id="home-faq-heading" className="mt-2 font-display text-3xl font-extrabold uppercase sm:text-4xl text-ink">
+          Frequently Asked Questions
+        </h2>
+        <p className="mt-2 text-sm text-ink-soft">
+          Everything you need to know about our waterproof stickers, 300 GSM posters, and custom orders.
+        </p>
+      </div>
+
+      <div className="mt-10 divide-y divide-[#315e53]/40 rounded-2xl border border-[#315e53]/60 bg-[#071b18] px-6 py-2 shadow-xl">
+        {HOMEPAGE_FAQS.map((faq, idx) => (
+          <details key={idx} className="group py-4.5" open={idx === 0}>
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold text-base sm:text-lg text-ink hover:text-[#a8f0dc] transition-colors">
+              <span>{faq.q}</span>
+              <span
+                aria-hidden="true"
+                className="grid size-7 shrink-0 place-items-center rounded-full border border-[#315e53] bg-[#0b2420] text-xs font-bold text-[#a8f0dc] transition-transform duration-200 group-open:rotate-45"
+              >
+                +
+              </span>
+            </summary>
+            <p className="mt-3 text-sm sm:text-base leading-relaxed text-ink-soft">
+              {faq.a}
+            </p>
+          </details>
+        ))}
+      </div>
+
+      <div className="mt-8 text-center">
+        <Link
+          to="/faq"
+          className="inline-flex items-center gap-2 text-sm font-bold text-[#a8f0dc] hover:underline"
+        >
+          View all 11 frequently asked questions <LuArrowRight aria-hidden className="size-4" />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export function HomePage() {
   const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
   const homeSchema = {
@@ -377,9 +422,24 @@ export function HomePage() {
         '@type': 'Organization',
         '@id': `${siteOrigin}/#organization`,
         name: brand.displayName,
+        alternateName: ['PIXWORA', 'Pixwora Store', 'Pixwora India', 'Pixwora Stickers'],
         url: `${siteOrigin}/`,
         logo: `${siteOrigin}/logo.jpeg`,
-        description: 'Student-run brand from Hyderabad creating original waterproof vinyl stickers and high-quality room wall posters.',
+        description: 'Student-run brand from Hyderabad creating original waterproof vinyl stickers, 300 GSM room wall posters, and custom sticker printing.',
+        email: 'pixworastore@gmail.com',
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: 'Hyderabad',
+          addressRegion: 'Telangana',
+          addressCountry: 'IN',
+        },
+        knowsAbout: [
+          'Waterproof Vinyl Stickers',
+          'Die-Cut Laptop Stickers',
+          '300 GSM Wall Posters',
+          'Custom Sticker Printing',
+          'Wall Collage Art',
+        ],
         contactPoint: {
           '@type': 'ContactPoint',
           telephone: '+91-7981793020',
@@ -405,6 +465,18 @@ export function HomePage() {
           'query-input': 'required name=search_term_string',
         },
       },
+      {
+        '@type': 'FAQPage',
+        '@id': `${siteOrigin}/#faq`,
+        mainEntity: HOMEPAGE_FAQS.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: f.a,
+          },
+        })),
+      },
     ],
   };
 
@@ -422,6 +494,7 @@ export function HomePage() {
       <ShopByVibe />
       <FeaturedRow category="stickers" eyebrow="Featured stickers" title="Start small. Collect them all." linkLabel="All stickers" />
       <FeaturedRow category="posters" eyebrow="Featured posters" title="Walls deserve personality too." linkLabel="All posters" />
+      <HomepageFaqSection />
     </>
   );
 }

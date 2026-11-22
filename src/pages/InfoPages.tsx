@@ -26,6 +26,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Notice, Placeholder } from '../components/ui/Placeholder';
 import { d } from '../data/products';
 import { StickerSvg } from '../components/art/Sticker';
+import { STORE_FAQS } from '../data/storeFaqs';
 
 function Page({ title, crumb, intro, children }: { title: string; crumb: string; intro?: ReactNode; children: ReactNode }) {
   return (
@@ -58,10 +59,34 @@ const marqueeStickers = [
 
 export function AboutPage() {
   const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
+  const aboutSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    '@id': `${siteOrigin}/about#webpage`,
+    url: `${siteOrigin}/about`,
+    name: `About ${brand.displayName} — Original Student-Run Sticker & Poster Brand`,
+    description: `Learn the story behind ${brand.displayName}. A student-run brand from Hyderabad making waterproof vinyl stickers and premium wall posters.`,
+    mainEntity: {
+      '@type': 'Organization',
+      '@id': `${siteOrigin}/#organization`,
+      name: brand.displayName,
+      alternateName: ['PIXWORA', 'Pixwora Store', 'Pixwora India', 'Pixwora Stickers'],
+      url: `${siteOrigin}/`,
+      logo: `${siteOrigin}/logo.jpeg`,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Hyderabad',
+        addressRegion: 'Telangana',
+        addressCountry: 'IN',
+      },
+    },
+  };
+
   usePageMeta({
     title: `About ${brand.displayName} — Original Student-Run Sticker & Poster Brand`,
     description: `Learn the story behind ${brand.displayName}. A student-run brand from Hyderabad making waterproof vinyl stickers and premium wall posters.`,
     canonical: `${siteOrigin}/about`,
+    schema: aboutSchema,
   });
 
   const collections = [
@@ -319,7 +344,7 @@ export function AboutPage() {
             SMALL STICKERS. BIG PERSONALITY.
           </h2>
           <p className="mt-6 text-lg leading-relaxed text-ink-soft">
-            A plain laptop is fine. A wall with nothing on it is fine. But why settle for fine? Sticker Club is about making your everyday space unmistakably yours—with small designs, bold ideas and plenty of character.
+            A plain laptop is fine. A wall with nothing on it is fine. But why settle for fine? Pixwora is about making your everyday space unmistakably yours—with small designs, bold ideas and plenty of character.
           </p>
           <p className="mt-4 text-base leading-relaxed text-ink-soft">
             We started as a student-run brand in {brand.city} with a simple observation: everyone carries the exact same laptops, bottles, and notebooks. Stickers are the cheapest, most expressive way to claim your things back.
@@ -463,59 +488,12 @@ export function AboutPage() {
   );
 }
 
-const faqs: { q: string; a: ReactNode }[] = [
-  {
-    q: 'Can I place an order right now?',
-    a: 'Yes! Pixwora is live. You can add stickers, posters, and custom prints to your cart and proceed to checkout. We deliver pan-India with a minimum order total of ₹99.',
-  },
-  {
-    q: 'What size and material are the stickers?',
-    a: 'Our stickers are printed on premium 100% waterproof, scratch-resistant vinyl with a protective matte laminate. Individual stickers fit within a standard 5cm × 5cm (approx 2" × 2") area with die-cut precision, while sticker sheets are standard A6 format (10.5 × 14.8 cm).',
-  },
-  {
-    q: 'How does "Create Your Own" custom stickers work?',
-    a: 'You can upload your own image or photo, use our interactive corner-bracket crop tool to frame it, and pick your dimensions: 5cm × 5cm (₹20), 6cm × 6cm (₹25), or enter any custom dimensions in cm with instant automated pricing. We inspect every uploaded artwork for print clarity before production.',
-  },
-  {
-    q: 'What poster sizes do you offer and what paper is used?',
-    a: 'Our wall posters come in three standard international sizes: A5 (14.8 × 21 cm / 5.8 × 8.3 in), A4 (21 × 29.7 cm / 8.3 × 11.7 in), and A3 (29.7 × 42 cm / 11.7 × 16.5 in). All posters are printed on heavy 300 GSM archival matte cardstock with rich, fade-resistant color reproduction.',
-  },
-  {
-    q: 'What is the minimum order requirement?',
-    a: 'Pixwora has a ₹99 minimum order total to checkout. This allows us to use rigid bend-proof mailers, protective moisture-sealed packaging, and reliable tracked courier dispatch.',
-  },
-  {
-    q: 'How do I pay using UPI?',
-    a: 'Select UPI at checkout. You will see our verified store UPI ID with display payee name KOMMULA SRUJAN REDDY along with a dynamic QR code. Scan and transfer via Google Pay, PhonePe, Paytm, or any UPI app, then submit your 12-digit UPI Transaction ID (UTR) to confirm your order.',
-  },
-  {
-    q: 'Do you offer Cash on Delivery (COD)?',
-    a: 'Yes! Cash on Delivery is available for eligible addresses across India (with a nominal ₹15 extra delivery charge). Payment is collected in cash by the delivery courier upon arrival.',
-  },
-  {
-    q: 'What is the Mystery Sticker Pack?',
-    a: 'The Mystery Pack gives you 6 stickers for ₹129: 5 guaranteed stickers from your chosen theme (Anime, Marvel, Cars & Bikes, Gaming, Cute, Devotion, Sports, or Movies) plus 1 surprise mystery sticker chosen by our team.',
-  },
-  {
-    q: 'Can I personalize Secret Message stickers?',
-    a: 'Yes! Every Secret Message sticker includes a wax-sealed envelope card. You can enter your own custom message during checkout or in our interactive builder to surprise a friend, or receive our curated secret quote.',
-  },
-  {
-    q: 'Do your stickers peel off cleanly without residue?',
-    a: 'Yes. Our stickers use premium removable vinyl adhesive. You can peel and reposition them on laptops, phone cases, water bottles, and glass cleanly with zero sticky glue residue.',
-  },
-  {
-    q: 'How long does delivery take?',
-    a: 'Orders are printed, precision cut, and packed within 1-2 business days. Delivery across major metro cities in India typically takes 3-5 business days. You can track your order status live from your Pixwora account.',
-  },
-];
-
 export function FaqPage() {
   const siteOrigin = brand.publicUrl || 'https://www.pixwora.store';
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: faqs.map((f) => ({
+    mainEntity: STORE_FAQS.map((f) => ({
       '@type': 'Question',
       name: f.q,
       acceptedAnswer: {
@@ -534,7 +512,7 @@ export function FaqPage() {
   return (
     <Page title="Questions, answered." crumb="FAQ">
       <div className="divide-y-2 divide-ink/10 border-y-2 border-ink/10">
-        {faqs.map((f) => (
+        {STORE_FAQS.map((f) => (
           <details key={f.q} className="group py-5">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-xl font-extrabold">
               {f.q}
@@ -542,7 +520,7 @@ export function FaqPage() {
                 +
               </span>
             </summary>
-            <p className="mt-3 text-ink-soft">{f.a}</p>
+            <p className="mt-3 text-ink-soft leading-relaxed">{f.a}</p>
           </details>
         ))}
       </div>

@@ -18,11 +18,12 @@ export function AnimatedStickerHero() {
       <div className="cinema-hero-grid mx-auto grid max-w-7xl items-center gap-10 px-4 pt-10 pb-12 sm:px-6 lg:min-h-[min(calc(100svh-4rem),820px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.12fr)] lg:gap-8 lg:py-10">
         <div className="relative max-w-xl">
           <h1 id="hero-title" className="cinema-hero-title mt-3 font-hero text-[4.4rem] leading-[0.86] tracking-[0.005em] uppercase sm:text-[6.5rem] lg:text-[7.4rem]">
+            <span className="sr-only">PIXWORA — Original Stickers &amp; Wall Posters, Made in Hyderabad: </span>
             <span className="block">Stick your</span>
             <span className="relative inline-block text-cinema-red [text-shadow:0_0_28px_rgba(255,16,38,0.45)]">
               Vibe.
               {/* Overlapping tactile die-cut badge */}
-              <span className="absolute -top-4 -right-16 hidden sm:inline-block rotate-12 rounded-lg bg-mint px-2.5 py-1 text-[11px] font-mono font-black text-paper shadow-2xl border-2 border-paper hover:rotate-6 transition-transform cursor-pointer select-none">
+              <span aria-hidden="true" className="absolute -top-4 -right-16 hidden sm:inline-block rotate-12 rounded-lg bg-mint px-2.5 py-1 text-[11px] font-mono font-black text-paper shadow-2xl border-2 border-paper hover:rotate-6 transition-transform cursor-pointer select-none">
                 ★ DIE-CUT
               </span>
               {/* hand-drawn swoosh + sparkle */}

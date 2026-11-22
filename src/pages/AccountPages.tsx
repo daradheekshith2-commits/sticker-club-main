@@ -90,7 +90,7 @@ export function AuthPage({mode}:{mode:Mode}){
    }
   }catch(e){setError(e instanceof Error?e.message:'Something went wrong');}finally{setBusy(false);}
  }
- const title={login:'Welcome back.',register:'Join the club.',forgot:'Reset your password.',reset:'Choose a new password.',admin:'Sticker Club admin.'}[mode];
+ const title={login:'Welcome back.',register:'Join the club.',forgot:'Reset your password.',reset:'Choose a new password.',admin:'Pixwora Admin.'}[mode];
  return <Shell title={title}>
   {(mode === 'login' || mode === 'register') && (
    <div className="mb-6 space-y-4">
