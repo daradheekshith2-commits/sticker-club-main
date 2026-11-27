@@ -58,6 +58,13 @@ type CustomOrder = {
   }>;
 };
 
+export type OrderNote = {
+  id: string;
+  text: string;
+  author: string;
+  createdAt: string;
+};
+
 type OrderItem = {
   id: string;
   productId?: string | null;
@@ -139,6 +146,18 @@ export function AdminOrdersPanel() {
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [actionNotice, setActionNotice] = useState<{ id: string; text: string; isError?: boolean } | null>(null);
+
+  // Dedicated Order Notes state
+  const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
+  const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
+  const [localNotesMap, setLocalNotesMap] = useState<Record<string, OrderNote[]>>(() => {
+    try {
+      const stored = localStorage.getItem('pixwora_admin_order_notes_all');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
 
   // Detailed Modal or Enlarged Image View state
   const [enlargedImage, setEnlargedImage] = useState<{
@@ -413,6 +432,128 @@ export function AdminOrdersPanel() {
       alert(`Could not delete order ${orderId}:\n\n${err}`);
     } finally {
       setBusy(null);
+    }
+  }
+
+  function getOrderNotes(order: Order): OrderNote[] {
+    const fromEvents: OrderNote[] = (order.events || [])
+      .filter((e) => e.kind === 'ADMIN_NOTE' && (e.detail?.text || e.detail?.note))
+      .map((e) => ({
+        id: e.id,
+        text: String(e.detail?.text || e.detail?.note || ''),
+        author: String(e.detail?.author || 'Admin'),
+        createdAt: String(e.detail?.createdAt || e.createdAt),
+      }));
+
+    const fromShipping: OrderNote[] = Array.isArray((order.shippingAddress as any)?.adminNotes)
+      ? (order.shippingAddress as any).adminNotes
+      : (order.shippingAddress as any)?.adminNote
+      ? [{ id: `legacy-${order.id}`, text: (order.shippingAddress as any).adminNote, author: 'Admin', createdAt: order.createdAt }]
+      : [];
+
+    const fromLocal: OrderNote[] = localNotesMap[order.id] || [];
+
+    const seen = new Set<string>();
+    const all: OrderNote[] = [];
+
+    for (const n of [...fromLocal, ...fromEvents, ...fromShipping]) {
+      const key = n.id || `${n.text}_${n.createdAt}`;
+      if (!seen.has(key) && n.text?.trim()) {
+        seen.add(key);
+        all.push(n);
+      }
+    }
+
+    return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async function handleSaveNote(orderId: string) {
+    const text = (notesDraft[orderId] || '').trim();
+    if (!text) return;
+
+    setSavingNoteId(orderId);
+    const noteId = `note-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const newNote: OrderNote = {
+      id: noteId,
+      text,
+      author: user?.name || user?.email || 'Admin',
+      createdAt: new Date().toISOString(),
+    };
+
+    // 1. Update local cache immediately
+    const updatedForOrder = [newNote, ...(localNotesMap[orderId] || [])];
+    const newAll = { ...localNotesMap, [orderId]: updatedForOrder };
+    setLocalNotesMap(newAll);
+    try {
+      localStorage.setItem('pixwora_admin_order_notes_all', JSON.stringify(newAll));
+    } catch {}
+
+    // 2. Clear draft
+    setNotesDraft((prev) => ({ ...prev, [orderId]: '' }));
+
+    // 3. Optimistically update order.events in state
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== orderId) return o;
+        const newEv: OrderEvent = {
+          id: noteId,
+          kind: 'ADMIN_NOTE',
+          actorId: user?.id,
+          detail: { text, author: newNote.author, createdAt: newNote.createdAt },
+          createdAt: newNote.createdAt,
+        };
+        return {
+          ...o,
+          events: [...(o.events || []), newEv],
+        };
+      })
+    );
+
+    // 4. Send to backend/supabase
+    try {
+      await request(`/api/admin/orders/${encodeURIComponent(orderId)}/notes`, {
+        method: 'POST',
+        body: JSON.stringify({ text }),
+      });
+      setActionNotice({ id: orderId, text: '✓ Note Saved' });
+    } catch (err) {
+      console.warn('Note saved locally, remote sync notice:', err);
+      setActionNotice({ id: orderId, text: '✓ Note Saved (Local)' });
+    } finally {
+      setSavingNoteId(null);
+    }
+  }
+
+  async function handleDeleteNote(orderId: string, noteId: string) {
+    if (!window.confirm('Are you sure you want to delete this note?')) return;
+
+    // 1. Remove from local cache
+    const updated = (localNotesMap[orderId] || []).filter((n) => n.id !== noteId);
+    const newAll = { ...localNotesMap, [orderId]: updated };
+    setLocalNotesMap(newAll);
+    try {
+      localStorage.setItem('pixwora_admin_order_notes_all', JSON.stringify(newAll));
+    } catch {}
+
+    // 2. Remove from order.events in state
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== orderId) return o;
+        return {
+          ...o,
+          events: (o.events || []).filter((e) => e.id !== noteId),
+        };
+      })
+    );
+
+    // 3. Delete remotely
+    try {
+      await request(`/api/admin/orders/${encodeURIComponent(orderId)}/notes/${encodeURIComponent(noteId)}`, {
+        method: 'DELETE',
+      });
+      setActionNotice({ id: orderId, text: '✓ Note Removed' });
+    } catch (e) {
+      console.warn('Note deleted locally, remote sync notice:', e);
     }
   }
 
@@ -1622,6 +1763,119 @@ Instruction: Print on kraft/linen insert card and seal with wax seal into envelo
                       )}
                     </div>
                   )}
+
+                  {/* Dedicated Order Notes Section */}
+                  {(() => {
+                    const notes = getOrderNotes(order);
+                    const draft = notesDraft[order.id] || '';
+                    const isSaving = savingNoteId === order.id;
+
+                    return (
+                      <div className="mt-4 rounded-xl border border-ink/20 bg-paper/60 p-4 shadow-sm space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">📝</span>
+                            <h4 className="font-bold text-xs uppercase tracking-wider text-ink">
+                              Admin Notes &amp; Remarks
+                            </h4>
+                            {notes.length > 0 && (
+                              <span className="rounded-full bg-mint/20 border border-mint/40 px-2 py-0.5 text-[10px] font-bold text-mint">
+                                {notes.length} note{notes.length === 1 ? '' : 's'}
+                              </span>
+                            )}
+                          </div>
+                          {notes.length > 0 && (
+                            <span className="text-[11px] text-ink-soft hidden sm:inline-block">
+                              Latest: {new Date(notes[0].createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* List of existing notes */}
+                        {notes.length > 0 && (
+                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            {notes.map((note) => (
+                              <div
+                                key={note.id}
+                                className="group relative rounded-lg border border-ink/10 bg-paper p-3 text-xs text-ink transition hover:border-ink/25 shadow-xs"
+                              >
+                                <p className="whitespace-pre-wrap leading-relaxed text-ink/90 font-medium">
+                                  {note.text}
+                                </p>
+                                <div className="mt-2 flex items-center justify-between text-[10px] text-ink-soft border-t border-ink/5 pt-1.5">
+                                  <span>
+                                    By <strong className="text-ink">{note.author}</strong> ·{' '}
+                                    {new Date(note.createdAt).toLocaleString('en-IN', {
+                                      dateStyle: 'medium',
+                                      timeStyle: 'short',
+                                    })}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => void handleDeleteNote(order.id, note.id)}
+                                    className="text-danger/80 hover:text-danger hover:underline font-bold transition-colors inline-flex items-center gap-1"
+                                    title="Delete this note"
+                                  >
+                                    <LuTrash2 className="size-3" />
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Note Input Textarea */}
+                        <div className="space-y-2 pt-1">
+                          <textarea
+                            rows={2}
+                            value={draft}
+                            onChange={(e) =>
+                              setNotesDraft((prev) => ({ ...prev, [order.id]: e.target.value }))
+                            }
+                            placeholder="Type internal notes for this order (e.g. courier tracking number, custom packaging instructions, customer call log, size confirmations)..."
+                            className="w-full rounded-lg border border-ink/20 bg-paper p-3 text-xs text-ink placeholder:text-ink-soft/60 focus:border-mint focus:outline-none focus:ring-1 focus:ring-mint transition"
+                          />
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] text-ink-soft italic">
+                              Private note · Visible only to store administrators
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {draft.trim() && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setNotesDraft((prev) => ({ ...prev, [order.id]: '' }))
+                                  }
+                                  className="btn-ghost text-xs px-2.5 py-1 text-ink-soft hover:text-ink"
+                                >
+                                  Clear
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                disabled={isSaving || !draft.trim()}
+                                onClick={() => void handleSaveNote(order.id)}
+                                className="btn-primary text-xs px-4 py-1.5 font-bold shadow-sm inline-flex items-center gap-1.5"
+                              >
+                                {isSaving ? (
+                                  <>
+                                    <span className="inline-block size-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                    <span>Saving…</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>💾</span>
+                                    <span>Save Note</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Action Buttons Row */}
                   <div className="mt-3 flex flex-wrap items-center gap-2 pt-2 border-t border-ink/10">

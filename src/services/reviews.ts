@@ -32,6 +32,7 @@ function saveLocalReviews(reviews: ReviewItem[]) {
 }
 
 export async function fetchReviews(): Promise<ReviewItem[]> {
+  const local = getLocalReviews();
   try {
     const { data, error } = await supabase
       .from('Review')
@@ -39,13 +40,17 @@ export async function fetchReviews(): Promise<ReviewItem[]> {
       .order('createdAt', { ascending: false });
 
     if (!error && Array.isArray(data)) {
-      saveLocalReviews(data as ReviewItem[]);
-      return data as ReviewItem[];
+      // Merge remote reviews with any unique offline/local reviews by id
+      const remoteIds = new Set(data.map((r: any) => r.id));
+      const unSyncedLocal = local.filter((r) => !remoteIds.has(r.id));
+      const combined = [...data, ...unSyncedLocal];
+      saveLocalReviews(combined as ReviewItem[]);
+      return combined as ReviewItem[];
     }
   } catch (err) {
     console.warn('Could not fetch reviews from Supabase, using local fallback:', err);
   }
-  return getLocalReviews();
+  return local;
 }
 
 export async function addReview(payload: {

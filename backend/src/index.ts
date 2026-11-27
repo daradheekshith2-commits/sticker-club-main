@@ -3299,6 +3299,94 @@ app.post(
   })
 );
 
+app.post(
+  '/api/admin/orders/:id/notes',
+  requireAuth,
+  admin,
+  wrap(async (req, res) => {
+    const id = String(req.params.id);
+    const { text, note } = req.body || {};
+    const noteText = String(text || note || '').trim();
+    if (!noteText) {
+      res.status(400).json({ error: 'Note text cannot be empty' });
+      return;
+    }
+
+    const existing = await db.order.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    const noteId = randomUUID();
+    const noteTime = new Date().toISOString();
+    const author = (req.session as any)?.name || (req.session as any)?.email || 'Admin';
+
+    await db.orderEvent.create({
+      data: {
+        id: noteId,
+        orderId: id,
+        kind: 'ADMIN_NOTE',
+        actorId: req.session?.id || 'admin',
+        detail: { text: noteText, author, createdAt: noteTime },
+      },
+    });
+
+    const currentShipping = (existing.shippingAddress as Record<string, any>) || {};
+    const existingNotes = Array.isArray(currentShipping.adminNotes) ? currentShipping.adminNotes : [];
+    const updatedNotes = [...existingNotes, { id: noteId, text: noteText, author, createdAt: noteTime }];
+
+    await db.order.update({
+      where: { id },
+      data: {
+        shippingAddress: {
+          ...currentShipping,
+          adminNote: noteText,
+          adminNotes: updatedNotes,
+        },
+      },
+    });
+
+    res.json({ success: true, note: { id: noteId, text: noteText, author, createdAt: noteTime } });
+  })
+);
+
+app.delete(
+  '/api/admin/orders/:id/notes/:noteId',
+  requireAuth,
+  admin,
+  wrap(async (req, res) => {
+    const id = String(req.params.id);
+    const noteId = String(req.params.noteId);
+
+    const existing = await db.order.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    try {
+      await db.orderEvent.deleteMany({ where: { orderId: id, id: noteId } });
+    } catch {}
+
+    const currentShipping = (existing.shippingAddress as Record<string, any>) || {};
+    const existingNotes = Array.isArray(currentShipping.adminNotes) ? currentShipping.adminNotes : [];
+    const updatedNotes = existingNotes.filter((n: any) => n.id !== noteId);
+
+    await db.order.update({
+      where: { id },
+      data: {
+        shippingAddress: {
+          ...currentShipping,
+          adminNotes: updatedNotes,
+        },
+      },
+    });
+
+    res.json({ success: true, deletedId: noteId });
+  })
+);
+
 // ==========================================
 // Community & Voting API
 // ==========================================

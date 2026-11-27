@@ -1469,6 +1469,96 @@ export async function handleSupabaseRequest<T>(
       return { handled: true, data: { success: true, pingedAt: pingTime } as unknown as T };
     }
 
+    // 14.5 Admin Add Order Note (/api/admin/orders/:id/notes)
+    if (urlPath.startsWith('/api/admin/orders/') && urlPath.endsWith('/notes') && method === 'POST') {
+      const orderId = decodeURIComponent(urlPath.replace('/api/admin/orders/', '').replace('/notes', '').trim());
+      if (!user || user.role !== 'ADMIN') {
+        return { handled: true, error: 'Admin access required', status: 403 };
+      }
+      const body = parseBody();
+      const text = String(body.text || body.note || '').trim();
+      if (!text) {
+        return { handled: true, error: 'Note text cannot be empty', status: 400 };
+      }
+
+      const noteTime = new Date().toISOString();
+      const author = user.name || user.email || 'Admin';
+      const eventId = `note-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+
+      try {
+        await supabase.from('OrderEvent').insert({
+          id: eventId,
+          orderId,
+          kind: 'ADMIN_NOTE',
+          actorId: user.id,
+          detail: { text, author, createdAt: noteTime },
+        });
+      } catch (evtErr) {
+        console.warn('Could not record order note event:', evtErr);
+      }
+
+      // Also persist to Order's shippingAddress jsonb so it is preserved alongside order details
+      try {
+        const { data: currOrder } = await supabase.from('Order').select('shippingAddress').eq('id', orderId).single();
+        if (currOrder) {
+          const currentAddress = (currOrder.shippingAddress as Record<string, any>) || {};
+          const existingNotes = Array.isArray(currentAddress.adminNotes) ? currentAddress.adminNotes : [];
+          const updatedNotes = [...existingNotes, { id: eventId, text, author, createdAt: noteTime }];
+          await supabase.from('Order').update({
+            shippingAddress: {
+              ...currentAddress,
+              adminNote: text,
+              adminNotes: updatedNotes,
+            },
+          }).eq('id', orderId);
+        }
+      } catch (addrErr) {
+        console.warn('Could not update order shippingAddress adminNotes:', addrErr);
+      }
+
+      return {
+        handled: true,
+        data: {
+          success: true,
+          note: { id: eventId, text, author, createdAt: noteTime },
+        } as unknown as T,
+      };
+    }
+
+    // 14.6 Admin Delete Order Note (/api/admin/orders/:id/notes/:noteId)
+    if (urlPath.startsWith('/api/admin/orders/') && urlPath.includes('/notes/') && method === 'DELETE') {
+      const parts = urlPath.replace('/api/admin/orders/', '').split('/notes/');
+      const orderId = decodeURIComponent(parts[0].trim());
+      const noteId = decodeURIComponent(parts[1].trim());
+
+      if (!user || user.role !== 'ADMIN') {
+        return { handled: true, error: 'Admin access required', status: 403 };
+      }
+
+      try {
+        await supabase.from('OrderEvent').delete().eq('orderId', orderId).eq('id', noteId);
+      } catch (evtErr) {
+        console.warn('Could not delete order note event:', evtErr);
+      }
+
+      try {
+        const { data: currOrder } = await supabase.from('Order').select('shippingAddress').eq('id', orderId).single();
+        if (currOrder) {
+          const currentAddress = (currOrder.shippingAddress as Record<string, any>) || {};
+          const existingNotes = Array.isArray(currentAddress.adminNotes) ? currentAddress.adminNotes : [];
+          const updatedNotes = existingNotes.filter((n: any) => n.id !== noteId);
+          await supabase.from('Order').update({
+            shippingAddress: {
+              ...currentAddress,
+              adminNotes: updatedNotes,
+            },
+          }).eq('id', orderId);
+        }
+      } catch {}
+
+      return { handled: true, data: { success: true, deletedId: noteId } as unknown as T };
+    }
+
     if (urlPath === '/api/admin/payments') {
       const statusFilter = queryParams.get('status') || 'SUBMITTED';
       const { data, error } = await supabase
