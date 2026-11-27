@@ -332,14 +332,14 @@ export function ReviewsPage() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto animate-fade-in"
         >
-          <div className="relative w-full max-w-lg rounded-2xl border-2 border-mint/40 bg-[#0d1d19] p-6 text-paper shadow-2xl my-8">
+          <div className="relative w-full max-w-lg rounded-2xl border-2 border-[#a8f0dc] bg-[#071b17] p-6 sm:p-7 text-[#ffffff] shadow-[0_15px_60px_rgba(0,0,0,0.9)] my-8">
             {/* Close Button */}
             <button
               type="button"
               onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white transition"
+              className="absolute top-4 right-4 rounded-full p-2 text-[#ffffff] bg-[#0e2722] hover:bg-[#a8f0dc] hover:text-[#03110f] border border-[#2f665a] transition"
               aria-label="Close review form"
             >
               <LuX className="size-5" />
@@ -347,42 +347,42 @@ export function ReviewsPage() {
 
             {submitSuccess ? (
               <div className="py-10 text-center space-y-3">
-                <div className="mx-auto grid size-16 place-items-center rounded-full bg-mint/20 text-mint text-3xl border border-mint/40">
+                <div className="mx-auto grid size-16 place-items-center rounded-full bg-[#a8f0dc]/20 text-[#a8f0dc] text-3xl border-2 border-[#a8f0dc]">
                   <LuCheck className="size-8 stroke-[3]" />
                 </div>
-                <h3 className="font-display text-2xl font-bold text-white">Review Published!</h3>
-                <p className="text-sm text-white/80 max-w-sm mx-auto">
-                  Thank you, <strong>{name}</strong>! Your review is now live on the Pixwora Community Wall.
+                <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-[#ffffff]">Review Published!</h3>
+                <p className="text-sm text-[#d6ede6] max-w-sm mx-auto leading-relaxed">
+                  Thank you, <strong className="text-[#a8f0dc]">{name}</strong>! Your review is now live on the Pixwora Community Wall.
                 </p>
               </div>
             ) : (
               <>
-                <div className="mb-5">
-                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-mint flex items-center gap-1.5">
-                    <LuSparkles className="size-4" /> Share Your Experience
+                <div className="mb-6 pr-8">
+                  <span className="text-xs font-mono font-black uppercase tracking-wider text-[#a8f0dc] flex items-center gap-1.5">
+                    <LuSparkles className="size-4 text-[#a8f0dc]" /> Share Your Experience
                   </span>
-                  <h3 className="mt-1 font-display text-2xl font-black text-white">
+                  <h3 className="mt-1.5 font-display text-2xl sm:text-3xl font-black text-[#ffffff] tracking-tight">
                     How's your Pixwora setup?
                   </h3>
-                  <p className="mt-1 text-xs text-white/70">
-                    Your review and photos will appear directly on our community wall below.
+                  <p className="mt-1.5 text-xs sm:text-sm text-[#d6ede6] leading-relaxed">
+                    Your review and photos will appear directly on our live community wall below.
                   </p>
                 </div>
 
                 {formError && (
-                  <div className="mb-4 rounded-xl bg-danger/20 border border-danger/40 p-3 text-xs font-bold text-danger">
+                  <div className="mb-5 rounded-xl bg-danger/25 border-2 border-danger p-3.5 text-xs font-bold text-[#ffffff] shadow-sm">
                     {formError}
                   </div>
                 )}
 
-                <form onSubmit={handleSubmitReview} className="space-y-4">
+                <form onSubmit={handleSubmitReview} className="space-y-5">
                   {/* Star Rating Picker */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-white/80 mb-1.5">
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-2">
                       Your Rating *
                     </label>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex items-center gap-1.5 bg-[#04120f] px-3 py-1.5 rounded-xl border border-[#2f665a]">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
@@ -390,29 +390,29 @@ export function ReviewsPage() {
                             onClick={() => setRating(star)}
                             onMouseEnter={() => setHoverRating(star)}
                             onMouseLeave={() => setHoverRating(0)}
-                            className="p-1 transition-transform hover:scale-110 focus:outline-none"
+                            className="p-1 transition-transform hover:scale-125 focus:outline-none"
                             aria-label={`${star} star`}
                           >
                             <LuStar
                               className={`size-6 transition-colors ${
                                 star <= (hoverRating || rating)
-                                  ? 'fill-sun text-sun'
-                                  : 'text-white/30'
+                                  ? 'fill-[#ffd447] text-[#ffd447] drop-shadow-[0_0_8px_rgba(255,212,71,0.6)]'
+                                  : 'text-[#2a5047] hover:text-[#ffd447]'
                               }`}
                             />
                           </button>
                         ))}
                       </div>
-                      <span className="text-xs font-bold text-sun ml-2">
+                      <span className="text-xs sm:text-sm font-extrabold text-[#ffd447]">
                         {RATING_LABELS[hoverRating || rating]}
                       </span>
                     </div>
                   </div>
 
                   {/* Customer Name & City/College */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-white/80 mb-1">
+                      <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-1.5">
                         Your Name *
                       </label>
                       <input
@@ -421,11 +421,11 @@ export function ReviewsPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Srujan Reddy"
-                        className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-mint focus:outline-none focus:ring-1 focus:ring-mint"
+                        className="w-full rounded-xl border-2 border-[#2f665a] bg-[#04120f] px-3.5 py-2.5 text-sm font-medium text-[#ffffff] placeholder:text-[#88b0a5] focus:border-[#a8f0dc] focus:bg-[#071b17] focus:outline-none focus:ring-2 focus:ring-[#a8f0dc]/30 transition shadow-inner"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-white/80 mb-1">
+                      <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-1.5">
                         City / College (optional)
                       </label>
                       <input
@@ -433,26 +433,26 @@ export function ReviewsPage() {
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
                         placeholder="e.g. Hyderabad / CBIT"
-                        className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-mint focus:outline-none focus:ring-1 focus:ring-mint"
+                        className="w-full rounded-xl border-2 border-[#2f665a] bg-[#04120f] px-3.5 py-2.5 text-sm font-medium text-[#ffffff] placeholder:text-[#88b0a5] focus:border-[#a8f0dc] focus:bg-[#071b17] focus:outline-none focus:ring-2 focus:ring-[#a8f0dc]/30 transition shadow-inner"
                       />
                     </div>
                   </div>
 
                   {/* Category / Product Tag Pills */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-white/80 mb-1.5">
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-2">
                       What did you get? (optional)
                     </label>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                       {REVIEW_TAG_OPTIONS.map((opt) => (
                         <button
                           key={opt}
                           type="button"
                           onClick={() => setTag(opt)}
-                          className={`rounded-full px-2.5 py-1 text-xs font-bold transition ${
+                          className={`rounded-full px-3 py-1.5 text-xs font-black transition-all ${
                             tag === opt
-                              ? 'bg-mint text-paper font-black border border-mint'
-                              : 'bg-white/10 text-white/80 border border-white/15 hover:bg-white/20'
+                              ? 'bg-[#a8f0dc] text-[#03110f] border-2 border-[#a8f0dc] shadow-[0_0_12px_rgba(168,240,220,0.5)] scale-105'
+                              : 'bg-[#0e2722] text-[#ffffff] border-2 border-[#2f665a] hover:border-[#a8f0dc] hover:text-[#a8f0dc] hover:bg-[#13352e]'
                           }`}
                         >
                           {opt}
@@ -463,7 +463,7 @@ export function ReviewsPage() {
 
                   {/* Review Textarea */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-white/80 mb-1">
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-1.5">
                       Your Review *
                     </label>
                     <textarea
@@ -472,13 +472,13 @@ export function ReviewsPage() {
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
                       placeholder="Share your thoughts on sticker finish, waterproof durability, poster thickness, or customer support..."
-                      className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-sm text-white placeholder:text-white/40 focus:border-mint focus:outline-none focus:ring-1 focus:ring-mint"
+                      className="w-full rounded-xl border-2 border-[#2f665a] bg-[#04120f] p-3.5 text-sm font-medium text-[#ffffff] placeholder:text-[#88b0a5] focus:border-[#a8f0dc] focus:bg-[#071b17] focus:outline-none focus:ring-2 focus:ring-[#a8f0dc]/30 transition shadow-inner"
                     />
                   </div>
 
                   {/* Setup Photo Upload */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-white/80 mb-1">
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-1.5">
                       Photo of your setup / stickers (optional)
                     </label>
                     {photoPreview ? (
@@ -486,24 +486,24 @@ export function ReviewsPage() {
                         <img
                           src={photoPreview}
                           alt="Review preview"
-                          className="h-28 w-28 rounded-xl object-cover border-2 border-mint/50 shadow-md"
+                          className="h-28 w-28 rounded-xl object-cover border-2 border-[#a8f0dc] shadow-md"
                         />
                         <button
                           type="button"
                           onClick={() => setPhotoPreview('')}
-                          className="absolute -top-2 -right-2 rounded-full bg-danger text-white p-1 shadow hover:bg-danger/90 transition"
+                          className="absolute -top-2 -right-2 rounded-full bg-[#d90a1f] text-white p-1.5 shadow-lg hover:bg-[#ff1026] transition"
                           title="Remove photo"
                         >
-                          <LuTrash2 className="size-3.5" />
+                          <LuTrash2 className="size-4" />
                         </button>
                       </div>
                     ) : (
-                      <label className="mt-1 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/25 bg-black/30 p-4 text-center transition hover:border-mint hover:bg-black/40">
-                        <LuUpload className="size-6 text-mint mb-1" />
-                        <span className="text-xs font-bold text-white">
+                      <label className="mt-1 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#3a7c6e] bg-[#04120f] p-4 text-center transition hover:border-[#a8f0dc] hover:bg-[#09221d] group">
+                        <LuUpload className="size-6 text-[#a8f0dc] mb-1 group-hover:scale-110 transition-transform" />
+                        <span className="text-xs font-bold text-[#ffffff]">
                           {uploadingImage ? 'Processing photo…' : 'Upload photo of your stickers or room wall'}
                         </span>
-                        <span className="text-[10px] text-white/50 mt-0.5">JPG, PNG, WebP up to 10MB</span>
+                        <span className="text-[11px] text-[#a3c7be] mt-0.5">JPG, PNG, WebP up to 10MB</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -516,18 +516,18 @@ export function ReviewsPage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-end gap-3 pt-2">
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#2f665a]/60">
                     <button
                       type="button"
                       onClick={() => setShowModal(false)}
-                      className="btn-ghost text-xs px-4 py-2 text-white/70 hover:text-white"
+                      className="rounded-full border-2 border-[#3a7c6e] bg-[#0e2722] px-5 py-2 text-xs font-bold text-[#ffffff] hover:border-[#a8f0dc] hover:bg-[#13352e] transition"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={submitting || uploadingImage}
-                      className="btn-primary text-xs px-6 py-2.5 font-bold shadow-lg inline-flex items-center gap-2"
+                      className="rounded-full bg-[#d90a1f] hover:bg-[#ff1026] text-[#ffffff] px-6 py-2.5 text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(217,10,31,0.45)] transition-transform hover:scale-105 active:scale-95 inline-flex items-center gap-2"
                     >
                       {submitting ? (
                         <>
