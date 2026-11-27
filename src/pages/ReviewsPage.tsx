@@ -55,6 +55,21 @@ export function ReviewsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Lock background scroll and handle ESC key when review modal is open
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setShowModal(false);
+    }
+    if (showModal) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [showModal]);
+
   // Handle local image file selection with dual Supabase + compressed fallback
   async function handleFileSelect(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -332,57 +347,66 @@ export function ReviewsPage() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-5 animate-fade-in"
+          onClick={() => setShowModal(false)}
         >
-          <div className="relative w-full max-w-lg rounded-2xl border-2 border-[#a8f0dc] bg-[#071b17] p-6 sm:p-7 text-[#ffffff] shadow-[0_15px_60px_rgba(0,0,0,0.9)] my-8">
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 rounded-full p-2 text-[#ffffff] bg-[#0e2722] hover:bg-[#a8f0dc] hover:text-[#03110f] border border-[#2f665a] transition"
-              aria-label="Close review form"
-            >
-              <LuX className="size-5" />
-            </button>
+          <div
+            className="relative w-full max-w-xl rounded-3xl border border-[#a8f0dc]/40 bg-gradient-to-b from-[#0b241e] via-[#071b17] to-[#04120f] text-[#ffffff] shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(168,240,220,0.12)] flex flex-col max-h-[90vh] overflow-hidden my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Glowing Gradient Accent */}
+            <div className="h-1 w-full bg-gradient-to-r from-transparent via-[#a8f0dc] to-transparent shrink-0 opacity-80" />
+
+            {/* Fixed Modal Header */}
+            <div className="flex items-start justify-between p-5 sm:p-6 pb-4 border-b border-[#214b40]/80 bg-[#071b17]/95 backdrop-blur-md shrink-0">
+              <div className="pr-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#a8f0dc]/15 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#a8f0dc] border border-[#a8f0dc]/30">
+                  <LuSparkles className="size-3.5 text-[#a8f0dc]" /> Verified Community Wall
+                </span>
+                <h3 className="mt-2 font-display text-2xl sm:text-3xl font-black text-[#ffffff] tracking-tight">
+                  Share Your Pixwora Story
+                </h3>
+                <p className="mt-1 text-xs sm:text-sm text-[#d6ede6] leading-relaxed">
+                  Your feedback and setup photos will appear live on our wall of love.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="size-9 rounded-full bg-[#0f2e26] hover:bg-[#a8f0dc] hover:text-[#03110f] border border-[#2f665a] text-[#ffffff] flex items-center justify-center transition-all duration-200 hover:rotate-90 shrink-0 shadow-sm"
+                aria-label="Close modal"
+              >
+                <LuX className="size-5" />
+              </button>
+            </div>
 
             {submitSuccess ? (
-              <div className="py-10 text-center space-y-3">
-                <div className="mx-auto grid size-16 place-items-center rounded-full bg-[#a8f0dc]/20 text-[#a8f0dc] text-3xl border-2 border-[#a8f0dc]">
-                  <LuCheck className="size-8 stroke-[3]" />
+              <div className="py-16 px-6 text-center space-y-4">
+                <div className="mx-auto grid size-20 place-items-center rounded-full bg-[#a8f0dc]/20 text-[#a8f0dc] text-4xl border-2 border-[#a8f0dc] shadow-[0_0_30px_rgba(168,240,220,0.3)]">
+                  <LuCheck className="size-10 stroke-[3]" />
                 </div>
                 <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-[#ffffff]">Review Published!</h3>
-                <p className="text-sm text-[#d6ede6] max-w-sm mx-auto leading-relaxed">
-                  Thank you, <strong className="text-[#a8f0dc]">{name}</strong>! Your review is now live on the Pixwora Community Wall.
+                <p className="text-sm sm:text-base text-[#d6ede6] max-w-sm mx-auto leading-relaxed">
+                  Thank you, <strong className="text-[#a8f0dc]">{name}</strong>! Your review and setup are now live on the Pixwora Community Wall.
                 </p>
               </div>
             ) : (
-              <>
-                <div className="mb-6 pr-8">
-                  <span className="text-xs font-mono font-black uppercase tracking-wider text-[#a8f0dc] flex items-center gap-1.5">
-                    <LuSparkles className="size-4 text-[#a8f0dc]" /> Share Your Experience
-                  </span>
-                  <h3 className="mt-1.5 font-display text-2xl sm:text-3xl font-black text-[#ffffff] tracking-tight">
-                    How's your Pixwora setup?
-                  </h3>
-                  <p className="mt-1.5 text-xs sm:text-sm text-[#d6ede6] leading-relaxed">
-                    Your review and photos will appear directly on our live community wall below.
-                  </p>
-                </div>
+              <form onSubmit={handleSubmitReview} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                {/* Scrollable Form Body */}
+                <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-5 space-y-5 scrollbar-thin scrollbar-thumb-[#2f665a] scrollbar-track-transparent">
+                  {formError && (
+                    <div className="rounded-xl bg-danger/25 border-2 border-danger p-3.5 text-xs font-bold text-[#ffffff] shadow-sm">
+                      {formError}
+                    </div>
+                  )}
 
-                {formError && (
-                  <div className="mb-5 rounded-xl bg-danger/25 border-2 border-danger p-3.5 text-xs font-bold text-[#ffffff] shadow-sm">
-                    {formError}
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmitReview} className="space-y-5">
                   {/* Star Rating Picker */}
-                  <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-2">
-                      Your Rating *
+                  <div className="rounded-2xl border border-[#214b40] bg-[#04120f]/60 p-4">
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-2.5">
+                      ⭐ Overall Rating *
                     </label>
                     <div className="flex flex-wrap items-center gap-3">
-                      <div className="flex items-center gap-1.5 bg-[#04120f] px-3 py-1.5 rounded-xl border border-[#2f665a]">
+                      <div className="flex items-center gap-1.5 bg-[#030e0c] px-3.5 py-2 rounded-xl border border-[#2f665a] shadow-inner">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
@@ -394,16 +418,16 @@ export function ReviewsPage() {
                             aria-label={`${star} star`}
                           >
                             <LuStar
-                              className={`size-6 transition-colors ${
+                              className={`size-6 sm:size-7 transition-colors ${
                                 star <= (hoverRating || rating)
-                                  ? 'fill-[#ffd447] text-[#ffd447] drop-shadow-[0_0_8px_rgba(255,212,71,0.6)]'
+                                  ? 'fill-[#ffd447] text-[#ffd447] drop-shadow-[0_0_10px_rgba(255,212,71,0.65)]'
                                   : 'text-[#2a5047] hover:text-[#ffd447]'
                               }`}
                             />
                           </button>
                         ))}
                       </div>
-                      <span className="text-xs sm:text-sm font-extrabold text-[#ffd447]">
+                      <span className="text-xs sm:text-sm font-extrabold text-[#ffd447] bg-[#ffd447]/10 border border-[#ffd447]/30 px-3 py-1 rounded-full">
                         {RATING_LABELS[hoverRating || rating]}
                       </span>
                     </div>
@@ -413,7 +437,7 @@ export function ReviewsPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                       <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-1.5">
-                        Your Name *
+                        👤 Your Name *
                       </label>
                       <input
                         type="text"
@@ -421,19 +445,19 @@ export function ReviewsPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Srujan Reddy"
-                        className="w-full rounded-xl border-2 border-[#2f665a] bg-[#04120f] px-3.5 py-2.5 text-sm font-medium text-[#ffffff] placeholder:text-[#88b0a5] focus:border-[#a8f0dc] focus:bg-[#071b17] focus:outline-none focus:ring-2 focus:ring-[#a8f0dc]/30 transition shadow-inner"
+                        className="w-full rounded-xl border-2 border-[#2b594f] bg-[#04120f] px-4 py-3 text-sm font-medium text-[#ffffff] placeholder:text-[#7ca89c] focus:border-[#a8f0dc] focus:bg-[#071b17] focus:outline-none focus:ring-2 focus:ring-[#a8f0dc]/30 transition shadow-inner"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-1.5">
-                        City / College (optional)
+                        📍 City / Campus (optional)
                       </label>
                       <input
                         type="text"
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
                         placeholder="e.g. Hyderabad / CBIT"
-                        className="w-full rounded-xl border-2 border-[#2f665a] bg-[#04120f] px-3.5 py-2.5 text-sm font-medium text-[#ffffff] placeholder:text-[#88b0a5] focus:border-[#a8f0dc] focus:bg-[#071b17] focus:outline-none focus:ring-2 focus:ring-[#a8f0dc]/30 transition shadow-inner"
+                        className="w-full rounded-xl border-2 border-[#2b594f] bg-[#04120f] px-4 py-3 text-sm font-medium text-[#ffffff] placeholder:text-[#7ca89c] focus:border-[#a8f0dc] focus:bg-[#071b17] focus:outline-none focus:ring-2 focus:ring-[#a8f0dc]/30 transition shadow-inner"
                       />
                     </div>
                   </div>
@@ -441,7 +465,7 @@ export function ReviewsPage() {
                   {/* Category / Product Tag Pills */}
                   <div>
                     <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-2">
-                      What did you get? (optional)
+                      🏷️ What did you get? (optional)
                     </label>
                     <div className="flex flex-wrap gap-2">
                       {REVIEW_TAG_OPTIONS.map((opt) => (
@@ -449,10 +473,10 @@ export function ReviewsPage() {
                           key={opt}
                           type="button"
                           onClick={() => setTag(opt)}
-                          className={`rounded-full px-3 py-1.5 text-xs font-black transition-all ${
+                          className={`rounded-full px-3.5 py-1.5 text-xs font-black transition-all ${
                             tag === opt
-                              ? 'bg-[#a8f0dc] text-[#03110f] border-2 border-[#a8f0dc] shadow-[0_0_12px_rgba(168,240,220,0.5)] scale-105'
-                              : 'bg-[#0e2722] text-[#ffffff] border-2 border-[#2f665a] hover:border-[#a8f0dc] hover:text-[#a8f0dc] hover:bg-[#13352e]'
+                              ? 'bg-[#a8f0dc] text-[#03110f] border-2 border-[#a8f0dc] shadow-[0_0_14px_rgba(168,240,220,0.5)] scale-105'
+                              : 'bg-[#0e2722] text-[#ffffff] border-2 border-[#2b594f] hover:border-[#a8f0dc] hover:text-[#a8f0dc] hover:bg-[#13352e]'
                           }`}
                         >
                           {opt}
@@ -464,7 +488,7 @@ export function ReviewsPage() {
                   {/* Review Textarea */}
                   <div>
                     <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-1.5">
-                      Your Review *
+                      ✍️ Your Review &amp; Experience *
                     </label>
                     <textarea
                       required
@@ -472,35 +496,35 @@ export function ReviewsPage() {
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
                       placeholder="Share your thoughts on sticker finish, waterproof durability, poster thickness, or customer support..."
-                      className="w-full rounded-xl border-2 border-[#2f665a] bg-[#04120f] p-3.5 text-sm font-medium text-[#ffffff] placeholder:text-[#88b0a5] focus:border-[#a8f0dc] focus:bg-[#071b17] focus:outline-none focus:ring-2 focus:ring-[#a8f0dc]/30 transition shadow-inner"
+                      className="w-full rounded-xl border-2 border-[#2b594f] bg-[#04120f] p-4 text-sm font-medium text-[#ffffff] placeholder:text-[#7ca89c] focus:border-[#a8f0dc] focus:bg-[#071b17] focus:outline-none focus:ring-2 focus:ring-[#a8f0dc]/30 transition shadow-inner"
                     />
                   </div>
 
                   {/* Setup Photo Upload */}
                   <div>
                     <label className="block text-xs font-black uppercase tracking-wider text-[#a8f0dc] mb-1.5">
-                      Photo of your setup / stickers (optional)
+                      📸 Photo of your setup / stickers (optional)
                     </label>
                     {photoPreview ? (
                       <div className="relative inline-block mt-1">
                         <img
                           src={photoPreview}
                           alt="Review preview"
-                          className="h-28 w-28 rounded-xl object-cover border-2 border-[#a8f0dc] shadow-md"
+                          className="h-32 w-32 rounded-2xl object-cover border-2 border-[#a8f0dc] shadow-lg"
                         />
                         <button
                           type="button"
                           onClick={() => setPhotoPreview('')}
-                          className="absolute -top-2 -right-2 rounded-full bg-[#d90a1f] text-white p-1.5 shadow-lg hover:bg-[#ff1026] transition"
+                          className="absolute -top-2.5 -right-2.5 rounded-full bg-[#d90a1f] text-white p-1.5 shadow-xl hover:bg-[#ff1026] hover:scale-110 transition"
                           title="Remove photo"
                         >
                           <LuTrash2 className="size-4" />
                         </button>
                       </div>
                     ) : (
-                      <label className="mt-1 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#3a7c6e] bg-[#04120f] p-4 text-center transition hover:border-[#a8f0dc] hover:bg-[#09221d] group">
-                        <LuUpload className="size-6 text-[#a8f0dc] mb-1 group-hover:scale-110 transition-transform" />
-                        <span className="text-xs font-bold text-[#ffffff]">
+                      <label className="mt-1 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#3a7c6e] bg-[#04120f] p-4 text-center transition hover:border-[#a8f0dc] hover:bg-[#09221d] group">
+                        <LuUpload className="size-7 text-[#a8f0dc] mb-1.5 group-hover:scale-110 transition-transform" />
+                        <span className="text-xs sm:text-sm font-bold text-[#ffffff]">
                           {uploadingImage ? 'Processing photo…' : 'Upload photo of your stickers or room wall'}
                         </span>
                         <span className="text-[11px] text-[#a3c7be] mt-0.5">JPG, PNG, WebP up to 10MB</span>
@@ -514,20 +538,26 @@ export function ReviewsPage() {
                       </label>
                     )}
                   </div>
+                </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#2f665a]/60">
+                {/* Fixed/Sticky Modal Footer */}
+                <div className="p-4 sm:px-7 py-4 bg-[#04120f]/95 backdrop-blur-md border-t border-[#1d4339] flex items-center justify-between gap-3 shrink-0">
+                  <div className="hidden sm:flex items-center gap-2 text-xs text-[#a8f0dc] font-bold">
+                    <span className="size-2 rounded-full bg-[#a8f0dc] animate-pulse" />
+                    <span>Live publication on /reviews</span>
+                  </div>
+                  <div className="flex items-center justify-end gap-3 w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={() => setShowModal(false)}
-                      className="rounded-full border-2 border-[#3a7c6e] bg-[#0e2722] px-5 py-2 text-xs font-bold text-[#ffffff] hover:border-[#a8f0dc] hover:bg-[#13352e] transition"
+                      className="rounded-full border-2 border-[#3a7c6e] bg-[#0e2722] px-5 py-2.5 text-xs font-bold text-[#ffffff] hover:border-[#a8f0dc] hover:bg-[#13352e] transition"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={submitting || uploadingImage}
-                      className="rounded-full bg-[#d90a1f] hover:bg-[#ff1026] text-[#ffffff] px-6 py-2.5 text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(217,10,31,0.45)] transition-transform hover:scale-105 active:scale-95 inline-flex items-center gap-2"
+                      className="rounded-full bg-gradient-to-r from-[#d90a1f] to-[#ff2b42] hover:from-[#ff1026] hover:to-[#ff4557] text-[#ffffff] px-7 py-2.5 text-xs font-black uppercase tracking-wider shadow-[0_4px_20px_rgba(217,10,31,0.5)] transition-all hover:scale-105 active:scale-95 inline-flex items-center gap-2 cursor-pointer"
                     >
                       {submitting ? (
                         <>
@@ -537,13 +567,13 @@ export function ReviewsPage() {
                       ) : (
                         <>
                           <LuSparkles className="size-4" />
-                          <span>Publish Review</span>
+                          <span>Publish Review ✨</span>
                         </>
                       )}
                     </button>
                   </div>
-                </form>
-              </>
+                </div>
+              </form>
             )}
           </div>
         </div>
